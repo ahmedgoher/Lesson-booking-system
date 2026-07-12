@@ -1,0 +1,477 @@
+﻿@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+    ViewData["Title"] = "Groups";
+}
+
+<!-- قسم إدارة المجموعات -->
+<section id="groups-section">
+
+    <div class="section-header-block">
+        <h2>إدارة المجموعات</h2>
+
+        <button class="action-button"
+                onclick="openModal('group-modal')">
+            إضافة مجموعة جديدة
+        </button>
+    </div>
+
+    <div class="table-responsive-container">
+
+        <table class="data-display-table">
+
+            <thead>
+                <tr>
+                    <th>اسم المجموعة</th>
+                    <th>المكان</th>
+                    <th>الصف</th>
+                    <th>المواعيد</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr data-id="1">
+                    <td>مجموعة المتميزين</td>
+                    <td>سنتر المدينة</td>
+                    <td>الصف الأول الثانوي</td>
+                    <td>السبت 03:00 م, الثلاثاء 05:00 م</td>
+                    <td>
+
+                        <button onclick="editGroup(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteGroup(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="2">
+                    <td>مجموعة الأوائل</td>
+                    <td>سنتر النور</td>
+                    <td>الصف الثاني الثانوي</td>
+                    <td>الأحد 06:30 م, الأربعاء 08:00 م</td>
+                    <td>
+
+                        <button onclick="editGroup(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteGroup(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="3">
+                    <td>مجموعة الامتياز</td>
+                    <td>سنتر المستقبل</td>
+                    <td>الصف الثالث الإعدادي</td>
+                    <td>الإثنين 04:00 م, الخميس 06:00 م</td>
+                    <td>
+
+                        <button onclick="editGroup(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteGroup(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="4">
+                    <td>مجموعة النخبة</td>
+                    <td>سنتر الأمل</td>
+                    <td>الصف الثالث الثانوي</td>
+                    <td>السبت 07:00 م, الإثنين 07:00 م, الأربعاء 07:00 م</td>
+                    <td>
+
+                        <button onclick="editGroup(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteGroup(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+@section model {
+
+    <div id="group-modal" class="custom-popup-overlay">
+
+        <div class="popup-window-content">
+
+            <h3>إضافة / تعديل مجموعة</h3>
+
+            <form id="group-form">
+
+                <input type="hidden" id="group-id">
+
+                <div class="input-field-group">
+                    <label>اسم المجموعة</label>
+                    <input type="text" id="group-name" required>
+                </div>
+
+                <div class="input-field-group">
+                    <label>المكان</label>
+
+                    <select id="group-location" required>
+                        <!-- سيتم تعبئته من JavaScript -->
+                    </select>
+
+                </div>
+
+                <div class="input-field-group">
+
+                    <label>الصف</label>
+
+                    <select id="group-grade" required>
+                        <!-- سيتم تعبئته من JavaScript -->
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="daysCount">
+                        عدد أيام الحضور
+                    </label>
+
+                    <select id="daysCount" onchange="generateDays()">
+                        <option> اختار عدد الايام </option>
+
+                        <option value="1">يوم واحد</option>
+                        <option value="2">يومان</option>
+                        <option value="3">3 أيام</option>
+                        <option value="4">4 أيام</option>
+                        <option value="5">5 أيام</option>
+                        <option value="6">6 أيام</option>
+                        <option value="7">7 أيام</option>
+
+                    </select>
+
+                </div>
+
+                <!-- سيتم إنشاء الأيام هنا -->
+                <div id="daysContainer"></div>
+
+                <div class="popup-actions-flex">
+
+                    <button type="submit"
+                            class="action-button">
+
+                        حفظ
+
+                    </button>
+
+                    <button type="button"
+                            class="action-button"
+                            style="background:#ccc;color:#333;"
+                            onclick="closeModal('group-modal')">
+
+                        إلغاء
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+}
+
+
+<script>
+
+    generateDays();
+
+    function generateDays() {
+
+        const count = parseInt(document.getElementById("daysCount").value);
+
+        const container = document.getElementById("daysContainer");
+
+        container.innerHTML = "";
+
+        const days = [
+            "السبت",
+            "الأحد",
+            "الإثنين",
+            "الثلاثاء",
+            "الأربعاء",
+            "الخميس",
+            "الجمعة"
+        ];
+
+        for (let i = 1; i <= count; i++) {
+
+            let options = "";
+
+            days.forEach(day => {
+
+                options += `
+                    <option value="${day}">
+                        ${day}
+                    </option>
+                `;
+
+            });
+
+            container.innerHTML += `
+
+            <div class="day-card">
+
+                <div class="day-title">
+
+                    اليوم ${i}
+
+                </div>
+
+                <div class="day-row">
+
+                    <div class="day-field">
+
+                        <label>اليوم</label>
+
+                        <select id="day${i}">
+
+                            ${options}
+
+                        </select>
+
+                    </div>
+
+                    <div class="day-field">
+
+                        <label>ميعاد الحصة</label>
+
+                        <input type="time" id="time${i}">
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            `;
+
+        }
+
+    }
+
+    //=============================
+    // فتح الـ Modal
+    //=============================
+
+    function openModal(modalId){
+
+        document.getElementById(modalId).style.display="flex";
+
+        // مؤقتاً بيانات وهمية للـ Select
+        if(modalId=="group-modal"){
+
+            const locations=[
+                "سنتر المدينة",
+                "سنتر النور",
+                "سنتر المستقبل",
+                "سنتر الأمل"
+            ];
+
+            const grades=[
+                "الصف الأول الإعدادي",
+                "الصف الثاني الإعدادي",
+                "الصف الثالث الإعدادي",
+                "الصف الأول الثانوي",
+                "الصف الثاني الثانوي",
+                "الصف الثالث الثانوي"
+            ];
+
+            const location=document.getElementById("group-location");
+            const grade=document.getElementById("group-grade");
+
+            if(location.options.length==0){
+
+                locations.forEach((l,index)=>{
+
+                    location.innerHTML+=`<option value="${index+1}">${l}</option>`;
+
+                });
+
+            }
+
+            if(grade.options.length==0){
+
+                grades.forEach((g,index)=>{
+
+                    grade.innerHTML+=`<option value="${index+1}">${g}</option>`;
+
+                });
+
+            }
+
+        }
+
+    }
+
+    //=============================
+    // غلق الـ Modal
+    //=============================
+
+    function closeModal(modalId){
+
+        document.getElementById(modalId).style.display="none";
+
+        document.getElementById("group-form").reset();
+
+        document.getElementById("group-id").value="";
+
+        generateDays();
+
+    }
+
+    //=============================
+    // تعديل المجموعة
+    //=============================
+
+    function editGroup(button){
+
+        openModal("group-modal");
+
+        const row=button.closest("tr");
+
+        const cells=row.querySelectorAll("td");
+
+        document.getElementById("group-id").value=row.dataset.id;
+
+        document.getElementById("group-name").value=cells[0].innerText.trim();
+
+        //---------------------
+        // المكان
+        //---------------------
+
+        const location=document.getElementById("group-location");
+
+        [...location.options].forEach(option=>{
+
+            if(option.text.trim()==cells[1].innerText.trim()){
+
+                location.value=option.value;
+
+            }
+
+        });
+
+        //---------------------
+        // الصف
+        //---------------------
+
+        const grade=document.getElementById("group-grade");
+
+        [...grade.options].forEach(option=>{
+
+            if(option.text.trim()==cells[2].innerText.trim()){
+
+                grade.value=option.value;
+
+            }
+
+        });
+
+        //---------------------
+        // المواعيد
+        //---------------------
+
+        const schedule=cells[3].innerText.trim();
+
+        const lessons=schedule.split(",");
+
+        document.getElementById("daysCount").value=lessons.length;
+
+        generateDays();
+
+        lessons.forEach((lesson,index)=>{
+
+            lesson=lesson.trim();
+
+            // السبت 03:00 م
+            const match=lesson.match(/^(.+?)\s+(\d{1,2}:\d{2})\s*(ص|م)$/);
+
+            if(!match) return;
+
+            const day=match[1];
+
+            const time=match[2];
+
+            const period=match[3];
+
+            document.getElementById(`day${index+1}`).value=day;
+
+            let hour=parseInt(time.split(":")[0]);
+
+            let minute=time.split(":")[1];
+
+            if(period==="م" && hour!=12)
+                hour+=12;
+
+            if(period==="ص" && hour==12)
+                hour=0;
+
+            const htmlTime=
+                hour.toString().padStart(2,"0")+":"+minute;
+
+            document.getElementById(`time${index+1}`).value=htmlTime;
+
+        });
+
+    }
+
+    //=============================
+    // حذف (مؤقت)
+    //=============================
+
+    function deleteGroup(button){
+
+        if(confirm("هل تريد حذف المجموعة؟")){
+
+            button.closest("tr").remove();
+
+        }
+
+    }
+
+</script>
+

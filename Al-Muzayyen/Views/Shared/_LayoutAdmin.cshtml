@@ -1,0 +1,204 @@
+﻿@{
+    var currentPage = ViewData["Title"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم | فارس اللغة العربية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/styleadmin.css">
+  
+</head>
+<style>
+
+</style>
+
+<body>
+
+    <div class="app-wrapper">
+        <!-- شريط التنقل العلوي -->
+        <header class="main-header">
+            <div class="header-nav">
+
+                <!-- القائمة للموبايل -->
+                <button class="menu-toggle-btn" onclick="toggleMobileSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <!-- اللوجو -->
+                <a href="#" class="brand-identity">
+                  
+                        <img src="~/images/logo.png" alt="Logo" class="brand-logo">
+                        <h1 class="brand-title">لوحة التحكم الإدارية</h1>
+                    
+                </a>
+
+        
+                <!-- العودة -->
+                <a a asp-action="Index" asp-controller="Home" class="back-link">
+                    <i class="fas fa-arrow-right"></i>
+                    العودة للموقع
+                </a>
+
+            </div>
+        </header>
+
+        <!-- الهيكل المشترك -->
+        <div class="workspace-layout">
+            <!-- غطاء شفاف للموبايل عند فتح القائمة -->
+            <div class="sidebar-overlay-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar()"></div>
+
+            <!-- القائمة الجانبية -->
+            <aside class="navigation-sidebar" id="appSidebar">
+                <ul class="sidebar-links-list">
+
+                    <li>
+                        <a asp-controller="Admin" asp-action="Index" class="sidebar-item-link">
+                            <i class="fas fa-home"></i>
+                            نظرة عامة
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Admin" asp-action="Students" class="sidebar-item-link">
+                            <i class="fas fa-users"></i>
+                            الطلاب المسجلين
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Admin" asp-action="Groups" class="sidebar-item-link">
+                            <i class="fas fa-layer-group"></i>
+                            المجموعات
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Admin" asp-action="Locations" class="sidebar-item-link">
+                            <i class="fas fa-map-marker-alt"></i>
+                            الأماكن
+                        </a>
+                    </li>
+
+                    <li>
+                        <a asp-controller="Admin" asp-action="Videos" class="sidebar-item-link">
+                            <i class="fas fa-video"></i>
+                            الفيديوهات
+                        </a>
+                    </li>
+
+                </ul>
+            </aside>
+
+
+
+
+           
+            <!-- منطقة عرض الصفحات (المحتوى) -->
+            <main class="content-workspace">
+                @RenderBody()
+             
+
+          
+
+     
+
+    
+
+            </main>
+        </div>
+    </div>
+
+
+
+    <!-- النوافذ المنبثقة (Modals) -->
+    @RenderSection("model", false)
+   
+   
+  
+
+    <script>
+        // دالة موحدة للتنقل بين الصفحات وإغلاق القائمة في الموبايل تلقائياً عند الضغط
+        function handleNavigation(event, sectionId) {
+        document.querySelectorAll('.content-workspace section').forEach(s => s.style.display = 'none');
+        document.getElementById(sectionId + '-section').style.display = 'block';
+            
+        document.querySelectorAll('.sidebar-links-list a').forEach(a => a.classList.remove('link-active'));
+        event.currentTarget.classList.add('link-active');
+            
+        // إغلاق القائمة في الموبايل بعد الاختيار
+        const sidebar = document.getElementById('appSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        if(sidebar.classList.contains('sidebar-visible')) {
+        sidebar.classList.remove('sidebar-visible');
+        backdrop.classList.remove('active');
+        }
+            
+        renderData();
+        }
+
+        // إظهار وإخفاء القائمة الجانبية في الشاشات الصغيرة
+        function toggleMobileSidebar() {
+        document.getElementById('appSidebar').classList.toggle('sidebar-visible');
+        document.getElementById('sidebarBackdrop').classList.toggle('active');
+        }
+
+   
+    </script>
+
+
+    <!-- ===================================video js -->
+
+    <script>
+        let currentCard = null;
+
+        function openVideoPopup(button){
+
+        currentCard = button.closest(".video-card");
+
+        const iframe = currentCard.querySelector("iframe");
+        const title = currentCard.querySelector("h3");
+        const desc = currentCard.querySelector("p");
+
+        document.getElementById("videoLink").value = iframe.src;
+        document.getElementById("videoTitle").value = title.innerText;
+        document.getElementById("videoDescription").value = desc.innerText;
+
+        document.getElementById("videoModal").style.display="flex";
+
+        }
+
+        function closeVideoPopup(){
+
+        document.getElementById("videoModal").style.display="none";
+
+        }
+
+        function saveVideo(){
+
+        const link=document.getElementById("videoLink").value;
+
+        const title=document.getElementById("videoTitle").value;
+
+        const desc=document.getElementById("videoDescription").value;
+
+        currentCard.querySelector("iframe").src=link;
+
+        currentCard.querySelector("h3").innerText=title;
+
+        currentCard.querySelector("p").innerText=desc;
+
+        closeVideoPopup();
+
+        }
+
+
+
+
+
+    </script>
+</body>
+</html>

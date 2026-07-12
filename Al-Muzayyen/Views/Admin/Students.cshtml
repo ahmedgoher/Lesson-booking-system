@@ -1,0 +1,29 @@
+﻿@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+    ViewData["Title"] = "Students";
+}
+
+<!-- قسم الطلاب المسجلين -->
+<section id="students-section" >
+    <div class="section-header-block">
+        <h2>قائمة الطلاب المسجلين</h2>
+        <button class="action-button" onclick="exportStudents()">تصدير البيانات</button>
+    </div>
+    <div class="table-responsive-container">
+        <table class="data-display-table">
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>الهاتف</th>
+                    <th>الصف</th>
+                    <th>المكان</th>
+                    <th>المجموعة</th>
+                    <th>التاريخ</th>
+                </tr>
+            </thead>
+            <tbody id="students-table-body">
+                <!-- البيانات تضاف برمجياً -->
+            </tbody>
+        </table>
+    </div>
+</section>

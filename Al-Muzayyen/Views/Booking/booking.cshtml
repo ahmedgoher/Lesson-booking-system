@@ -1,0 +1,135 @@
+﻿@{
+    Layout = "~/Views/Shared/_layouthome.cshtml";
+    ViewData["Title"] = "Booking Page";
+}
+
+<div class="container">
+    <div class="booking-form">
+        <a href="/Home" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+            العودة للرئيسية
+        </a>
+        <h2 style="text-align: center; margin-bottom: 30px;">سجل بياناتك للحجز</h2>
+        <form id="student-booking-form">
+            <div class="form-group">
+                <label>اسم الطالب بالكامل</label>
+                <input type="text" id="student-name" required placeholder="أدخل اسمك الثلاثي">
+            </div>
+            <div class="form-group">
+                <label>رقم الهاتف</label>
+                <input type="tel" id="student-phone" required placeholder="01xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>رقم ولي الأمر</label>
+                <input type="tel" id="student-guardian-phone" required placeholder="01xxxxxxxxx">
+            </div>
+            <div class="form-group">
+                <label>الصف الدراسي</label>
+                <select id="select-grade" required>
+                    <option value="">اختر الصف</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>مكان الدرس</label>
+                <select id="select-location" required>
+                    <option value="">اختر المكان</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>المجموعة المتاحة</label>
+                <select id="select-group" required disabled>
+                    <option value="">اختر المجموعة</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>ملاحظات (اختياري)</label>
+                <textarea id="student-note" placeholder="اكتب أي ملاحظة أو استفسار..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
+        </form>
+        <div id="success-msg" style="display:none; margin-top: 20px; color: green; text-align: center; font-weight: bold;">
+            تم الحجز بنجاح! سنتواصل معك قريباً.
+        </div>
+    </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+    const data = getAppData();
+    const gradeSelect = document.getElementById('select-grade');
+    const locationSelect = document.getElementById('select-location');
+    const groupSelect = document.getElementById('select-group');
+    const bookingForm = document.getElementById('student-booking-form');
+
+    // Populate Grades
+    data.grades.forEach(grade => {
+    const opt = document.createElement('option');
+    opt.value = grade.id;
+    opt.textContent = grade.name;
+    gradeSelect.appendChild(opt);
+    });
+
+    // Populate Locations
+    data.locations.forEach(loc => {
+    const opt = document.createElement('option');
+    opt.value = loc.id;
+    opt.textContent = loc.name;
+    locationSelect.appendChild(opt);
+    });
+
+    // Handle Group Filtering
+    function updateGroups() {
+    const gradeId = parseInt(gradeSelect.value);
+    const locationId = parseInt(locationSelect.value);
+
+    groupSelect.innerHTML = '<option value="">اختر المجموعة</option>';
+                
+    if (gradeId && locationId) {
+    const filteredGroups = data.groups.filter(g => g.gradeId === gradeId && g.locationId === locationId);
+    if (filteredGroups.length > 0) {
+    filteredGroups.forEach(group => {
+    const opt = document.createElement('option');
+    opt.value = group.id;
+    opt.textContent = `${group.name} - ${group.time}`;
+    groupSelect.appendChild(opt);
+    });
+    groupSelect.disabled = false;
+    } else {
+    groupSelect.innerHTML = '<option value="">لا توجد مجموعات متاحة حالياً</option>';
+    groupSelect.disabled = true;
+    }
+    } else {
+    groupSelect.disabled = true;
+    }
+    }
+
+    gradeSelect.addEventListener('change', updateGroups);
+    locationSelect.addEventListener('change', updateGroups);
+
+    // Handle Form Submission
+    bookingForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newStudent = {
+    id: Date.now(),
+    name: document.getElementById('student-name').value,
+    phone: document.getElementById('student-phone').value,
+    gradeId: parseInt(gradeSelect.value),
+    locationId: parseInt(locationSelect.value),
+    groupId: parseInt(groupSelect.value),
+    date: new Date().toLocaleDateString('ar-EG')
+    };
+
+    const currentData = getAppData();
+    currentData.students.push(newStudent);
+    saveAppData(currentData);
+
+    bookingForm.reset();
+    document.getElementById('success-msg').style.display = 'block';
+    setTimeout(() => {
+    document.getElementById('success-msg').style.display = 'none';
+    }, 5000);
+    });
+    });
+</script>

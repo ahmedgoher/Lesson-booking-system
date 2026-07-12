@@ -1,0 +1,259 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Locations";
+}
+
+<section id="locations-section">
+
+    <div class="section-header-block">
+        <h2>إدارة الأماكن</h2>
+
+        <button class="action-button"
+                onclick="openAddLocationModal()">
+            إضافة مكان جديد
+        </button>
+    </div>
+
+    <div class="table-responsive-container">
+
+        <table class="data-display-table">
+
+            <thead>
+                <tr>
+                    <th>اسم المكان</th>
+                    <th>العنوان</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody id="locations-table-body">
+
+                <tr data-id="1">
+                    <td>سنتر المدينة</td>
+                    <td>شارع الجمهورية - بجوار محطة القطار</td>
+                    <td>
+
+                        <button onclick="editLocation(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteLocation(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="2">
+                    <td>سنتر النور</td>
+                    <td>شارع الجيش - أمام مستشفى النور</td>
+                    <td>
+
+                        <button onclick="editLocation(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteLocation(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="3">
+                    <td>سنتر المستقبل</td>
+                    <td>شارع التحرير - أعلى بنك مصر</td>
+                    <td>
+
+                        <button onclick="editLocation(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteLocation(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+                <tr data-id="4">
+                    <td>سنتر الأمل</td>
+                    <td>شارع المدارس - بجوار المدرسة الثانوية</td>
+                    <td>
+
+                        <button onclick="editLocation(this)"
+                                class="action-icon-btn"
+                                style="color:blue;">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <button onclick="deleteLocation(this)"
+                                class="action-icon-btn"
+                                style="color:red;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+@section model {
+
+    <div id="location-edit-modal" class="custom-popup-overlay">
+
+        <div class="popup-window-content">
+
+            <h3>تعديل المكان</h3>
+
+            <form id="edit-location-form">
+
+                <input type="hidden" id="edit-location-id">
+
+                <div class="input-field-group">
+                    <label>اسم المكان</label>
+                    <input type="text" id="edit-location-name" required>
+                </div>
+
+                <div class="input-field-group">
+                    <label>العنوان</label>
+                    <input type="text" id="edit-location-address" required>
+                </div>
+
+                <div class="popup-actions-flex">
+
+                    <button type="submit"
+                            class="action-button">
+
+                        حفظ
+
+                    </button>
+
+                    <button type="button"
+                            class="action-button"
+                            style="background:#ccc;color:#333;"
+                            onclick="closeModal('location-edit-modal')">
+
+                        إلغاء
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    <div id="location-add-modal" class="custom-popup-overlay">
+
+        <div class="popup-window-content">
+
+            <h3>إضافة مكان جديد</h3>
+
+            <form id="add-location-form">
+
+                <div class="input-field-group">
+                    <label>اسم المكان</label>
+                    <input type="text" id="add-location-name" required>
+                </div>
+
+                <div class="input-field-group">
+                    <label>العنوان</label>
+                    <input type="text" id="add-location-address" required>
+                </div>
+
+                <div class="popup-actions-flex">
+
+                    <button type="submit" class="action-button">
+                        إضافة
+                    </button>
+
+                    <button type="button"
+                            class="action-button"
+                            style="background:#ccc;color:#333;"
+                            onclick="closeModal('location-add-modal')">
+
+                        إلغاء
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+    }
+
+    <script>
+            function openModal(id){
+
+        document.getElementById(id).style.display="flex";
+
+    }
+
+    function closeModal(id){
+
+        document.getElementById(id).style.display="none";
+
+
+    }
+
+
+        function openAddLocationModal(){
+
+        document.getElementById("add-location-form").reset();
+
+        openModal("location-add-modal");
+
+    }
+
+        function editLocation(button){
+
+        const row = button.closest("tr");
+
+        const cells = row.querySelectorAll("td");
+
+        document.getElementById("edit-location-id").value =
+            row.dataset.id;
+
+        document.getElementById("edit-location-name").value =
+            cells[0].textContent.trim();
+
+        document.getElementById("edit-location-address").value =
+            cells[1].textContent.trim();
+
+        openModal("location-edit-modal");
+
+    }
+
+        function deleteLocation(button){
+
+        if(confirm("هل تريد حذف المكان؟")){
+
+            button.closest("tr").remove();
+
+        }
+
+    }
+</script>

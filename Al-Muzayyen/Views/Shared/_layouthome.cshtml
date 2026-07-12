@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فارس اللغة العربية | الأستاذ عبد الفتاح المزين</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="~/css/style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a a asp-action="Index" asp-controller="Home">
+                    <div class="logo">
+                        <img src="~/images/logo.png" alt="فارس اللغة العربية">
+                        <h1>الأستاذ عبد الفتاح المزين</h1>
+                    </div>
+
+                </a>
+
+                <ul class="nav-links">
+                    <li><a a asp-action="Index" asp-controller="Home">الرئيسية</a></li>
+                    <li><a href="#about">من هو؟</a></li>
+                    <li><a href="#services">ماذا نقدم؟</a></li>
+                    <li><a asp-action="booking" asp-controller="Booking">حجز موعد</a></li>
+                    <li><a asp-action="Index" asp-controller="Admin">لوحة التحكم</a></li>
+                </ul>
+                <a href="/Booking/booking" class="btn btn-primary boooking">احجز الآن</a>
+            </nav>
+        </div>
+    </header>
+
+    @RenderBody()
+
+
+
+    <footer>
+        <div class="container">
+            <p>جميع الحقوق محفوظة &copy; 2024 - الأستاذ عبد الفتاح المزين (فارس اللغة العربية)</p>
+        </div>
+    </footer>
+
+
+</body>
+</html>
+
