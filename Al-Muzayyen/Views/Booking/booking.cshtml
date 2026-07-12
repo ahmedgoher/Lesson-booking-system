@@ -1,6 +1,10 @@
-﻿@{
+﻿@model Al_Muzayyen.Models.Booking
+
+@{
     Layout = "~/Views/Shared/_layouthome.cshtml";
     ViewData["Title"] = "Booking Page";
+    var classes = ViewBag.Classes as IEnumerable<Al_Muzayyen.Models.Class>;
+    var places = ViewBag.Places as IEnumerable<Al_Muzayyen.Models.Place>;
 }
 
 <div class="container">
@@ -10,126 +14,146 @@
             العودة للرئيسية
         </a>
         <h2 style="text-align: center; margin-bottom: 30px;">سجل بياناتك للحجز</h2>
-        <form id="student-booking-form">
+
+        @if (ViewBag.SuccessMessage != null)
+        {
+            <div class="alert alert-success" style="color: green; text-align: center; font-weight: bold; margin-bottom: 20px; background-color: #e2f0d9; padding: 10px; border-radius: 5px;">
+                @ViewBag.SuccessMessage
+            </div>
+        }
+        @if (ViewBag.ErrorMessage != null)
+        {
+            <div class="alert alert-danger" style="color: red; text-align: center; font-weight: bold; margin-bottom: 20px; background-color: #fce4d6; padding: 10px; border-radius: 5px;">
+                @ViewBag.ErrorMessage
+            </div>
+        }
+
+        <form action="/Booking/booking" method="post" id="student-booking-form">
+
             <div class="form-group">
                 <label>اسم الطالب بالكامل</label>
-                <input type="text" id="student-name" required placeholder="أدخل اسمك الثلاثي">
+                <input type="text" name="STD_Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.STD_Name">
+                <span asp-validation-for="STD_Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>رقم الهاتف</label>
-                <input type="tel" id="student-phone" required placeholder="01xxxxxxxxx">
+                <input type="tel" name="Student_phone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.Student_phone">
+                <span asp-validation-for="Student_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>رقم ولي الأمر</label>
-                <input type="tel" id="student-guardian-phone" required placeholder="01xxxxxxxxx">
+                <input type="tel" name="Parent_phone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.Parent_phone">
+                <span asp-validation-for="Parent_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>الصف الدراسي</label>
-                <select id="select-grade" required>
-                    <option value="">اختر الصف</option>
+                <select name="ClassId" id="select-grade">
+                    <option value="0">اختر الصف</option>
+                    @if (classes != null)
+                    {
+                        foreach (var c in classes)
+                        {
+                            <option value="@c.Id" selected="@(Model?.ClassId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    }
                 </select>
+                <span asp-validation-for="ClassId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>مكان الدرس</label>
-                <select id="select-location" required>
-                    <option value="">اختر المكان</option>
+                <select name="PlaceId" id="select-location">
+                    <option value="0">اختر المكان</option>
+                    @if (places != null)
+                    {
+                        foreach (var p in places)
+                        {
+                            <option value="@p.Id" selected="@(Model?.PlaceId == p.Id ? "selected" : null)">@p.Name</option>
+                        }
+                    }
                 </select>
+                <span asp-validation-for="PlaceId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>المجموعة المتاحة</label>
-                <select id="select-group" required disabled>
+                <select name="SlotId" id="select-group" disabled>
                     <option value="">اختر المجموعة</option>
                 </select>
+                <span asp-validation-for="SlotId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
+
             <div class="form-group">
                 <label>ملاحظات (اختياري)</label>
-                <textarea id="student-note" placeholder="اكتب أي ملاحظة أو استفسار..."></textarea>
+                <textarea name="Problem_text" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Problem_text</textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
         </form>
-        <div id="success-msg" style="display:none; margin-top: 20px; color: green; text-align: center; font-weight: bold;">
-            تم الحجز بنجاح! سنتواصل معك قريباً.
-        </div>
     </div>
 </div>
 
-<script src="data.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-    const data = getAppData();
     const gradeSelect = document.getElementById('select-grade');
     const locationSelect = document.getElementById('select-location');
     const groupSelect = document.getElementById('select-group');
-    const bookingForm = document.getElementById('student-booking-form');
 
-    // Populate Grades
-    data.grades.forEach(grade => {
-    const opt = document.createElement('option');
-    opt.value = grade.id;
-    opt.textContent = grade.name;
-    gradeSelect.appendChild(opt);
-    });
+    async function updateGroups() {
+    const gradeId = gradeSelect.value;
+    const locationId = locationSelect.value;
 
-    // Populate Locations
-    data.locations.forEach(loc => {
-    const opt = document.createElement('option');
-    opt.value = loc.id;
-    opt.textContent = loc.name;
-    locationSelect.appendChild(opt);
-    });
+    // الفحص هنا: لو القيمة فاضية أو تساوي "0"
+    if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
+    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+    groupSelect.disabled = true;
+    return;
+    }
 
-    // Handle Group Filtering
-    function updateGroups() {
-    const gradeId = parseInt(gradeSelect.value);
-    const locationId = parseInt(locationSelect.value);
+    groupSelect.innerHTML = '<option value="">جاري تحميل المجموعات...</option>';
+    groupSelect.disabled = true;
 
+    try {
+    const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
+
+    if (response.ok) {
+    const slots = await response.json();
     groupSelect.innerHTML = '<option value="">اختر المجموعة</option>';
-                
-    if (gradeId && locationId) {
-    const filteredGroups = data.groups.filter(g => g.gradeId === gradeId && g.locationId === locationId);
-    if (filteredGroups.length > 0) {
-    filteredGroups.forEach(group => {
+
+    if (slots.length > 0) {
+    slots.forEach(slot => {
     const opt = document.createElement('option');
-    opt.value = group.id;
-    opt.textContent = `${group.name} - ${group.time}`;
+    opt.value = slot.id;
+    opt.textContent = slot.name;
+    if ("@Model?.SlotId" == slot.id) opt.selected = true;
     groupSelect.appendChild(opt);
     });
     groupSelect.disabled = false;
     } else {
-    groupSelect.innerHTML = '<option value="">لا توجد مجموعات متاحة حالياً</option>';
-    groupSelect.disabled = true;
+    groupSelect.innerHTML = '<option value="">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
     }
-    } else {
-    groupSelect.disabled = true;
+
+    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي
+    $("form").validate().element("#select-group");
+    }
+    } catch (error) {
+    console.error("حدث خطأ أثناء جلب المجموعات:", error);
+    groupSelect.innerHTML = '<option value="">حدث خطأ أثناء تحميل البيانات</option>';
     }
     }
 
     gradeSelect.addEventListener('change', updateGroups);
     locationSelect.addEventListener('change', updateGroups);
 
-    // Handle Form Submission
-    bookingForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const newStudent = {
-    id: Date.now(),
-    name: document.getElementById('student-name').value,
-    phone: document.getElementById('student-phone').value,
-    gradeId: parseInt(gradeSelect.value),
-    locationId: parseInt(locationSelect.value),
-    groupId: parseInt(groupSelect.value),
-    date: new Date().toLocaleDateString('ar-EG')
-    };
-
-    const currentData = getAppData();
-    currentData.students.push(newStudent);
-    saveAppData(currentData);
-
-    bookingForm.reset();
-    document.getElementById('success-msg').style.display = 'block';
-    setTimeout(() => {
-    document.getElementById('success-msg').style.display = 'none';
-    }, 5000);
-    });
+    if (gradeSelect.value && locationSelect.value) {
+    updateGroups();
+    }
     });
 </script>

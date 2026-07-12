@@ -34,17 +34,21 @@ namespace Al_Muzayyen.Models
 
         // --- العلاقات والـ Foreign Keys ---
 
-        [Required]
+        
         [ForeignKey("Class")]
+        [Required(ErrorMessage = "يرجى اختيار الصف الدراسي")]
+        [Range(1, int.MaxValue, ErrorMessage = "يرجى اختيار الصف الدراسي من القائمة")]
         public int ClassId { get; set; }
         public Class? Class { get; set; } // إضافة ? لمنع مشاكل الـ Validation في الفورم
 
-        [Required]
+        [Required(ErrorMessage = "يرجى تحديد مكان الدرس")]
+        [Range(1, int.MaxValue, ErrorMessage = "يرجى تحديد مكان الدرس من القائمة")]
         [ForeignKey("AvailableSlot")]
         public int SlotId { get; set; }
         public Available_slot? AvailableSlot { get; set; } // تعديل الاسم ليبدأ بحرف كابيتال
 
-        [Required]
+        [Required(ErrorMessage = "يرجى اختيار المجموعة المتاحة للموعد")]
+        [Range(1, int.MaxValue, ErrorMessage = "يرجى اختيار المجموعة المتاحة للموعد")]
         [ForeignKey("Place")]
         public int PlaceId { get; set; }
         public Place? Place { get; set; } // تعديل الاسم ليبدأ بحرف كابيتال

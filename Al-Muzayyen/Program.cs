@@ -17,7 +17,10 @@ namespace Al_Muzayyen
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             // تسجيل الـ Generic Repository
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
+            builder.Services.AddScoped<IClassService, ClassService>();
+            builder.Services.AddScoped<IPlaceService, PlaceService>();
+            builder.Services.AddScoped<ISlotService, SlotService>();
+            builder.Services.AddScoped<IBookingService, BookingService>();
             // تسجيل سيرفيس الحجوزات
             builder.Services.AddScoped<IBookingService, BookingService>();
             // تسجيل الـ DbContext داخل خدمات المشروع
