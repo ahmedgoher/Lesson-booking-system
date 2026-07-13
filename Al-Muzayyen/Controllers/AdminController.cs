@@ -3,12 +3,6 @@ using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Mvc;
-
-
-
-
-
-
 namespace Al_Muzayyen.Controllers
 {
     public class AdminController : Controller

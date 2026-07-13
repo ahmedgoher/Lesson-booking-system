@@ -3,6 +3,229 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Students";
 }
+<style>
+
+    .modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0,0,0,.45);
+        backdrop-filter: blur(3px);
+        padding: 20px;
+        overflow: hidden;
+        z-index: 9999;
+    }
+
+    .modal-content {
+        width: 700px;
+        max-width: 95%;
+        max-height: 90vh;
+        background: #fff;
+        border-radius: 18px;
+        position: relative;
+        overflow-y: auto;
+        padding: 35px;
+        animation: popup .3s ease;
+        box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+        /*================ Scroll =================*/
+
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f2f2f2;
+            border-radius: 20px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #C9A04D;
+            border-radius: 20px;
+        }
+
+            .modal-content::-webkit-scrollbar-thumb:hover {
+                background: #b58c38;
+            }
+
+    /*================ Animation =================*/
+
+    @@keyframes popup {
+
+        from {
+            opacity: 0;
+            transform: translateY(-20px) scale(.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /*================ Close =================*/
+
+    .close-btn {
+        position: absolute;
+        left: 20px;
+        top: 20px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: #eee;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+        .close-btn:hover {
+            background: #C9A04D;
+            color: #fff;
+        }
+
+    /*================ Title =================*/
+
+    .modal h2 {
+        margin-bottom: 30px;
+        color: #243B55;
+        text-align: center;
+        font-size: 32px;
+    }
+
+    /*================ Grid =================*/
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 20px;
+    }
+
+    .detail-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .detail-box label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .detail-box div {
+            min-height: 55px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            transition: .3s;
+            word-break: break-word;
+        }
+
+            .detail-box div:hover {
+                border-color: #C9A04D;
+                background: #fffdf8;
+            }
+
+    /*================ Footer =================*/
+
+    .modal-footer {
+        margin-top: 30px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+    }
+
+    /*================ Buttons =================*/
+
+    .cancel-btn {
+        border: none;
+        background: #d9d9d9;
+        color: #333;
+        padding: 13px 30px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: .3s;
+    }
+
+        .cancel-btn:hover {
+            background: #bfbfbf;
+        }
+
+    .whatsapp-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: #C9A04D;
+        color: #fff;
+        text-decoration: none;
+        padding: 13px 30px;
+        border-radius: 10px;
+        font-weight: bold;
+        transition: .3s;
+    }
+
+        .whatsapp-btn:hover {
+            background: #b58c38;
+        }
+
+        .whatsapp-btn i {
+            font-size: 20px;
+        }
+
+    /*================ Mobile =================*/
+
+    @@media (max-width:768px) {
+
+        .modal {
+            padding: 10px;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 100%;
+            max-height: 95vh;
+            padding: 20px;
+        }
+
+        .modal h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .detail-box {
+            width: 100%;
+        }
+
+            .detail-box div {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+        .modal-footer {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+            .modal-footer .cancel-btn,
+            .modal-footer .whatsapp-btn {
+                width: 100%;
+                justify-content: center;
+            }
+    }
+
+</style>
 
 <!-- قسم الطلاب المسجلين -->
 <section id="students-section" >
@@ -20,6 +243,8 @@
                     <th>المكان</th>
                     <th>المجموعة</th>
                     <th>التاريخ</th>
+                    <th></th>
+
                 </tr>
             </thead>
             <tbody id="students-table-body">
@@ -31,11 +256,145 @@
                         <th>@std.Class?.Name</th>
                         <th>@std.Place?.Name</th>
                         <th>@std.AvailableSlot?.Group_Name</th>
-                         <th>@std.CreatedAt</th> 
+                        <th>@std.CreatedAt</th>
+                        <th>
+                            <button class="action-icon-btn"
+                                    onclick="show(
+                                '@std.STD_Name',
+                                '@std.Student_phone',
+                                '@std.Class?.Name',
+                                '@std.AvailableSlot?.Place?.Name',
+                                '@std.AvailableSlot?.Group_Name',
+                                '@std.CreatedAt.ToString("dd/MM/yyyy hh:mm tt")',
+                                '@std.Parent_phone',
+                                '@std.Problem_text'
+                                )">
+
+                                <i class="fas fa-eye"></i>
+
+                            </button>
+                        </th>
 
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+
+
+  <div id="detailsPopup" class="modal">
+
+    <div class="modal-content">
+
+        <button class="close-btn" onclick="closePopup()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2>بيانات الطالب</h2>
+
+        <div class="details-grid">
+
+            <div class="detail-box">
+                <label>اسم الطالب</label>
+                <div id="popupName"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>رقم الهاتف</label>
+                <div id="popupPhone"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>الصف</label>
+                <div id="popupClass"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>المكان</label>
+                <div id="popupPlace"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>المجموعة</label>
+                <div id="popupGroup"></div>
+            </div>
+
+                <div class="detail-box">
+                    <label>رقم ولي الأمر</label>
+                    <div id="popupParentPhone"></div>
+                </div>
+
+                <div class="detail-box">
+                    <label>المشكلة</label>
+                    <div id="popupProblem"></div>
+                </div>
+
+            <div class="detail-box">
+                <label>تاريخ الحجز</label>
+                <div id="popupDate"></div>
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button onclick="closePopup()" class="cancel-btn">
+                إغلاق
+            </button>
+
+            <a id="whatsappBtn"
+               target="_blank"
+               class="whatsapp-btn">
+
+                <i class="fab fa-whatsapp"></i>
+
+                تواصل معه
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>                 
 </section>
+
+            <script>
+              function show(name,
+              phone,
+              studentClass,
+              place,
+              group,
+              date,
+              parentPhone,
+              problem)
+{
+
+    document.getElementById("popupName").textContent = name;
+
+    document.getElementById("popupPhone").textContent = phone;
+
+    document.getElementById("popupClass").textContent = studentClass;
+
+    document.getElementById("popupPlace").textContent = place;
+
+    document.getElementById("popupGroup").textContent = group;
+
+    document.getElementById("popupDate").textContent = date;
+
+    document.getElementById("popupParentPhone").textContent = parentPhone;
+
+    document.getElementById("popupProblem").textContent = problem;
+
+    // زر الواتساب
+    document.getElementById("whatsappBtn").href =
+        "https://wa.me/2" + phone.replace(/^0/, "");
+
+    document.getElementById("detailsPopup").style.display = "flex";
+}
+
+function closePopup()
+{
+    document.getElementById("detailsPopup").style.display = "none";
+}
+            </script>

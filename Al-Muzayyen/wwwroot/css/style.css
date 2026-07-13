@@ -169,12 +169,13 @@ nav {
     margin-top: 50px;
 }
 
-.video-card{
-    background:#fff;
-    border-radius:15px;
-    overflow:hidden;
-    box-shadow:0 10px 25px rgba(0,0,0,.1);
-    transition:.3s;
+.video-card {
+    max-width: 400px;
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    transition: .3s;
 }
 
 .video-card:hover{
