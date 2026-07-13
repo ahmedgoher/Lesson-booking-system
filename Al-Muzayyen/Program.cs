@@ -15,6 +15,11 @@ namespace Al_Muzayyen
             builder.Services.AddControllersWithViews();
             // قراءة الكونيكشن استرنج من ملف appsettings.json
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            });
+
             // تسجيل الـ Generic Repository
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericSevice<>));
