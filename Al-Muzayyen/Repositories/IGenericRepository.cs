@@ -10,6 +10,12 @@ namespace Al_Muzayyen.Repositories
         Task AddAsync(T entity);
         void Update(T entity);
         void Delete(T entity);
+
+        void SaveChanges();
         Task<bool> SaveChangesAsync();
+
+        List<T> GetAll();
+
+
     }
 }

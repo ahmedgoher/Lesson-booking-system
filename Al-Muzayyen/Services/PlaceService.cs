@@ -10,5 +10,7 @@ namespace Al_Muzayyen.Services
 
         public async Task<IEnumerable<Place>> GetAllPlacesAsync() => await _placeRepo.GetAllAsync();
         public async Task<bool> CreatePlaceAsync(Place newPlace) { await _placeRepo.AddAsync(newPlace); return await _placeRepo.SaveChangesAsync(); }
+
+        
     }
 }

@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Al_Muzayyen.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260712130719_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20260713063841_v1")]
+    partial class v1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

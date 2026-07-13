@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<Video>
+@{
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "videos";
 }
@@ -15,50 +16,26 @@
 
         <div class="videos-grid">
 
-            <div class="video-card">
-                <iframe src="https://www.youtube.com/embed/i59pw-1VHFc?si=XSdqs0Kssxsap8fE"
-                        title="رسالة للطلاب"
-                        allowfullscreen>
-                </iframe>
+            @foreach (var video in Model)
+            {
+                <div class="video-card" data-id="@video.Id">
+                    <iframe src="@video.URL"
+                            title="@video.Title"
+                            allowfullscreen>
+                    </iframe>
 
-                <h3>رسالة إلى الطلاب</h3>
-                <p>كلمة تحفيزية من الأستاذ لجميع الطلاب في بداية العام الدراسي.</p>
+                    <h3>@video.Title</h3>
+                    <p>@video.Description</p>
 
-                <button class="edit-video-btn" onclick="openVideoPopup(this)">
-                    <i class="fas fa-edit"></i>
-                    تعديل
-                </button>
-            </div>
+                    <button class="edit-video-btn" onclick="openVideoPopup(this)">
+                        <i class="fas fa-edit"></i>
+                        تعديل
+                    </button>
+                </div>
 
-            <div class="video-card">
-                <iframe src="https://www.youtube.com/embed/i59pw-1VHFc?si=XSdqs0Kssxsap8fE"
-                        title="شرح مميز"
-                        allowfullscreen>
-                </iframe>
 
-                <h3>شرح مميز</h3>
-                <p>جزء من أحد الدروس لعرض أسلوب الشرح.</p>
+            }
 
-                <button class="edit-video-btn" onclick="openVideoPopup(this)">
-                    <i class="fas fa-edit"></i>
-                    تعديل
-                </button>
-            </div>
-
-            <div class="video-card">
-                <iframe src="https://www.youtube.com/embed/i59pw-1VHFc?si=XSdqs0Kssxsap8fE"
-                        title="نصائح للمذاكرة"
-                        allowfullscreen>
-                </iframe>
-
-                <h3>نصائح للمذاكرة</h3>
-                <p>أفضل النصائح لتحقيق أعلى الدرجات في اللغة العربية.</p>
-
-                <button class="edit-video-btn" onclick="openVideoPopup(this)">
-                    <i class="fas fa-edit"></i>
-                    تعديل
-                </button>
-            </div>
 
         </div>
 
@@ -67,26 +44,33 @@
 
 @section model{
     <div id="videoModal" class="modal">
-
         <div class="modal-content">
 
             <h2>تعديل الفيديو</h2>
 
-            <label>رابط الفيديو</label>
-            <input type="text" id="videoLink">
+            <form asp-action="EditVideo" asp-controller="Admin" method="post">
+                <input type="hidden" id="videoId" name="Id" />
+                <label>رابط الفيديو</label>
 
-            <label>العنوان</label>
-            <input type="text" id="videoTitle">
+                <input type="text" id="videoLink" name="URL" />
 
-            <label>الوصف</label>
-            <textarea id="videoDescription"></textarea>
+                <label>العنوان</label>
+                <input type="text" id="videoTitle" name="Title" />
 
-            <div class="modal-buttons">
-                <button onclick="saveVideo()">حفظ</button>
-                <button onclick="closeVideoPopup()">إلغاء</button>
-            </div>
+                <label>الوصف</label>
+                <textarea id="videoDescription" name="Description"></textarea>
+
+                <div class="modal-buttons">
+                    <button type="submit">حفظ</button>
+                    <button type="button" onclick="closeVideoPopup()">إلغاء</button>
+                </div>
+
+            </form>
+
 
         </div>
 
+       
     </div>
+    }
 }

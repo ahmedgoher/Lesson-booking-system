@@ -27,5 +27,15 @@ namespace Al_Muzayyen.Repositories
         public void Delete(T entity) => _dbSet.Remove(entity);
 
         public async Task<bool> SaveChangesAsync() => (await _context.SaveChangesAsync()) > 0;
+
+        public List<T> GetAll()
+        {
+           return _dbSet.ToList();
+        }
+
+        public void SaveChanges()
+        {
+            _context.SaveChanges();
+        }
     }
 }
