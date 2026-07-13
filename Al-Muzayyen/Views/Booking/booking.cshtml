@@ -81,7 +81,7 @@
             <div class="form-group">
                 <label>المجموعة المتاحة</label>
                 <select name="SlotId" id="select-group" disabled>
-                    <option value="">اختر المجموعة</option>
+                    <option value="0">اختر المجموعة</option>
                 </select>
                 <span asp-validation-for="SlotId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
@@ -110,14 +110,13 @@
     const gradeId = gradeSelect.value;
     const locationId = locationSelect.value;
 
-    // الفحص هنا: لو القيمة فاضية أو تساوي "0"
     if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
     groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
     groupSelect.disabled = true;
     return;
     }
 
-    groupSelect.innerHTML = '<option value="">جاري تحميل المجموعات...</option>';
+    groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
     groupSelect.disabled = true;
 
     try {
@@ -125,34 +124,34 @@
 
     if (response.ok) {
     const slots = await response.json();
-    groupSelect.innerHTML = '<option value="">اختر المجموعة</option>';
+    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
 
     if (slots.length > 0) {
     slots.forEach(slot => {
     const opt = document.createElement('option');
     opt.value = slot.id;
-    opt.textContent = slot.name;
+    opt.textContent = slot.name; // سيعرض النص المدمج الجاهز من السيرفر
     if ("@Model?.SlotId" == slot.id) opt.selected = true;
     groupSelect.appendChild(opt);
     });
     groupSelect.disabled = false;
     } else {
-    groupSelect.innerHTML = '<option value="">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
+    groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
     }
 
-    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي
+    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي ليعمل بشكل سليم
     $("form").validate().element("#select-group");
     }
     } catch (error) {
     console.error("حدث خطأ أثناء جلب المجموعات:", error);
-    groupSelect.innerHTML = '<option value="">حدث خطأ أثناء تحميل البيانات</option>';
+    groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
     }
     }
 
     gradeSelect.addEventListener('change', updateGroups);
     locationSelect.addEventListener('change', updateGroups);
 
-    if (gradeSelect.value && locationSelect.value) {
+    if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
     updateGroups();
     }
     });
