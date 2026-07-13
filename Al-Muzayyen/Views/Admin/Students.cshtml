@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<Booking>
+@{
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Students";
 }
@@ -22,7 +23,18 @@
                 </tr>
             </thead>
             <tbody id="students-table-body">
-                <!-- البيانات تضاف برمجياً -->
+                @foreach(var std in Model)
+                {
+                    <tr>
+                        <th>@std.STD_Name</th>
+                        <th>@std.Student_phone</th>
+                        <th>@std.Class?.Name</th>
+                        <th>@std.Place?.Name</th>
+                        <th>@std.AvailableSlot?.Group_Name</th>
+                         <th>@std.CreatedAt</th> 
+
+                    </tr>
+                }
             </tbody>
         </table>
     </div>

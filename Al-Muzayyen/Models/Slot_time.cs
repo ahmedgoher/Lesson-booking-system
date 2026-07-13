@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -24,6 +25,6 @@ namespace Al_Muzayyen.Models
         public int SlotID { get; set; }
 
         // خاصية الملاحة (Navigation Property)
-        public Available_slot AvailableSlot { get; set; }
+        public Available_slot? AvailableSlot { get; set; }
     }
 }

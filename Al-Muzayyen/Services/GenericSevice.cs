@@ -14,6 +14,10 @@ namespace Al_Muzayyen.Services
         {
            return Repository.GetAll();
         }
+        public void Add(T entity)
+        {
+            Repository.Add(entity);
+        }
 
         public void Update(T entity)
         {
@@ -29,6 +33,10 @@ namespace Al_Muzayyen.Services
         public void SaveChanges()
         {
             Repository.SaveChanges();
+        }
+        public async Task SaveChangesAsync()
+        {
+            await Repository.SaveChangesAsync();
         }
     }
 }

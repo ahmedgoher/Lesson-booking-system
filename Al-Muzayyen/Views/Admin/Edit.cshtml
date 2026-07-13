@@ -1,0 +1,147 @@
+﻿@model Al_Muzayyen.Models.Available_slot
+
+@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+    ViewData["Title"] = "تعديل مجموعة";
+    int Number_Of_day = ViewBag.Number_Of_day;
+}
+
+<section class="form-section">
+    <h2>تعديل مجموعة: @Model.Group_Name</h2>
+
+    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+
+        <input asp-for="Id" type="hidden" />
+
+        <input asp-for="StartDate" type="hidden" />
+        <input asp-for="State" type="hidden" />
+
+        <input asp-for="Number_Of_day" type="hidden" value="@Number_Of_day" />
+
+        <div class="input-field-group">
+            <label>اسم المجموعة</label>
+            <input asp-for="Group_Name" class="form-control" required />
+            <span asp-validation-for="Group_Name" class="text-danger"></span>
+        </div>
+
+        <div class="input-field-group">
+            <label>المكان</label>
+            <select asp-for="PlaceId" class="form-control">
+                @foreach (var place in ViewBag.Places)
+                {
+                    <option value="@place.Id">@place.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="input-field-group">
+            <label>الصف</label>
+            <select asp-for="ClassId" class="form-control">
+                @foreach (var cls in ViewBag.Classes)
+                {
+                    <option value="@cls.Id">@cls.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>عدد أيام الحضور في الأسبوع</label>
+
+            <select onchange="window.location.href='?id=@Model.Id&Number_Of_day=' + this.value">
+
+                @for (int i = 1; i <= 7; i++)
+                {
+                    if (Number_Of_day == i)
+                    {
+                        <option value="@i" selected>@i أيام</option>
+                    }
+                    else
+                    {
+                        <option value="@i">@i أيام</option>
+                    }
+                }
+
+            </select>
+        </div>
+
+        <div id="daysContainer">
+
+            @for (int i = 0; i < Number_Of_day; i++)
+            {
+                var oldTime = Model.SlotTimes != null && Model.SlotTimes.Count > i
+                ? Model.SlotTimes.ElementAt(i)
+                : null;
+
+                <div class="day-card">
+
+                    <div class="day-title">
+                        اليوم @(i + 1)
+                    </div>
+
+                    <input type="hidden"
+                           name="SlotTimes[@i].Id"
+                           value="@oldTime?.ID" />
+
+                    <div class="day-row">
+
+                        <div class="day-field">
+                            <label>اليوم</label>
+
+                            <select name="SlotTimes[@i].Day" class="form-control">
+
+                                <option value="السبت" selected="@(oldTime?.Day == "السبت")">السبت</option>
+                                <option value="الأحد" selected="@(oldTime?.Day == "الأحد")">الأحد</option>
+                                <option value="الإثنين" selected="@(oldTime?.Day == "الإثنين")">الإثنين</option>
+                                <option value="الثلاثاء" selected="@(oldTime?.Day == "الثلاثاء")">الثلاثاء</option>
+                                <option value="الأربعاء" selected="@(oldTime?.Day == "الأربعاء")">الأربعاء</option>
+                                <option value="الخميس" selected="@(oldTime?.Day == "الخميس")">الخميس</option>
+                                <option value="الجمعة" selected="@(oldTime?.Day == "الجمعة")">الجمعة</option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="day-field">
+
+                            <label>ميعاد الحصة</label>
+
+                            <input type="time"
+                                   name="SlotTimes[@i].Time"
+                                   class="form-control"
+                                   value="@oldTime?.Time"
+                                   required />
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+
+        <div class="popup-actions-flex">
+
+            <button type="submit" class="action-button">
+                حفظ التعديلات
+            </button>
+
+            <a asp-action="Groups"
+               class="action-button"
+               style="background:#ccc;color:#333;text-decoration:none;text-align:center;">
+                إلغاء
+            </a>
+
+        </div>
+
+    </form>
+
+</section>
+
+<script>
+     @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+</script>
+
+   
