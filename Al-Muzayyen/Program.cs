@@ -22,6 +22,9 @@ namespace Al_Muzayyen
             builder.Services.AddScoped<IPlaceService, PlaceService>();
             builder.Services.AddScoped<ISlotService, SlotService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
+            // Repos
+            builder.Services.AddScoped<IBookingRepo, BookingRepo>();
+            builder.Services.AddScoped<IGroupRepo, GroupRepo>();
             // تسجيل سيرفيس الحجوزات
             builder.Services.AddScoped<IBookingService, BookingService>();
             // تسجيل الـ DbContext داخل خدمات المشروع

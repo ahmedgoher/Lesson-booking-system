@@ -1,8 +1,8 @@
 ﻿using Al_Muzayyen.Models;
+using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Al_Muzayyen.Controllers
 {
@@ -10,26 +10,39 @@ namespace Al_Muzayyen.Controllers
     {
         private readonly IGenericService<Class> _classService;
         private readonly IGenericService<Booking> _bookingService;
-        private readonly IPlaceService _placeService; 
+        private readonly IGenericService<Available_slot> _availableSlotService;
+        private readonly IGenericService<Place> _placeServiceGeneric;
         private readonly IGenericService<Video> _videoService;
-        private readonly IGenericService<Available_slot> _available_slot;
+        private readonly IPlaceService _placeService;
+        private readonly IBookingRepo bookingRepo;
+        private readonly IGroupRepo groupRepo;
 
-
-
-        public AdminController(IGenericService<Class> classService, IGenericService<Booking> bookingService, IPlaceService placeService, IGenericService<Video> videoService, IGenericService<Available_slot> available_slot)
+        public AdminController
+            (IGenericService<Class> classService,
+            IGenericService<Booking> bookingService,
+            IPlaceService placeService,
+            IGenericService<Video> videoService,
+            IGenericService<Place> genericServiceGeneric,
+            IGenericService<Available_slot> availableSlotService,
+            IBookingRepo bookingRepo,
+            IGroupRepo groupRepo)
         {
             _classService = classService;
             _bookingService = bookingService;
             _placeService = placeService;
+            _availableSlotService = availableSlotService;
+            _placeServiceGeneric = genericServiceGeneric;
             _videoService = videoService;
-            _available_slot = available_slot;
+            this.bookingRepo = bookingRepo;
+            this.groupRepo = groupRepo;
+
         }   
         public IActionResult Index()
         {
             var model = new IndexVMAdmin
             {
                 StudentsCount = _bookingService.GetAll().Count(),
-                GroupsCount = _available_slot.GetAll().Count(),
+                GroupsCount = _availableSlotService.GetAll().Count(),
                 ClassesCount = _classService.GetAll().Count()
             };
 
@@ -37,14 +50,53 @@ namespace Al_Muzayyen.Controllers
             return View(model);
         }
 
-        public IActionResult Students()
+        public async Task<IActionResult> Students()
         {
-            return View();
+            var stds = await bookingRepo.GetEnteredStudents();
+            return View(stds);
         }
 
+        public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
+        {
+            var groups = await groupRepo.GetAllGroupsWithRelations();
+            var query = groups.AsQueryable();
+            if (string.IsNullOrEmpty(status))
+            {
+                status = "Active";
+            }
+            if (status != "All") // لو اختار "الكل" هيعرض الكل، غير كده يفلتر حسب الاختيار
+            {
+                query = query.Where(g => g.State == status);
+            }
+            //  الفلترة بالمكان
+            if (placeId.HasValue)
+            {
+                query = query.Where(g => g.PlaceId == placeId.Value);
+            }
 
+            if (classId.HasValue)
+            {
+                query = query.Where(g => g.ClassId == classId.Value);
+            }
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
 
+            ViewBag.SelectedPlace = placeId;
+            ViewBag.SelectedClass = classId;
+            ViewBag.SelectedStatus = status;
 
+            return View(query.ToList());
+        }
+        [HttpGet]
+        public IActionResult Create(int? Number_Of_day)
+        {
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
+
+            ViewBag.Number_Of_day = Number_Of_day ?? 1;
+
+            return View();
+        }
 
         public IActionResult Classes()
         {
@@ -91,21 +143,71 @@ namespace Al_Muzayyen.Controllers
             return RedirectToAction(nameof(Classes));
         }
 
-
-
-
-
-
-
-
-
-
-        public IActionResult Groups()
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id, int? Number_Of_day)
         {
-            return View();
+            var groups = await groupRepo.GetAllGroupsWithRelations();
+            var group = groups.FirstOrDefault(g => g.Id == id);
+
+            if (group == null) return NotFound();
+
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
+
+            ViewBag.Number_Of_day = Number_Of_day ?? group.SlotTimes.Count;
+
+            return View(group);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, Available_slot group)
+        {
+            ModelState.Remove("SlotTimes.AvailableSlot");
+            ModelState.Remove("SlotTimes.AvailableSlotId");
+
+            if (id != group.Id)
+                return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Places = _placeServiceGeneric.GetAll();
+                ViewBag.Classes = _classService.GetAll();
+                ViewBag.Number_Of_day = group.SlotTimes?.Count ?? 1;
+                return View(group);
+            }
+
+            await groupRepo.UpdateGroupWithSlots(group);
+
+            TempData["SuccessMessage"] = "تم تعديل بيانات المجموعة بنجاح!";
+            return RedirectToAction(nameof(Groups));
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            // 1. هنجيب المجموعة من الـ Service عادي بدون ما نوجع دماغنا بالـ Relations
+            var group = _availableSlotService.GetAll().FirstOrDefault(g => g.Id == id);
+
+            if (group != null)
+            {
+                try
+                {
+                    group.State = "Closed";
+
+                    _availableSlotService.Update(group);
+                    await _availableSlotService.SaveChangesAsync();
+
+                    TempData["SuccessMessage"] = "تم حذف (إغلاق) المجموعة بنجاح!";
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "حدث خطأ أثناء حذف المجموعة.";
+                }
+            }
+
+            return RedirectToAction(nameof(Groups));
+        }
         public async Task<IActionResult> Locations()
+
         {
             // استخدام الدالة الحقيقية من السيرفيس
             var model = await _placeService.GetAllPlacesAsync();
