@@ -159,10 +159,14 @@
 
         currentCard = button.closest(".video-card");
 
+        const id = currentCard.dataset.id;
         const iframe = currentCard.querySelector("iframe");
         const title = currentCard.querySelector("h3");
         const desc = currentCard.querySelector("p");
 
+
+
+        document.getElementById("videoId").value = id;
         document.getElementById("videoLink").value = iframe.src;
         document.getElementById("videoTitle").value = title.innerText;
         document.getElementById("videoDescription").value = desc.innerText;
