@@ -7,6 +7,75 @@
     var places = ViewBag.Places as IEnumerable<Al_Muzayyen.Models.Place>;
 }
 
+<style>
+    .whatsapp-contact {
+        margin-top: 20px;
+    }
+
+    .whatsapp-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        background: #25D366;
+        border-radius: 14px;
+        padding: 15px 22px;
+        text-decoration: none;
+        color: #fff;
+        transition: .3s;
+        box-shadow: 0 8px 20px rgba(37,211,102,.18);
+    }
+
+        .whatsapp-btn:hover {
+            background: #1EBE5D;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(37,211,102,.25);
+            color: #fff;
+        }
+
+    .whatsapp-icon {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .whatsapp-icon i {
+            font-size: 32px;
+        }
+
+    .whatsapp-content {
+        flex: 1;
+        margin: 0 18px;
+        text-align: right;
+    }
+
+        .whatsapp-content h5 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .whatsapp-content span {
+            font-size: 14px;
+            opacity: .9;
+        }
+
+    .whatsapp-arrow {
+        font-size: 22px;
+        opacity: .9;
+    }
+
+    .whatsapp-btn:hover .whatsapp-arrow {
+        transform: translateX(-6px);
+        transition: .3s;
+    }
+</style>
+
 <div class="container">
     <div class="booking-form">
         <a href="/Home" class="back-btn">
@@ -93,6 +162,22 @@
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
         </form>
+
+        <div class="whatsapp-contact">
+            <a href="https://wa.me/201283553306?text=
+السلام عليكم، أريد الاستفسار عن الحجز"
+                   target="_blank"
+                   class="whatsapp-btn">
+                <i class="fa-brands fa-whatsapp"></i>
+
+                <div class="whatsapp-text">
+                    <span class="title">تواصل معنا عبر واتساب</span>
+                    @* <span class="sub-title">اضغط هنا للاستفسار أو طلب المساعدة</span> *@
+                </div>
+
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+        </div>
     </div>
 </div>
 

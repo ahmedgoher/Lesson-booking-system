@@ -35,6 +35,8 @@ namespace Al_Muzayyen.Repositories
            return _dbSet.ToList();
         }
 
+        //public void Find(int id);
+
         public void SaveChanges()
         {
             _context.SaveChanges();

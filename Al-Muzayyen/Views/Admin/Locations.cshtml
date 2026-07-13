@@ -1,4 +1,5 @@
-﻿@{
+﻿@model IEnumerable<Al_Muzayyen.Models.Place>
+@{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     ViewData["Title"] = "Locations";
 }
@@ -16,101 +17,42 @@
 
     <div class="table-responsive-container">
 
-        <table class="data-display-table">
 
-            <thead>
-                <tr>
-                    <th>اسم المكان</th>
-                    <th>العنوان</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-
-            <tbody id="locations-table-body">
-
-                <tr data-id="1">
-                    <td>سنتر المدينة</td>
-                    <td>شارع الجمهورية - بجوار محطة القطار</td>
+<table class="data-display-table">
+    <thead>
+        <tr>
+            <th>اسم المكان</th>
+            <th>العنوان</th>
+            <th>إجراءات</th>
+        </tr>
+    </thead>
+    <tbody id="locations-table-body">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var place in Model)
+            {
+                <tr data-id="@place.Id">
+                    <td>@place.Name</td>
+                    <td>@place.Address</td>
                     <td>
-
-                        <button onclick="editLocation(this)"
-                                class="action-icon-btn"
-                                style="color:blue;">
+                        <button onclick="editLocation(this)" class="action-icon-btn" style="color:blue;">
                             <i class="fas fa-edit"></i>
                         </button>
-
-                        <button onclick="deleteLocation(this)"
-                                class="action-icon-btn"
-                                style="color:red;">
+                        <button onclick="deleteLocation(this)" class="action-icon-btn" style="color:red;">
                             <i class="fas fa-trash"></i>
                         </button>
-
                     </td>
                 </tr>
-
-                <tr data-id="2">
-                    <td>سنتر النور</td>
-                    <td>شارع الجيش - أمام مستشفى النور</td>
-                    <td>
-
-                        <button onclick="editLocation(this)"
-                                class="action-icon-btn"
-                                style="color:blue;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-
-                        <button onclick="deleteLocation(this)"
-                                class="action-icon-btn"
-                                style="color:red;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-
-                    </td>
-                </tr>
-
-                <tr data-id="3">
-                    <td>سنتر المستقبل</td>
-                    <td>شارع التحرير - أعلى بنك مصر</td>
-                    <td>
-
-                        <button onclick="editLocation(this)"
-                                class="action-icon-btn"
-                                style="color:blue;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-
-                        <button onclick="deleteLocation(this)"
-                                class="action-icon-btn"
-                                style="color:red;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-
-                    </td>
-                </tr>
-
-                <tr data-id="4">
-                    <td>سنتر الأمل</td>
-                    <td>شارع المدارس - بجوار المدرسة الثانوية</td>
-                    <td>
-
-                        <button onclick="editLocation(this)"
-                                class="action-icon-btn"
-                                style="color:blue;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-
-                        <button onclick="deleteLocation(this)"
-                                class="action-icon-btn"
-                                style="color:red;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3" style="text-align:center; color:gray;">لا توجد أماكن مسجلة حالياً.</td>
+            </tr>
+        }
+    </tbody>
+</table>
 
     </div>
 
@@ -119,70 +61,57 @@
 @section model {
 
     <div id="location-edit-modal" class="custom-popup-overlay">
-
         <div class="popup-window-content">
-
             <h3>تعديل المكان</h3>
 
-            <form id="edit-location-form">
+            <form id="edit-location-form" asp-action="EditLocation" asp-controller="Admin" method="post">
 
-                <input type="hidden" id="edit-location-id">
+                <input type="hidden" id="edit-location-id" name="Id">
 
                 <div class="input-field-group">
                     <label>اسم المكان</label>
-                    <input type="text" id="edit-location-name" required>
+                    <input type="text" id="edit-location-name" name="Name" required>
                 </div>
 
                 <div class="input-field-group">
                     <label>العنوان</label>
-                    <input type="text" id="edit-location-address" required>
+                    <input type="text" id="edit-location-address" name="Address" required>
                 </div>
 
                 <div class="popup-actions-flex">
-
-                    <button type="submit"
-                            class="action-button">
-
-                        حفظ
-
-                    </button>
-
-                    <button type="button"
-                            class="action-button"
-                            style="background:#ccc;color:#333;"
-                            onclick="closeModal('location-edit-modal')">
-
-                        إلغاء
-
-                    </button>
-
+                    <button type="submit" class="action-button">حفظ</button>
+                    <button type="button" class="action-button" style="background:#ccc;color:#333;" onclick="closeModal('location-edit-modal')">إلغاء</button>
                 </div>
-
             </form>
-
         </div>
-
     </div>
+    <form id="delete-location-form" asp-action="DeleteLocation" asp-controller="Admin" method="post" style="display:none;">
+        <input type="hidden" id="delete-location-id" name="id">
+    </form>
     <div id="location-add-modal" class="custom-popup-overlay">
 
         <div class="popup-window-content">
 
             <h3>إضافة مكان جديد</h3>
 
-            <form id="add-location-form">
+            <form id="add-location-form" asp-action="AddLocation" asp-controller="Admin" method="post">
+
+                @if (TempData["Error"] != null)
+                {
+                    <div style="color:red; margin-bottom:10px; font-weight:bold;">@TempData["Error"]</div>
+                }
 
                 <div class="input-field-group">
                     <label>اسم المكان</label>
-                    <input type="text" id="add-location-name" required>
+                    <input type="text" name="Name" required>
                 </div>
 
                 <div class="input-field-group">
                     <label>العنوان</label>
-                    <input type="text" id="add-location-address" required>
+                    <input type="text" name="Address" required>
                 </div>
 
                 <div class="popup-actions-flex">
-
                     <button type="submit" class="action-button">
                         إضافة
                     </button>
@@ -191,11 +120,8 @@
                             class="action-button"
                             style="background:#ccc;color:#333;"
                             onclick="closeModal('location-add-modal')">
-
                         إلغاء
-
                     </button>
-
                 </div>
 
             </form>
@@ -206,6 +132,7 @@
     }
 
     <script>
+  
             function openModal(id){
 
         document.getElementById(id).style.display="flex";
@@ -247,13 +174,15 @@
 
     }
 
-        function deleteLocation(button){
+            function deleteLocation(button){
+        // جلب الـ ID الحقيقي من السطر
+        const row = button.closest("tr");
+        const id = row.dataset.id;
 
-        if(confirm("هل تريد حذف المكان؟")){
-
-            button.closest("tr").remove();
-
+        if(confirm("هل تريد حذف هذا المكان نهائياً من الداتابيز؟")){
+            // وضع الـ ID في الفورم المخفية وعمل Submit تلقائي
+            document.getElementById("delete-location-id").value = id;
+            document.getElementById("delete-location-form").submit();
         }
-
     }
 </script>
