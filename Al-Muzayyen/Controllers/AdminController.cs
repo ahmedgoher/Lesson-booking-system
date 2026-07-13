@@ -2,9 +2,13 @@
 using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-namespace Al_Muzayyen.Controllers
-{
+namespace Al_Muzayyen.Controllers;
+using ClosedXML.Excel;
+
+
+    [Authorize(AuthenticationSchemes = "AdminAuth")]
     public class AdminController : Controller
     {
         private readonly IGenericService<Class> _classService;
@@ -16,6 +20,7 @@ namespace Al_Muzayyen.Controllers
         private readonly IPlaceService _placeService;
         private readonly IBookingRepo bookingRepo;
         private readonly IGroupRepo groupRepo;
+        private readonly IConfiguration _configuration;
 
         public AdminController
 
@@ -28,7 +33,8 @@ namespace Al_Muzayyen.Controllers
             IGenericService<Place> genericServiceGeneric,
             IGenericService<Available_slot> availableSlotService,
             IBookingRepo bookingRepo,
-            IGroupRepo groupRepo)
+            IGroupRepo groupRepo,
+            IConfiguration configuration)
         {
             _AdminService= adminService;
             _classService = classService;
@@ -39,7 +45,7 @@ namespace Al_Muzayyen.Controllers
             _videoService = videoService;
             this.bookingRepo = bookingRepo;
             this.groupRepo = groupRepo;
-
+            _configuration = configuration;
         }   
         public IActionResult Index()
         {
@@ -56,28 +62,132 @@ namespace Al_Muzayyen.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Students()
+        public async Task<IActionResult> Students(int? placeId, int? classId, int? groupId)
         {
             var stds = await bookingRepo.GetEnteredStudents();
-            return View(stds);
+            var query = stds.AsQueryable();
+
+            if (placeId.HasValue)
+            {
+                query = query.Where(s => s.PlaceId == placeId.Value);
+            }
+
+            if (classId.HasValue)
+            {
+                query = query.Where(s => s.ClassId == classId.Value);
+            }
+
+            if (groupId.HasValue)
+            {
+                query = query.Where(s => s.SlotId == groupId.Value);
+            }
+
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
+            ViewBag.Groups = _availableSlotService.GetAll();
+
+            ViewBag.SelectedPlace = placeId;
+            ViewBag.SelectedClass = classId;
+            ViewBag.SelectedGroup = groupId;
+
+            return View(query.ToList());
         }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportStudents(int? placeId, int? classId, int? groupId)
+    {
+        var stds = await bookingRepo.GetEnteredStudents();
+        var query = stds.AsQueryable();
 
+        if (placeId.HasValue)
+            query = query.Where(s => s.PlaceId == placeId.Value);
 
+        if (classId.HasValue)
+            query = query.Where(s => s.ClassId == classId.Value);
 
+        if (groupId.HasValue)
+            query = query.Where(s => s.SlotId == groupId.Value);
 
+        var students = query.ToList();
 
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("الطلاب المسجلين");
 
+        // اتجاه الشيت يبقى من اليمين لليسار
+        worksheet.RightToLeft = true;
 
+        // رؤوس الأعمدة
+        worksheet.Cell(1, 1).Value = "الاسم";
+        worksheet.Cell(1, 2).Value = "الهاتف";
+        worksheet.Cell(1, 3).Value = "الصف";
+        worksheet.Cell(1, 4).Value = "المكان";
+        worksheet.Cell(1, 5).Value = "المجموعة";
+        worksheet.Cell(1, 6).Value = "الوقت";
 
+        // تنسيق صف العناوين
+        var headerRow = worksheet.Range(1, 1, 1, 6);
+        headerRow.Style.Font.Bold = true;
+        headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#c9a227");
+        headerRow.Style.Font.FontColor = XLColor.White;
+        headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
+        // البيانات
+        int row = 2;
+        foreach (var std in students)
+        {
+            worksheet.Cell(row, 1).Value = std.STD_Name;
+            worksheet.Cell(row, 2).Value = std.Student_phone;
+            worksheet.Cell(row, 3).Value = std.Class?.Name;
+            worksheet.Cell(row, 4).Value = std.Place?.Name;
+            worksheet.Cell(row, 5).Value = std.AvailableSlot?.Group_Name;
+            worksheet.Cell(row, 6).Value = std.CreatedAt.ToString("hh:mm tt");
+            row++;
+        }
 
+        // تعديل عرض الأعمدة تلقائي حسب المحتوى
+        worksheet.Columns().AdjustToContents();
 
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
 
+        string fileName = $"الطلاب_المسجلين_{DateTime.Now:yyyy-MM-dd}.xlsx";
 
+        return File(
+            stream.ToArray(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName
+        );
+    }
 
+    [HttpPost]
+    public async Task<IActionResult> DeleteBooking(int id)
+    {
+        var booking = await _bookingService.GetByIdAsync(id);
 
-        public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
+        if (booking != null)
+        {
+            try
+            {
+                _bookingService.Delete(booking);
+                await _bookingService.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "تم إلغاء الحجز بنجاح!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "حدث خطأ أثناء إلغاء الحجز.";
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "الحجز غير موجود.";
+        }
+
+        return RedirectToAction(nameof(Students));
+    }
+
+    public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
             var query = groups.AsQueryable();
@@ -108,32 +218,112 @@ namespace Al_Muzayyen.Controllers
 
             return View(query.ToList());
         }
-        [HttpGet]
-        public IActionResult Create(int? Number_Of_day)
-        {
-            ViewBag.Places = _placeServiceGeneric.GetAll();
-            ViewBag.Classes = _classService.GetAll();
+        //[HttpGet]
+        //public IActionResult Create(int? Number_Of_day)
+        //{
+        //    ViewBag.Places = _placeServiceGeneric.GetAll();
+        //    ViewBag.Classes = _classService.GetAll();
 
-            ViewBag.Number_Of_day = Number_Of_day ?? 1;
+        //    ViewBag.Number_Of_day = Number_Of_day ?? 1;
 
-            return View();
-        }
+        //    return View();
+        //}
+        //[HttpPost]
+        //public async Task<IActionResult> Create(Available_slot group)
+        //{
+        //    ModelState.Remove("SlotTimes.AvailableSlot");
+        //    ModelState.Remove("SlotTimes.AvailableSlotId");
+        //    if (ModelState.IsValid)
+        //    {
+        //        _availableSlotService.Add(group);
+        //        await _availableSlotService.SaveChangesAsync();
+        //        TempData["SuccessMessage"] = "تم إضافة المجموعة بنجاح!";
+        //        return RedirectToAction(nameof(Groups));
+        //    }
+
+        //    ViewBag.Places = _placeServiceGeneric.GetAll();
+        //    ViewBag.Classes = _classService.GetAll();
+        //    return View(group);
+        //}
+
         [HttpPost]
-        public async Task<IActionResult> Create(Available_slot group)
+        public async Task<IActionResult> CreateAjax([FromBody] GroupActionVM dto)
         {
-            ModelState.Remove("SlotTimes.AvailableSlot");
-            ModelState.Remove("SlotTimes.AvailableSlotId");
-            if (ModelState.IsValid)
+            if (dto == null)
             {
-                _availableSlotService.Add(group);
-                await _availableSlotService.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم إضافة المجموعة بنجاح!";
-                return RedirectToAction(nameof(Groups));
+                return Json(new { success = false, message = "فشل في قراءة البيانات المرسلة (Null Payload)" });
             }
 
-            ViewBag.Places = _placeServiceGeneric.GetAll();
-            ViewBag.Classes = _classService.GetAll();
-            return View(group);
+            if (string.IsNullOrEmpty(dto.Group_Name))
+            {
+                return Json(new { success = false, message = "اسم المجموعة مطلوب!" });
+            }
+
+            var group = new Available_slot
+            {
+                Group_Name = dto.Group_Name,
+                PlaceId = dto.PlaceId,
+                ClassId = dto.ClassId,
+                Number_Of_day = dto.Number_Of_day,
+                State = "Active",
+                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                {
+                    Day = s.Day,
+                    Time = DateTime.Parse(s.Time)
+                }).ToList()
+            };
+                _availableSlotService.Add(group);
+                await _availableSlotService.SaveChangesAsync();
+                return Json(new { success = true, message = "تم إضافة المجموعة بنجاح!" });
+            
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetGroupById(int id)
+        {
+            var groups = await groupRepo.GetAllGroupsWithRelations();
+            var group = groups.FirstOrDefault(g => g.Id == id);
+            if(group == null) return NotFound();
+            var result = new
+            {
+                id = group.Id,
+                name = group.Group_Name,
+                placeId = group.PlaceId,
+                classId = group.ClassId,
+                slots = group.SlotTimes.Select(s => new {day=s.Day,time=s.Time})
+            };
+            return Json(result);
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditAjax([FromBody] GroupActionVM dto)
+        {
+            if (dto == null || dto.Id == 0)
+            {
+                return Json(new { success = false, message = "بيانات التعديل غير صحيحة (Null Payload)" });
+            }
+
+            var group = new Available_slot
+            {
+                Id = dto.Id,
+                Group_Name = dto.Group_Name,
+                PlaceId = dto.PlaceId,
+                ClassId = dto.ClassId,
+                Number_Of_day = dto.Number_Of_day,
+                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                {
+                    Day = s.Day,
+                    Time = DateTime.Parse(s.Time)
+                }).ToList()
+            };
+
+            try
+            {
+                await groupRepo.UpdateGroupWithSlots(group);
+                return Json(new { success = true, message = "تم تعديل المجموعة بنجاح!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "حدث خطأ أثناء تعديل المجموعة!" });
+            }
         }
         public IActionResult Classes()
         {
@@ -398,6 +588,49 @@ namespace Al_Muzayyen.Controllers
 
             return RedirectToAction(nameof(Videos));
         }
+        // 1. عرض صفحة تعديل الحساب
+        public IActionResult ChangeProfile()
+        {
+            // قراءة البيانات الحالية وعرضها في الصفحة
+            ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
+            return View();
+        }
+
+        // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
+        [HttpPost]
+        public IActionResult ChangeProfile(string newUsername, string newPassword)
+        {
+            if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
+            {
+                TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
+                return View();
+            }
+
+            try
+            {
+                // مسار ملف appsettings.json الحقيقي على السيرفر
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+                var json = System.IO.File.ReadAllText(filePath);
+
+                // تعديل القيم ديناميكياً داخل نص الـ JSON
+                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                jsonObj["AdminSettings"]["Username"] = newUsername;
+                jsonObj["AdminSettings"]["Password"] = newPassword;
+
+                string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
+                System.IO.File.WriteAllText(filePath, output);
+
+                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
+
+                // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
+                return RedirectToAction("Logout", "Account");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
+                return View();
+            }
+        }
 
 
 
@@ -494,4 +727,4 @@ namespace Al_Muzayyen.Controllers
         }
 
     }
-}
+
