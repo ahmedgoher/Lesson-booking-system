@@ -1,0 +1,134 @@
+﻿@model Al_Muzayyen.Viewmodel.LoginVM
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل دخول الآدمن</title>
+    <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                /* استخدام خلفية فاتحة دافئة تتماشى مع روح الموقع */
+                background-color: #fcfbfa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+                /* إضافة لوجو الموقع الشفاف كخلفية خفيفة في الصفحة لإعطاء لمسة جمالية */
+                background-image: radial-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 0);
+                background-size: 24px 24px;
+            }
+
+            .login-container {
+                background: #fff;
+                padding: 40px 30px;
+                border-radius: 12px;
+                /* عمل ضل ناعم واحترافي */
+                box-shadow: 0 10px 30px rgba(180, 150, 100, 0.08);
+                width: 100%;
+                max-width: 400px;
+                border: 1px solid rgba(212, 175, 55, 0.15); /* إطار ذهبي خفيف جداً */
+            }
+
+                .login-container h2 {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    color: #2b2b2b; /* لون داكن مريح */
+                    font-size: 24px;
+                }
+
+            .form-group {
+                margin-bottom: 22px;
+            }
+
+                .form-group label {
+                    display: block;
+                    margin-bottom: 8px;
+                    font-weight: 600;
+                    color: #4a4a4a;
+                    font-size: 15px;
+                }
+
+                .form-group input[type="text"],
+                .form-group input[type="password"] {
+                    width: 100%;
+                    padding: 12px;
+                    border: 1.5px solid #e0dbd5;
+                    border-radius: 6px;
+                    box-sizing: border-box;
+                    transition: all 0.3s ease;
+                    font-size: 15px;
+                    background-color: #fff;
+                }
+                    /* تأثير عند الوقوف أو الكتابة داخل الحقل ليتحول للون الذهبي للموقع */
+                    .form-group input[type="text"]:focus,
+                    .form-group input[type="password"]:focus {
+                        border-color: #c5a059; /* اللون الذهبي */
+                        outline: none;
+                        box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1);
+                    }
+
+            .btn-login {
+                width: 100%;
+                padding: 12px;
+                /* استخدام اللون الذهبي المتناسق مع زر "ابدأ رحلتك الآن" */
+                background: #c5a059;
+                border: none;
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 6px;
+                cursor: pointer;
+                margin-top: 15px;
+                transition: background 0.3s ease;
+            }
+                /* تأثير عند تمرير الماوس على الزرار ليأخذ الدرجة الأغمق قليلاً */
+                .btn-login:hover {
+                    background: #b08c47;
+                }
+
+            .text-danger {
+                color: #dc3545;
+                font-size: 13px;
+                margin-top: 6px;
+                display: block;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h2>قفل لوحة التحكم </h2>
+
+        <form asp-action="Login" asp-controller="Account" method="post">
+
+            @if (TempData["Error"] != null)
+            {
+                <div style="color: red; background: #f8d7da; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 15px;">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <div class="form-group">
+                <label asp-for="Username"></label>
+                <input asp-for="Username" type="text" autocomplete="off" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" type="password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn-login">تسجيل الدخول</button>
+        </form>
+    </div>
+
+</body>
+</html>

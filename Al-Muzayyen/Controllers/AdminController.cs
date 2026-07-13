@@ -2,9 +2,11 @@
 using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminAuth")]
     public class AdminController : Controller
     {
         private readonly IGenericService<Class> _classService;
@@ -15,6 +17,7 @@ namespace Al_Muzayyen.Controllers
         private readonly IPlaceService _placeService;
         private readonly IBookingRepo bookingRepo;
         private readonly IGroupRepo groupRepo;
+        private readonly IConfiguration _configuration;
 
         public AdminController
             (IGenericService<Class> classService,
@@ -24,7 +27,8 @@ namespace Al_Muzayyen.Controllers
             IGenericService<Place> genericServiceGeneric,
             IGenericService<Available_slot> availableSlotService,
             IBookingRepo bookingRepo,
-            IGroupRepo groupRepo)
+            IGroupRepo groupRepo,
+            IConfiguration configuration)
         {
             _classService = classService;
             _bookingService = bookingService;
@@ -34,7 +38,7 @@ namespace Al_Muzayyen.Controllers
             _videoService = videoService;
             this.bookingRepo = bookingRepo;
             this.groupRepo = groupRepo;
-
+            _configuration = configuration;
         }   
         public IActionResult Index()
         {
@@ -390,6 +394,49 @@ namespace Al_Muzayyen.Controllers
             TempData["Success"] = "تم حذف الفيديو.";
 
             return RedirectToAction(nameof(Videos));
+        }
+        // 1. عرض صفحة تعديل الحساب
+        public IActionResult ChangeProfile()
+        {
+            // قراءة البيانات الحالية وعرضها في الصفحة
+            ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
+            return View();
+        }
+
+        // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
+        [HttpPost]
+        public IActionResult ChangeProfile(string newUsername, string newPassword)
+        {
+            if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
+            {
+                TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
+                return View();
+            }
+
+            try
+            {
+                // مسار ملف appsettings.json الحقيقي على السيرفر
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+                var json = System.IO.File.ReadAllText(filePath);
+
+                // تعديل القيم ديناميكياً داخل نص الـ JSON
+                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                jsonObj["AdminSettings"]["Username"] = newUsername;
+                jsonObj["AdminSettings"]["Password"] = newPassword;
+
+                string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
+                System.IO.File.WriteAllText(filePath, output);
+
+                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
+
+                // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
+                return RedirectToAction("Logout", "Account");
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
+                return View();
+            }
         }
 
     }
