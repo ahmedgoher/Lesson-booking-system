@@ -97,7 +97,23 @@ namespace Al_Muzayyen.Controllers
 
             return View();
         }
+        [HttpPost]
+        public async Task<IActionResult> Create(Available_slot group)
+        {
+            ModelState.Remove("SlotTimes.AvailableSlot");
+            ModelState.Remove("SlotTimes.AvailableSlotId");
+            if (ModelState.IsValid)
+            {
+                _availableSlotService.Add(group);
+                await _availableSlotService.SaveChangesAsync();
+                TempData["SuccessMessage"] = "تم إضافة المجموعة بنجاح!";
+                return RedirectToAction(nameof(Groups));
+            }
 
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
+            return View(group);
+        }
         public IActionResult Classes()
         {
             var classes = _classService.GetAll();
