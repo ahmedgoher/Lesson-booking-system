@@ -252,7 +252,14 @@
 <section id="students-section">
     <div class="section-header-block">
         <h2>قائمة الطلاب المسجلين</h2>
-        <button class="action-button" onclick="exportStudents()">تصدير البيانات</button>
+        <a asp-action="ExportStudents"
+           asp-route-placeId="@ViewBag.SelectedPlace"
+           asp-route-classId="@ViewBag.SelectedClass"
+           asp-route-groupId="@ViewBag.SelectedGroup"
+           class="action-button"
+           style="text-decoration:none; display:inline-block;">
+            تصدير البيانات
+        </a>
     </div>
 
     <form method="get" asp-action="Students" class="students-filter-form">

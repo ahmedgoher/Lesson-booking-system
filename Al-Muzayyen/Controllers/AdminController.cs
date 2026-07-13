@@ -4,8 +4,10 @@ using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-namespace Al_Muzayyen.Controllers
-{
+namespace Al_Muzayyen.Controllers;
+using ClosedXML.Excel;
+
+
     [Authorize(AuthenticationSchemes = "AdminAuth")]
     public class AdminController : Controller
     {
@@ -84,22 +86,75 @@ namespace Al_Muzayyen.Controllers
             return View(query.ToList());
         }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportStudents(int? placeId, int? classId, int? groupId)
+    {
+        var stds = await bookingRepo.GetEnteredStudents();
+        var query = stds.AsQueryable();
+
+        if (placeId.HasValue)
+            query = query.Where(s => s.PlaceId == placeId.Value);
+
+        if (classId.HasValue)
+            query = query.Where(s => s.ClassId == classId.Value);
+
+        if (groupId.HasValue)
+            query = query.Where(s => s.SlotId == groupId.Value);
+
+        var students = query.ToList();
+
+        using var workbook = new XLWorkbook();
+        var worksheet = workbook.Worksheets.Add("الطلاب المسجلين");
+
+        // اتجاه الشيت يبقى من اليمين لليسار
+        worksheet.RightToLeft = true;
+
+        // رؤوس الأعمدة
+        worksheet.Cell(1, 1).Value = "الاسم";
+        worksheet.Cell(1, 2).Value = "الهاتف";
+        worksheet.Cell(1, 3).Value = "الصف";
+        worksheet.Cell(1, 4).Value = "المكان";
+        worksheet.Cell(1, 5).Value = "المجموعة";
+        worksheet.Cell(1, 6).Value = "الوقت";
+
+        // تنسيق صف العناوين
+        var headerRow = worksheet.Range(1, 1, 1, 6);
+        headerRow.Style.Font.Bold = true;
+        headerRow.Style.Fill.BackgroundColor = XLColor.FromHtml("#c9a227");
+        headerRow.Style.Font.FontColor = XLColor.White;
+        headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+        // البيانات
+        int row = 2;
+        foreach (var std in students)
+        {
+            worksheet.Cell(row, 1).Value = std.STD_Name;
+            worksheet.Cell(row, 2).Value = std.Student_phone;
+            worksheet.Cell(row, 3).Value = std.Class?.Name;
+            worksheet.Cell(row, 4).Value = std.Place?.Name;
+            worksheet.Cell(row, 5).Value = std.AvailableSlot?.Group_Name;
+            worksheet.Cell(row, 6).Value = std.CreatedAt.ToString("hh:mm tt");
+            row++;
+        }
+
+        // تعديل عرض الأعمدة تلقائي حسب المحتوى
+        worksheet.Columns().AdjustToContents();
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        string fileName = $"الطلاب_المسجلين_{DateTime.Now:yyyy-MM-dd}.xlsx";
+
+        return File(
+            stream.ToArray(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            fileName
+        );
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
+    public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
             var query = groups.AsQueryable();
@@ -545,4 +600,4 @@ namespace Al_Muzayyen.Controllers
         }
 
     }
-}
+
