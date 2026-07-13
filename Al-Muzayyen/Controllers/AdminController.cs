@@ -153,6 +153,32 @@ using ClosedXML.Excel;
         );
     }
 
+    [HttpPost]
+    public async Task<IActionResult> DeleteBooking(int id)
+    {
+        var booking = await _bookingService.GetByIdAsync(id);
+
+        if (booking != null)
+        {
+            try
+            {
+                _bookingService.Delete(booking);
+                await _bookingService.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "تم إلغاء الحجز بنجاح!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "حدث خطأ أثناء إلغاء الحجز.";
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "الحجز غير موجود.";
+        }
+
+        return RedirectToAction(nameof(Students));
+    }
 
     public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
         {

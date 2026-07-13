@@ -248,6 +248,22 @@
             flex: 1 1 20px;
         }
     }
+    .cancel-icon-btn {
+        background: none;
+        border: none;
+        color: #dc3545;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        transition: background 0.2s;
+    }
+
+        .cancel-icon-btn:hover {
+            background: #f8d7da;
+        }
 </style>
 <section id="students-section">
     <div class="section-header-block">
@@ -343,7 +359,15 @@
                                 <i class="fas fa-eye"></i>
 
                             </button>
+                           
+                                <form asp-action="DeleteBooking" asp-route-id="@std.Id" method="post"
+                                      onsubmit="return confirm('متأكد إنك عايز تلغي حجز الطالب ده؟ هيتمسح نهائي .')"
+                                      style="display:inline;">
+                                    <button type="submit" class="cancel-icon-btn" title="إلغاء الحجز">✕</button>
+                                </form>
+                          
                         </th>
+                    
                     </tr>
                 }
             </tbody>
