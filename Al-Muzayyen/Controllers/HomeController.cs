@@ -30,7 +30,7 @@ namespace Al_Muzayyen.Controllers
             var model = new HomeVM
             {
 
-                linkimage= _adminService.GetAll().FirstOrDefault()?.ImageUrl,
+                linkimage= _adminService.GetAll().FirstOrDefault()?.ImageUrl ?? "/images/image.png",
                 classes = _classService.GetAll(),
                 places = _placeService.GetAll(),
                 LinkesVideos = _videoService.GetAll()
