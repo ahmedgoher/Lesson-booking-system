@@ -50,8 +50,15 @@ namespace Al_Muzayyen.Controllers
             var result = await _bookingService.CreateBookingAsync(booking);
             if (result)
             {
-                ViewBag.SuccessMessage = "تم الحجز بنجاح!";
-                return RedirectToAction(nameof(booking));
+                // 1. نضع رسالة النجاح
+                ViewBag.SuccessMessage = "🎉 تم تسجيل بياناتك وحجز الموعد بنجاح!";
+
+                // 2. نعيد ملء القوائم عشان الصفحة متضربش وهي بتفتح تاني
+                ViewBag.Classes = await _classService.GetAllClassesAsync();
+                ViewBag.Places = await _placeService.GetAllPlacesAsync();
+
+                // 3. نرجع الصفحة مباشرة (View) بدل الـ Redirect عشان الـ ViewBag يفضل عايش ويظهر
+                return View(new Booking()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
             }
 
             ViewBag.ErrorMessage = "حدث خطأ أثناء حفظ الحجز.";
@@ -64,7 +71,14 @@ namespace Al_Muzayyen.Controllers
         public async Task<JsonResult> GetAvailableSlots(int classId, int placeId)
         {
             var slots = await _slotService.GetSlotsByFilterAsync(classId, placeId);
-            var result = slots.Select(s => new { id = s.Id, name = s.Group_Name }).ToList();
+
+            var result = slots.Select(s => new {
+                id = s.Id,
+                name = s.SlotTimes != null && s.SlotTimes.Any()
+                    ? $"{s.Group_Name} ( " + string.Join(" - ", s.SlotTimes.Select(t => $"{t.Day} الساعة {t.Time.ToString("hh:mm tt")}")) + " )"
+                    : s.Group_Name // لو المواعيد مجتش لأي سبب يعرض اسم المجموعة فقط بدون أقواس فاضية
+            }).ToList();
+
             return Json(result);
         }
     }
