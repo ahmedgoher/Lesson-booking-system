@@ -8,6 +8,7 @@ namespace Al_Muzayyen.Controllers
     public class AdminController : Controller
     {
         private readonly IGenericService<Class> _classService;
+        private readonly IGenericService<Admin> _AdminService;
         private readonly IGenericService<Booking> _bookingService;
         private readonly IGenericService<Available_slot> _availableSlotService;
         private readonly IGenericService<Place> _placeServiceGeneric;
@@ -17,7 +18,10 @@ namespace Al_Muzayyen.Controllers
         private readonly IGroupRepo groupRepo;
 
         public AdminController
-            (IGenericService<Class> classService,
+
+            (
+            IGenericService<Admin> adminService,
+            IGenericService<Class> classService,
             IGenericService<Booking> bookingService,
             IPlaceService placeService,
             IGenericService<Video> videoService,
@@ -26,6 +30,7 @@ namespace Al_Muzayyen.Controllers
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo)
         {
+            _AdminService= adminService;
             _classService = classService;
             _bookingService = bookingService;
             _placeService = placeService;
@@ -42,7 +47,9 @@ namespace Al_Muzayyen.Controllers
             {
                 StudentsCount = _bookingService.GetAll().Count(),
                 GroupsCount = _availableSlotService.GetAll().Count(),
-                ClassesCount = _classService.GetAll().Count()
+                ClassesCount = _classService.GetAll().Count(),
+                Admin = _AdminService.GetAll().FirstOrDefault()
+
             };
 
            

@@ -5,21 +5,212 @@
     ViewData["Title"] = "Dashbord";
 }
 
+<style>
+    .profile-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+        padding: 30px;
+        display: flex;
+        gap: 35px;
+        align-items: center;
+        margin-bottom: 30px;
+    }
 
+    .profile-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+        .profile-image img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #d4a24c;
+        }
+
+    .change-image-btn {
+        border: none;
+        background: #d4a24c;
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 15px;
+        transition: .3s;
+    }
+
+        .change-image-btn:hover {
+            background: #b98831;
+        }
+
+    .profile-info {
+        flex: 1;
+    }
+
+        .profile-info h2 {
+            margin-bottom: 25px;
+            color: #1f3c5a;
+            font-size: 30px;
+        }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 20px;
+    }
+
+    .info-box {
+        background: #f8f9fc;
+        padding: 18px;
+        border-radius: 15px;
+        border-right: 4px solid #d4a24c;
+    }
+
+        .info-box span {
+            display: block;
+            color: #888;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: #23395d;
+            font-size: 18px;
+        }
+
+    .edit-profile-btn {
+        margin-top: 25px;
+        background: #23395d;
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: .3s;
+    }
+
+        .edit-profile-btn:hover {
+            background: #1a2e49;
+        }
+
+    .dashboard-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        gap: 20px;
+    }
+
+    .metric-card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 18px;
+        border-right: 5px solid #d4a24c;
+        box-shadow: 0 10px 20px rgba(0,0,0,.06);
+    }
+
+        .metric-card h3 {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+    .metric-value {
+        font-size: 42px;
+        color: #23395d;
+        font-weight: bold;
+    }
+
+    @@media(max-width:992px) {
+
+        .profile-card {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .dashboard-stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media(min-width:993px) and (max-width:1200px) {
+
+        .info-grid {
+            grid-template-columns: repeat(2,1fr);
+        }
+    }
+</style>
 <!-- قسم النظرة العامة -->
 <section id="overview-section">
+
+    <div class="profile-card">
+
+        <div class="profile-image">
+
+            <img src="/images/image.png" alt="Admin">
+
+            <button class="change-image-btn">
+                <i class="fa-solid fa-camera"></i>
+                تغيير الصورة
+            </button>
+
+        </div>
+
+        <div class="profile-info">
+
+            <h2>admin </h2>
+
+            <div class="info-grid">
+
+                <div class="info-box">
+                    <span>البريد الإلكتروني</span>
+                    <strong> ahmed morsi #</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>رقم الهاتف</span>
+                    <strong>0198328282828</strong>
+                </div>
+
+                <div class="info-box">
+                    <span>كلمة المرور</span>
+                    <strong> sdkjaknskj</strong> 
+                </div>
+
+            </div>
+
+            <button class="edit-profile-btn">
+                <i class="fa-solid fa-pen"></i>
+                تعديل البيانات
+            </button>
+
+        </div>
+
+    </div>
+
+
     <div class="dashboard-stats-grid">
+
         <div class="metric-card">
             <h3>إجمالي الطلاب</h3>
-            <div class="metric-value" id="total-students">@Model.StudentsCount</div>
+            <div class="metric-value">@Model.StudentsCount</div>
         </div>
+
         <div class="metric-card">
             <h3>عدد المجموعات</h3>
-            <div class="metric-value" id="total-groups">@Model.GroupsCount</div>
+            <div class="metric-value">@Model.GroupsCount</div>
         </div>
+
         <div class="metric-card">
             <h3>عدد الفصول</h3>
-            <div class="metric-value" id="total-classes">@Model.ClassesCount</div>
+            <div class="metric-value">@Model.ClassesCount</div>
         </div>
+
     </div>
+
 </section>
