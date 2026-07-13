@@ -1,9 +1,8 @@
 ﻿@using Al_Muzayyen.Viewmodel
 @model HomeVM
 
-
 @{
-    Layout = "~/Views/Shared/_layouthome.cshtml"; 
+    Layout = "~/Views/Shared/_layouthome.cshtml";
     ViewData["Title"] = "Home Page";
 }
 
@@ -11,16 +10,21 @@
     <div class="container">
         <div>
             <h2>فارس اللغة العربية</h2>
-            <p>نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا مع الأستاذ عبد الفتاح المزين.</p>
+            <p>
+                نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا
+                مع الأستاذ عبد الفتاح المزين.
+            </p>
+
             <div class="hero-btns">
-                <a href="/Booking/booking" class="btn btn-primary">ابدأ رحلتك الآن</a>
+                <a href="/Booking/booking" class="btn btn-primary">
+                    ابدأ رحلتك الآن
+                </a>
             </div>
         </div>
 
         <div>
-            <img src="@Model.linkimage" alt="فارس اللغة العربية">
+            <img src="@(Model?.linkimage ?? "/images/image.png")" alt="فارس اللغة العربية">
         </div>
-
     </div>
 </section>
 
@@ -29,17 +33,20 @@
         <div class="section-title">
             <h2>عن الأستاذ عبد الفتاح المزين</h2>
         </div>
+
         <div class="features-grid">
             <div class="feature-card">
                 <i class="fas fa-user-tie"></i>
                 <h3>خبرة واسعة</h3>
                 <p>سنوات من الخبرة في تدريس اللغة العربية للمرحلة الثانوية بأسلوب مبسط ومبتكر.</p>
             </div>
+
             <div class="feature-card">
                 <i class="fas fa-book-open"></i>
                 <h3>منهجية متطورة</h3>
                 <p>نعتمد على أحدث الوسائل التعليمية لضمان وصول المعلومة وتثبيتها في ذهن الطالب.</p>
             </div>
+
             <div class="feature-card">
                 <i class="fas fa-tasks"></i>
                 <h3>متابعة دورية</h3>
@@ -60,36 +67,30 @@
 
         <div class="videos-grid">
 
-            @foreach (var video in Model.LinkesVideos)
+            @if (Model?.LinkesVideos?.Any() == true)
             {
-                <div class="video-card">
-                    <iframe src="@video.URL"
-                            title="@video.Title"
-                            allowfullscreen>
-                    </iframe>
+                @foreach (var video in Model.LinkesVideos)
+                {
+                    <div class="video-card">
+                        <iframe src="@(video?.URL ?? "")"
+                                title="@(video?.Title ?? "Video")"
+                                allowfullscreen>
+                        </iframe>
 
-                    <h3>@video.Title</h3>
-                    <p>@video.Description</p>
-                </div>
+                        <h3>@(video?.Title ?? "بدون عنوان")</h3>
+                        <p>@(video?.Description ?? "لا يوجد وصف")</p>
+                    </div>
+                }
             }
-            @* <div class="video-card">
-                <iframe src="https://www.youtube.com/embed/i59pw-1VHFc?si=XSdqs0Kssxsap8fE"
-                        title="رسالة للطلاب"
-                        allowfullscreen>
-                </iframe>
-
-                <h3>رسالة إلى الطلاب</h3>
-                <p>كلمة تحفيزية من الأستاذ لجميع الطلاب في بداية العام الدراسي.</p>
-            </div> *@
-
+            else
+            {
+                <p style="width:100%;text-align:center;">لا توجد فيديوهات حالياً.</p>
+            }
 
         </div>
 
     </div>
 </section>
-
-
-
 
 <section class="features">
     <div class="container">
@@ -99,24 +100,26 @@
         </div>
 
         <div id="grades-list" class="features-grid">
-            @foreach (var grade in Model.classes)
+
+            @if (Model?.classes?.Any() == true)
             {
-                <div class="feature-card">
-                    <i class="fas fa-book-open"></i>
-                    <h3>@grade.Name</h3>
-                    @* <p>شرح شامل وتدريبات مستمرة وفق أحدث نظام امتحانات.</p> *@
-                </div>
+                @foreach (var grade in Model.classes)
+                {
+                    <div class="feature-card">
+                        <i class="fas fa-book-open"></i>
+                        <h3>@(grade?.Name ?? "غير محدد")</h3>
+                    </div>
+                }
             }
-          
-
-
+            else
+            {
+                <p style="width:100%;text-align:center;">لا توجد مراحل دراسية.</p>
+            }
 
         </div>
 
     </div>
 </section>
-
-
 
 <section class="features">
     <div class="container">
@@ -126,18 +129,22 @@
         </div>
 
         <div id="locations-list" class="features-grid">
-            @foreach (var place in Model.places)
-            {
-                <div class="feature-card">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <h3>@place.Name</h3>
-                    <p>@place.Address</p> 
-                </div>
-            }
-             
-            </div>
 
-          
+            @if (Model?.places?.Any() == true)
+            {
+                @foreach (var place in Model.places)
+                {
+                    <div class="feature-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>@(place?.Name ?? "غير محدد")</h3>
+                        <p>@(place?.Address ?? "لا يوجد عنوان")</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="width:100%;text-align:center;">لا توجد أماكن سناتر.</p>
+            }
 
         </div>
 
