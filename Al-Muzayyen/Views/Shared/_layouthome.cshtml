@@ -38,10 +38,10 @@
 
                 <ul class="nav-links">
                     <li><a a asp-action="Index" asp-controller="Home">الرئيسية</a></li>
-                    <li><a href="#about">من هو؟</a></li>
-                    <li><a href="#services">ماذا نقدم؟</a></li>
+                    <li><a href="#about">من هو</a></li>
+                    <li><a href="#services">ماذا نقدم</a></li>
                     <li><a asp-action="booking" asp-controller="Booking">حجز موعد</a></li>
-                    <li><a asp-action="Index" asp-controller="Admin">لوحة التحكم</a></li>
+                    @* <li><a asp-action="Index" asp-controller="Admin">لوحة التحكم</a></li> *@
                 </ul>
                 <a href="/Booking/booking" class="btn btn-primary boooking">احجز الآن</a>
             </nav>
@@ -54,7 +54,7 @@
 
     <footer>
         <div class="container">
-            <p>جميع الحقوق محفوظة &copy; 2024 - الأستاذ عبد الفتاح المزين (فارس اللغة العربية)</p>
+            <p>جميع الحقوق محفوظة &copy; 2024 - الأستاذ عبد الفتاح المزين (<a asp-action="Index" asp-controller="Admin">فارس اللغة العربية</a>)</p>
         </div>
     </footer>
 
