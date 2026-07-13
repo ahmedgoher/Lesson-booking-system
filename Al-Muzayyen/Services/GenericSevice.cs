@@ -30,5 +30,16 @@ namespace Al_Muzayyen.Services
         {
             Repository.SaveChanges();
         }
+
+        public Task<T?> GetByIdAsync(int id)
+        {
+            return Repository.GetByIdAsync(id);
+
+        }
+
+        public Task AddAsync(T entity)
+        {
+            return Repository.AddAsync(entity);
+        }
     }
 }

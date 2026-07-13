@@ -1,0 +1,233 @@
+﻿@model IEnumerable<Al_Muzayyen.Models.Class>
+
+@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Classes";
+}
+
+<section id="classes-section">
+
+    <div class="section-header-block">
+        <h2>إدارة الصفوف</h2>
+
+        <button class="action-button" onclick="openAddClassModal()">
+            إضافة صف جديد
+        </button>
+    </div>
+
+    <div class="table-responsive-container">
+
+        <table class="data-display-table">
+            <thead>
+                <tr>
+                    <th>اسم الصف</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr data-id="@item.Id">
+                            <td>@item.Name</td>
+
+                            <td>
+                                <button onclick="editClass(this)"
+                                        class="action-icon-btn"
+                                        style="color:blue;">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <button onclick="deleteClass(this)"
+                                        class="action-icon-btn"
+                                        style="color:red;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="2" style="text-align:center;color:gray;">
+                            لا توجد صفوف حتى الآن
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+@section model {
+
+    <!-- Edit -->
+
+    <div id="class-edit-modal" class="custom-popup-overlay">
+
+        <div class="popup-window-content">
+
+            <h3>تعديل الصف</h3>
+
+            <form asp-action="EditClass"
+                  asp-controller="Admin"
+                  method="post">
+
+                <input type="hidden" id="edit-class-id" name="Id" />
+
+                <div class="input-field-group">
+                    <label>اسم الصف</label>
+                    <input type="text"
+                           id="edit-class-name"
+                           name="Name"
+                           required />
+                </div>
+
+                <div class="popup-actions-flex">
+
+                    <button type="submit" class="action-button">
+                        حفظ
+                    </button>
+
+                    <button type="button"
+                            class="action-button"
+                            style="background:#ccc;color:#333;"
+                            onclick="closeModal('class-edit-modal')">
+
+                        إلغاء
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Delete -->
+
+    <form id="delete-class-form"
+          asp-action="DeleteClass"
+          asp-controller="Admin"
+          method="post"
+          style="display:none;">
+
+        <input type="hidden" id="delete-class-id" name="id" />
+
+    </form>
+
+    <!-- Add -->
+
+    <div id="class-add-modal" class="custom-popup-overlay">
+
+        <div class="popup-window-content">
+
+            <h3>إضافة صف جديد</h3>
+
+            <form id="add-class-form"
+                  asp-action="AddClass"
+                  asp-controller="Admin"
+                  method="post">
+
+                @if (TempData["Error"] != null)
+                {
+                    <div style="color:red;font-weight:bold;margin-bottom:10px;">
+                        @TempData["Error"]
+                    </div>
+                }
+
+                <div class="input-field-group">
+
+                    <label>اسم الصف</label>
+
+                    <input type="text"
+                           name="Name"
+                           required />
+
+                </div>
+
+                <div class="popup-actions-flex">
+
+                    <button type="submit" class="action-button">
+                        إضافة
+                    </button>
+
+                    <button type="button"
+                            class="action-button"
+                            style="background:#ccc;color:#333;"
+                            onclick="closeModal('class-add-modal')">
+
+                        إلغاء
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+}
+
+<script>
+
+    function openModal(id){
+        document.getElementById(id).style.display="flex";
+    }
+
+    function closeModal(id){
+        document.getElementById(id).style.display="none";
+    }
+
+    function openAddClassModal(){
+
+        document.getElementById("add-class-form").reset();
+
+        openModal("class-add-modal");
+
+    }
+
+    function editClass(button){
+
+        const row = button.closest("tr");
+
+        document.getElementById("edit-class-id").value =
+            row.dataset.id;
+
+        document.getElementById("edit-class-name").value =
+            row.cells[0].innerText.trim();
+
+        openModal("class-edit-modal");
+
+    }
+
+    function deleteClass(button){
+
+        const row = button.closest("tr");
+
+        const id = row.dataset.id;
+
+        if(confirm("هل تريد حذف هذا الصف؟")){
+
+            document.getElementById("delete-class-id").value=id;
+
+            document.getElementById("delete-class-form").submit();
+
+        }
+
+    }
+
+</script>

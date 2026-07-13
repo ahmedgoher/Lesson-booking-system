@@ -2,6 +2,7 @@
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Al_Muzayyen.Controllers
 {
@@ -40,6 +41,64 @@ namespace Al_Muzayyen.Controllers
         {
             return View();
         }
+
+
+
+
+
+        public IActionResult Classes()
+        {
+            var classes = _classService.GetAll();
+            return View(classes);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddClass(Class model)
+        {
+            await _classService.AddAsync(model);
+            _classService.SaveChanges();
+
+            return RedirectToAction(nameof(Classes));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditClass(Class model)
+        {
+            var item = await _classService.GetByIdAsync(model.Id);
+
+            if (item != null)
+            {
+                item.Name = model.Name;
+
+                _classService.Update(item);
+                _classService.SaveChanges();
+            }
+
+            return RedirectToAction(nameof(Classes));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteClass(int id)
+        {
+            var item = await _classService.GetByIdAsync(id);
+
+            if (item != null)
+            {
+                _classService.Delete(item);
+                _classService.SaveChanges();
+            }
+
+            return RedirectToAction(nameof(Classes));
+        }
+
+
+
+
+
+
+
+
+
 
         public IActionResult Groups()
         {
