@@ -3,13 +3,76 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Students";
 }
+<link href="~/css/Filters.css" rel="stylesheet" />
+<style>
+    .students-filter-form {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
 
-<!-- قسم الطلاب المسجلين -->
-<section id="students-section" >
+    @@media (max-width: 768px) {
+        .students-filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-field {
+            flex: 1 1 20px;
+        }
+    }
+</style>
+<section id="students-section">
     <div class="section-header-block">
         <h2>قائمة الطلاب المسجلين</h2>
         <button class="action-button" onclick="exportStudents()">تصدير البيانات</button>
     </div>
+
+    <form method="get" asp-action="Students" class="students-filter-form">
+        <div class="filter-field">
+            <label>الفلترة بالمكان:</label>
+            <select name="placeId" onchange="this.form.submit()">
+                <option value="">كل الأماكن</option>
+                @foreach (var place in ViewBag.Places)
+                {
+                    <!option value="@place.Id" @(ViewBag.SelectedPlace == place.Id ? "selected" : "")>@place.Name</!option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label>الفلترة بالصف:</label>
+            <select name="classId" onchange="this.form.submit()">
+                <option value="">كل الصفوف</option>
+                @foreach (var cls in ViewBag.Classes)
+                {
+                    <!option value="@cls.Id" @(ViewBag.SelectedClass == cls.Id ? "selected" : "")>@cls.Name</!option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-field">
+            <label>الفلترة بالمجموعة:</label>
+            <select name="groupId" onchange="this.form.submit()">
+                <option value="">كل المجموعات</option>
+                @foreach (var grp in ViewBag.Groups)
+                {
+                    <!option value="@grp.Id" @(ViewBag.SelectedGroup == grp.Id ? "selected" : "")>@grp.Group_Name</!option>
+                }
+            </select>
+        </div>
+
+        <div class="filter-field filter-reset">
+            <label>&nbsp;</label>
+            <a asp-action="Students" class="reset-btn">إعادة تعيين</a>
+        </div>
+    </form>
+
     <div class="table-responsive-container">
         <table class="data-display-table">
             <thead>
@@ -23,16 +86,15 @@
                 </tr>
             </thead>
             <tbody id="students-table-body">
-                @foreach(var std in Model)
+                @foreach (var std in Model)
                 {
                     <tr>
-                        <th>@std.STD_Name</th>
-                        <th>@std.Student_phone</th>
-                        <th>@std.Class?.Name</th>
-                        <th>@std.Place?.Name</th>
-                        <th>@std.AvailableSlot?.Group_Name</th>
-                         <th>@std.CreatedAt</th> 
-
+                        <td>@std.STD_Name</td>
+                        <td>@std.Student_phone</td>
+                        <td>@std.Class?.Name</td>
+                        <td>@std.Place?.Name</td>
+                        <td>@std.AvailableSlot?.Group_Name</td>
+                        <td>@std.CreatedAt.ToString("hh:mm tt")</td>
                     </tr>
                 }
             </tbody>
