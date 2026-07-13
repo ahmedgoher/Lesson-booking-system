@@ -4,6 +4,11 @@ using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Mvc;
 
+
+
+
+
+
 namespace Al_Muzayyen.Controllers
 {
     public class AdminController : Controller
@@ -55,6 +60,21 @@ namespace Al_Muzayyen.Controllers
             var stds = await bookingRepo.GetEnteredStudents();
             return View(stds);
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
         {
