@@ -3,15 +3,105 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "videos";
 }
+<style>
+    .videos-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 40px;
+        direction: ltr;
+    }
+
+        .videos-header .section-title {
+            flex: 1;
+            text-align: center;
+        }
+
+    .action-button {
+        margin-top: 10px;
+    }
+
+    .video-card h3 {
+        font-size: 22px;
+        font-weight: 700;
+        color: #2f3d4c;
+        margin: 18px 0 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .video-card p {
+        color: #777;
+        font-size: 15px;
+        line-height: 1.8;
+        height: 55px;
+        overflow: hidden;
+    }
+
+    .video-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .edit-video-btn {
+        flex: 1;
+        height: 45px;
+        border: none;
+        border-radius: 10px;
+        background: #c8a25a;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        transition: .3s;
+    }
+
+        .edit-video-btn:hover {
+            background: #b38d46;
+        }
+
+    .delete-video-btn {
+        width: 45px;
+        height: 45px;
+        border: none;
+        border-radius: 10px;
+        background: #e53935;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: .3s;
+    }
+
+        .delete-video-btn:hover {
+            background: #c62828;
+        }
+
+        .delete-video-btn i {
+            font-size: 18px;
+        }
+</style>
 
 
 <!-- قسم إدارة الفيديوهات -->
 <section id="videos-section"  " class="videos">
     <div class="container">
 
-        <div class="section-title">
-            <h2>فيديوهات الأستاذ</h2>
-            <p>تعرف على الأستاذ عبد الفتاح المزين من خلال مجموعة من الفيديوهات المميزة.</p>
+        <div class="videos-header">
+            <button class="action-button" onclick="openAddVideoPopup()">
+                <i class="fas fa-plus"></i>
+                إضافة فيديو
+            </button>
+            <div class="section-title">
+                <h2>فيديوهات الأستاذ</h2>
+            </div>
+
+            
+
         </div>
 
         <div class="videos-grid">
@@ -27,10 +117,25 @@
                     <h3>@video.Title</h3>
                     <p>@video.Description</p>
 
-                    <button class="edit-video-btn" onclick="openVideoPopup(this)">
-                        <i class="fas fa-edit"></i>
-                        تعديل
-                    </button>
+                    <div class="video-actions">
+
+                        <button class="edit-video-btn"
+                                onclick="openVideoPopup(this)">
+
+                            <i class="fas fa-edit"></i>
+                            تعديل
+
+                        </button>
+
+                        <button class="delete-video-btn"
+                                onclick="deleteVideo(this)"
+                                title="حذف">
+
+                            <i class="fas fa-trash"></i>
+
+                        </button>
+
+                    </div>
                 </div>
 
 
@@ -42,7 +147,42 @@
     </div>
 </section>
 
-@section model{
+@section model {
+    <div id="addVideoModal" class="modal">
+
+        <div class="modal-content">
+
+            <h2>إضافة فيديو</h2>
+
+            <form id="addVideoForm"
+                  asp-action="AddVideo"
+                  asp-controller="Admin"
+                  method="post">
+
+                <label>رابط الفيديو</label>
+                <input type="text" name="URL" required />
+
+                <label>العنوان</label>
+                <input type="text" name="Title" required />
+
+                <label>الوصف</label>
+                <textarea name="Description"></textarea>
+
+                <div class="modal-buttons">
+                    <button type="submit">إضافة</button>
+
+                    <button type="button"
+                            onclick="closeAddVideoPopup()">
+                        إلغاء
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
     <div id="videoModal" class="modal">
         <div class="modal-content">
 
@@ -72,5 +212,47 @@
 
        
     </div>
+
+    <form id="delete-video-form"
+          asp-action="DeleteVideo"
+          asp-controller="Admin"
+          method="post"
+          style="display:none;">
+
+        <input type="hidden"
+               id="delete-video-id"
+               name="id" />
+
+    </form>
     }
 }
+
+                    <script>
+                        function openAddVideoPopup(){
+
+    document.getElementById("addVideoForm").reset();
+
+    document.getElementById("addVideoModal").style.display="flex";
+}
+
+function closeAddVideoPopup(){
+
+    document.getElementById("addVideoModal").style.display="none";
+}
+
+function deleteVideo(button){
+
+    const card = button.closest(".video-card");
+
+    const id = card.dataset.id;
+
+    if(confirm("هل تريد حذف هذا الفيديو؟")){
+
+        document.getElementById("delete-video-id").value=id;
+
+        document.getElementById("delete-video-form").submit();
+
+    }
+
+}
+                    </script>

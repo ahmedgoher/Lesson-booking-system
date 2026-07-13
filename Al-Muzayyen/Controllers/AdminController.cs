@@ -200,6 +200,8 @@ namespace Al_Muzayyen.Controllers
 
             return RedirectToAction("Locations");
         }
+
+
         public IActionResult Videos()
         {
             var model = _videoService.GetAll();
@@ -229,6 +231,33 @@ namespace Al_Muzayyen.Controllers
                 TempData["Error"] = "حدث خطأ أثناء حفظ البيانات.";
                 return View(video);
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddVideo(Video video)
+        {
+            await _videoService.AddAsync(video);
+            _videoService.SaveChanges();
+
+            TempData["Success"] = "تمت إضافة الفيديو.";
+
+            return RedirectToAction(nameof(Videos));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteVideo(int id)
+        {
+            var video = await _videoService.GetByIdAsync(id);
+
+            if (video != null)
+            {
+                _videoService.Delete(video);
+                _videoService.SaveChanges();
+            }
+
+            TempData["Success"] = "تم حذف الفيديو.";
+
+            return RedirectToAction(nameof(Videos));
         }
 
     }
