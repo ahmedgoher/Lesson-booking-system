@@ -374,19 +374,7 @@
                     </div>
                 </div>
 
-                <div class="info-box">
-                    <i class="fa-solid fa-lock"></i>
-                    <div class="password-box">
-                        <span>كلمة المرور</span>
-                        <div class="password-row">
-                            @* <input type="password" id="password" value="@(Model?.Admin?.Password ?? "******")" readonly> *@
-                            <input type="password" id="password" value= "******" readonly>
-                            <button type="button" class="eye-btn" onclick="togglePassword()">
-                                <i id="eyeIcon" class="fa-solid fa-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+               
             </div>
 
             <button type="button" class="edit-profile-btn" onclick="openEditModal()">
@@ -448,10 +436,7 @@
                 <input type="text" name="PhoneNumber" id="modal-input-phone" required>
             </div>
 
-            <div class="modal-form-group">
-                <label>كلمة المرور</label>
-                <input type="text"  id="modal-input-password" >
-            </div>
+           
 
             <div class="modal-actions">
                 <button type="submit" class="btn-modal-action btn-save">إضافة</button>
@@ -464,19 +449,7 @@
 
 <script>
     // إظهار وإخفاء كلمة المرور
-    function togglePassword(){
-        const input = document.getElementById("password");
-        const icon = document.getElementById("eyeIcon");
-        if(input.type === "password"){
-            input.type = "text";
-            icon.classList.remove("fa-eye");
-            icon.classList.add("fa-eye-slash");
-        } else {
-            input.type = "password";
-            icon.classList.remove("fa-eye-slash");
-            icon.classList.add("fa-eye");
-        }
-    }
+  
 
     // فتح وإغلاق نافذة الصورة
     function openImageModal() {
@@ -491,7 +464,6 @@
     function openEditModal() {
         document.getElementById("modal-input-name").value = document.getElementById("admin-name").innerText.trim();
         document.getElementById("modal-input-phone").value = document.getElementById("admin-phone").innerText.trim();
-        document.getElementById("modal-input-password").value = document.getElementById("password").value;
 
         document.getElementById("editModal").classList.add("active");
     }

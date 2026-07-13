@@ -424,6 +424,8 @@ namespace Al_Muzayyen.Controllers
             try
             {
                 var admin = _AdminService.GetAll().FirstOrDefault();
+                admin.ImageUrl = imageUrl;
+                
                 // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
                 _AdminService.Update(admin);
                 _AdminService.SaveChanges();
@@ -441,13 +443,11 @@ namespace Al_Muzayyen.Controllers
         // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
         [HttpPost]
         [ValidateAntiForgeryToken]
+     
         public IActionResult UpdateProfileData(Admin updatedModel)
         {
             // نقوم بفحص الحقول الأساسية فقط المطلوبة في الـ Popup
-            if (string.IsNullOrEmpty(updatedModel.Name) ||
-                string.IsNullOrEmpty(updatedModel.PhoneNumber)
-                //|| string.IsNullOrEmpty(updatedModel.Admin.pasword)
-                )
+            if (string.IsNullOrEmpty(updatedModel.Name) || string.IsNullOrEmpty(updatedModel.PhoneNumber))
             {
                 ModelState.AddModelError("", "برجاء ملء جميع الحقول المطلوبة.");
                 return RedirectToAction(nameof(Index));
@@ -455,19 +455,40 @@ namespace Al_Muzayyen.Controllers
 
             try
             {
-                // 1. جلب الأدمن الحالي من قاعدة البيانات وتحديث بياناته
+                // جلب الأدمن الحالي من قاعدة البيانات
                 var admin = _AdminService.GetAll().FirstOrDefault();
-                 admin.Name = updatedModel.Name;
-                 admin.PhoneNumber = updatedModel.PhoneNumber;
-                 //admin.Password = updatedModel.AdminPassword;
-                 _AdminService.SaveChanges();
 
-                // 2. إعادة التوجيه لصفحة الـ Dashboard لرؤية البيانات الجديدة
+                if (admin == null)
+                {
+                    // 1. في حالة الـ null: نقوم بإنشاء سجل جديد تماماً
+                    var newAdmin = new Admin
+                    {
+                        Name = updatedModel.Name,
+                        PhoneNumber = updatedModel.PhoneNumber
+                        // يمكنك إضافة كلمة مرور افتراضية هنا لو أحببت:
+                        // Password = "..." 
+                    };
+
+                    // تأكد من أن الـ Service بتاعتك تدعم دالة الإضافة مثل Add أو Insert
+                    _AdminService.Add(newAdmin);
+                }
+                else
+                {
+                    // 2. في حالة وجود بيانات: نقوم بالتحديث الطبيعي
+                    admin.Name = updatedModel.Name;
+                    admin.PhoneNumber = updatedModel.PhoneNumber;
+                    // admin.Password = updatedModel.Password;
+                }
+
+                // حفظ التغييرات في قاعدة البيانات (سواء كانت إضافة أو تحديث)
+                _AdminService.SaveChanges();
+
+                // إعادة التوجيه لصفحة الـ Dashboard لرؤية البيانات الجديدة
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                // يمكنك معالجة الخطأ هنا
+                // يمكنك معالجة الخطأ أو تسجيله هنا (Logging)
                 return RedirectToAction(nameof(Index));
             }
         }

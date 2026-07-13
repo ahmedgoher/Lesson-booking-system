@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Al_Muzayyen.Models
 {
@@ -11,8 +12,8 @@ namespace Al_Muzayyen.Models
         [Display(Name = "اسم الأدمن / المدرس")]
         public string? Name { get; set; }
 
-        [StringLength(500)]
         [Display(Name = "رابط الصورة الشخصية")]
+        [Column(TypeName = "nvarchar(max)")]
         public string? ImageUrl { get; set; }
 
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم مصري")]
