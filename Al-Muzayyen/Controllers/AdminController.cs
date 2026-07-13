@@ -399,5 +399,78 @@ namespace Al_Muzayyen.Controllers
             return RedirectToAction(nameof(Videos));
         }
 
+
+
+
+
+
+
+
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken] // لحماية الفورم من هجمات CSRF
+        public IActionResult UpdateProfileImage(string imageUrl)
+        {
+            if (string.IsNullOrEmpty(imageUrl))
+            {
+                ModelState.AddModelError("", "رابط الصورة لا يمكن أن يكون فارغاً.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var admin = _AdminService.GetAll().FirstOrDefault();
+                // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
+                _AdminService.Update(admin);
+                _AdminService.SaveChanges();
+
+                // 2. بعد الحفظ بنجاح، توجيه المستخدم لصفحة الـ Dashboard مرة أخرى
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // يمكنك تسجيل الخطأ هنا (Logging)
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult UpdateProfileData(Admin updatedModel)
+        {
+            // نقوم بفحص الحقول الأساسية فقط المطلوبة في الـ Popup
+            if (string.IsNullOrEmpty(updatedModel.Name) ||
+                string.IsNullOrEmpty(updatedModel.PhoneNumber)
+                //|| string.IsNullOrEmpty(updatedModel.Admin.pasword)
+                )
+            {
+                ModelState.AddModelError("", "برجاء ملء جميع الحقول المطلوبة.");
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                // 1. جلب الأدمن الحالي من قاعدة البيانات وتحديث بياناته
+                var admin = _AdminService.GetAll().FirstOrDefault();
+                 admin.Name = updatedModel.Name;
+                 admin.PhoneNumber = updatedModel.PhoneNumber;
+                 //admin.Password = updatedModel.AdminPassword;
+                 _AdminService.SaveChanges();
+
+                // 2. إعادة التوجيه لصفحة الـ Dashboard لرؤية البيانات الجديدة
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                // يمكنك معالجة الخطأ هنا
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
     }
 }

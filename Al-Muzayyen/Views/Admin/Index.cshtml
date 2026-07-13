@@ -6,131 +6,230 @@
 }
 
 <style>
+    /* ------------------------------------------------------------- */
+    /* التنسيق الأساسي للشاشات الكبيرة والمتوسطة (Desktop & Tablets) */
+    /* ------------------------------------------------------------- */
     .profile-card {
         background: #fff;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.08);
-        padding: 30px;
+        border-radius: 12px;
+        padding: 24px;
         display: flex;
-        gap: 35px;
-        align-items: center;
-        margin-bottom: 30px;
+        align-items: flex-start;
+        gap: 25px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.05);
+        margin-bottom: 20px;
     }
 
     .profile-image {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
+        position: relative;
+        width: 110px;
+        flex-shrink: 0;
     }
 
         .profile-image img {
-            width: 140px;
-            height: 140px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             object-fit: cover;
-            border: 5px solid #d4a24c;
+            border: 4px solid #d4a24c;
         }
 
+    /* زر الكاميرا كأيقونة صغيرة عائمة بشكل دائم */
     .change-image-btn {
-        border: none;
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 50%;
         background: #d4a24c;
         color: #fff;
-        padding: 10px 18px;
-        border-radius: 10px;
+        border: 2px solid #fff;
         cursor: pointer;
-        font-size: 15px;
+        font-size: 14px;
         transition: .3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
 
         .change-image-btn:hover {
-            background: #b98831;
+            background: #bb8b39;
         }
 
-    .profile-info {
+    .profile-content {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
     }
 
-        .profile-info h2 {
-            margin-bottom: 25px;
-            color: #1f3c5a;
-            font-size: 30px;
+    .profile-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .profile-content h2 {
+        color: #23395d;
+        font-size: 22px;
+        margin: 0;
+    }
+
+    /* زرار التعديل في أقصى الشمال */
+    .edit-profile-btn {
+        background: #23395d;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: .3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-right: auto;
+    }
+
+        .edit-profile-btn:hover {
+            background: #1c304c;
         }
 
     .info-grid {
         display: grid;
-        grid-template-columns: repeat(3,1fr);
-        gap: 20px;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 15px;
+        width: 100%;
     }
 
     .info-box {
         background: #f8f9fc;
-        padding: 18px;
-        border-radius: 15px;
         border-right: 4px solid #d4a24c;
+        border-radius: 10px;
+        padding: 12px 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
+
+        .info-box i {
+            font-size: 18px;
+            color: #d4a24c;
+        }
 
         .info-box span {
             display: block;
             color: #888;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 3px;
+            font-size: 13px;
         }
 
         .info-box strong {
             color: #23395d;
-            font-size: 18px;
+            font-size: 15px;
         }
 
-    .edit-profile-btn {
-        margin-top: 25px;
-        background: #23395d;
-        color: white;
-        border: none;
-        padding: 12px 28px;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: .3s;
+    .password-box {
+        width: 100%;
     }
 
-        .edit-profile-btn:hover {
-            background: #1a2e49;
+    .password-row {
+        display: flex;
+        align-items: center;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+        height: 32px;
+        margin-top: 2px;
+    }
+
+        .password-row input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            background: transparent;
+        }
+
+    .eye-btn {
+        width: 40px;
+        border: none;
+        background: #f2f2f2;
+        cursor: pointer;
+        transition: .3s;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .eye-btn i {
+            color: #23395d;
+            font-size: 14px;
         }
 
     .dashboard-stats-grid {
         display: grid;
-        grid-template-columns: repeat(3,1fr);
-        gap: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
     }
 
     .metric-card {
         background: #fff;
-        padding: 25px;
-        border-radius: 18px;
-        border-right: 5px solid #d4a24c;
-        box-shadow: 0 10px 20px rgba(0,0,0,.06);
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,.04);
     }
 
         .metric-card h3 {
+            font-size: 14px;
             color: #666;
-            margin-bottom: 20px;
+            margin: 0 0 8px 0;
         }
 
     .metric-value {
-        font-size: 42px;
-        color: #23395d;
+        font-size: 24px;
         font-weight: bold;
+        color: #23395d;
     }
 
-    @@media(max-width:992px) {
-
+    /* ------------------------------------------------------------- */
+    /* التعديلات الخاصة بالموبيل فقط */
+    /* ------------------------------------------------------------- */
+    @@media(max-width:768px) {
         .profile-card {
             flex-direction: column;
+            align-items: center;
             text-align: center;
+            padding: 20px 15px;
+        }
+
+        .profile-content {
+            align-items: center;
+            width: 100%;
+        }
+
+        .profile-header-row {
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
         }
 
         .info-grid {
             grid-template-columns: 1fr;
+        }
+
+        .edit-profile-btn {
+            margin: 10px 0 0 0;
+            width: 100%;
+            justify-content: center;
         }
 
         .dashboard-stats-grid {
@@ -138,53 +237,159 @@
         }
     }
 
-    @@media(min-width:993px) and (max-width:1200px) {
-
-        .info-grid {
-            grid-template-columns: repeat(2,1fr);
-        }
+    /* ============================================================= */
+    /* تنسيق النوافذ المنبثقة (Popups / Modals) المطابق للصورة تماماً */
+    /* ============================================================= */
+    .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
     }
+
+        .custom-modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+    .custom-modal-box {
+        background: #fff;
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+        text-align: right;
+        direction: rtl;
+    }
+
+    .custom-modal-overlay.active .custom-modal-box {
+        transform: scale(1);
+    }
+
+    .custom-modal-box h3 {
+        color: #23395d;
+        font-size: 22px;
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .modal-form-group {
+        margin-bottom: 15px;
+    }
+
+        .modal-form-group label {
+            display: block;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .modal-form-group input {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+            .modal-form-group input:focus {
+                border-color: #d4a24c;
+            }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-modal-action {
+        border: none;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-size: 15px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-modal-action.btn-save {
+            background: #d4a24c;
+            color: #fff;
+        }
+
+            .btn-modal-action.btn-save:hover {
+                background: #bb8b39;
+            }
+
+        .btn-modal-action.btn-cancel {
+            background: #ccc;
+            color: #555;
+        }
+
+            .btn-modal-action.btn-cancel:hover {
+                background: #bbb;
+            }
 </style>
-<!-- قسم النظرة العامة -->
+
 <section id="overview-section">
 
     <div class="profile-card">
 
         <div class="profile-image">
-
-            <img src="/images/image.png" alt="Admin">
-
-            <button class="change-image-btn">
+            <img id="admin-photo" src="@(string.IsNullOrEmpty(Model?.Admin?.ImageUrl) ? "/images/image.png" : Model.Admin.ImageUrl)" alt="Admin">
+            <button type="button" class="change-image-btn" title="تغيير الصورة" onclick="openImageModal()">
                 <i class="fa-solid fa-camera"></i>
-                تغيير الصورة
             </button>
-
         </div>
 
-        <div class="profile-info">
-
-            <h2>admin </h2>
-
-            <div class="info-grid">
-
-                <div class="info-box">
-                    <span>البريد الإلكتروني</span>
-                    <strong> ahmed morsi #</strong>
-                </div>
-
-                <div class="info-box">
-                    <span>رقم الهاتف</span>
-                    <strong>0198328282828</strong>
-                </div>
-
-                <div class="info-box">
-                    <span>كلمة المرور</span>
-                    <strong> sdkjaknskj</strong> 
-                </div>
-
+        <div class="profile-content">
+            
+            <div class="profile-header-row">
+                <h2 id="admin-name">@(Model?.Admin?.Name ?? "الأستاذ عبد الفتاح المزين")</h2>
             </div>
 
-            <button class="edit-profile-btn">
+            <div class="info-grid">
+                <div class="info-box">
+                    <i class="fa-solid fa-phone"></i>
+                    <div>
+                        <span>رقم الهاتف</span>
+                        <strong id="admin-phone">@(Model?.Admin?.PhoneNumber ?? "غير محدد")</strong>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <i class="fa-solid fa-lock"></i>
+                    <div class="password-box">
+                        <span>كلمة المرور</span>
+                        <div class="password-row">
+                            @* <input type="password" id="password" value="@(Model?.Admin?.Password ?? "******")" readonly> *@
+                            <input type="password" id="password" value= "******" readonly>
+                            <button type="button" class="eye-btn" onclick="togglePassword()">
+                                <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="edit-profile-btn" onclick="openEditModal()">
                 <i class="fa-solid fa-pen"></i>
                 تعديل البيانات
             </button>
@@ -193,24 +398,104 @@
 
     </div>
 
-
     <div class="dashboard-stats-grid">
-
         <div class="metric-card">
             <h3>إجمالي الطلاب</h3>
             <div class="metric-value">@Model.StudentsCount</div>
         </div>
-
         <div class="metric-card">
             <h3>عدد المجموعات</h3>
             <div class="metric-value">@Model.GroupsCount</div>
         </div>
-
         <div class="metric-card">
             <h3>عدد الفصول</h3>
             <div class="metric-value">@Model.ClassesCount</div>
         </div>
-
     </div>
 
 </section>
+
+<div class="custom-modal-overlay" id="imageModal">
+    <div class="custom-modal-box">
+        <h3>تغيير الصورة الشخصية</h3>
+        
+        <form asp-action="UpdateProfileImage" asp-controller="Admin" method="post">
+            <div class="modal-form-group">
+                <label>رابط الصورة الجديد</label>
+                <input type="text" name="imageUrl" id="new-image-url" placeholder="https://example.com/image.png" required>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal-action btn-save">إضافة</button>
+                <button type="button" class="btn-modal-action btn-cancel" onclick="closeImageModal()">إلغاء</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<div class="custom-modal-overlay" id="editModal">
+    <div class="custom-modal-box">
+        <h3>تعديل البيانات</h3>
+        
+        <form asp-action="UpdateProfileData" asp-controller="Admin" method="post">
+            <div class="modal-form-group">
+                <label>اسم الأستاذ</label>
+                <input type="text" name="Name" id="modal-input-name" required>
+            </div>
+
+            <div class="modal-form-group">
+                <label>رقم الهاتف</label>
+                <input type="text" name="PhoneNumber" id="modal-input-phone" required>
+            </div>
+
+            <div class="modal-form-group">
+                <label>كلمة المرور</label>
+                <input type="text"  id="modal-input-password" >
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal-action btn-save">إضافة</button>
+                <button type="button" class="btn-modal-action btn-cancel" onclick="closeEditModal()">إلغاء</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    // إظهار وإخفاء كلمة المرور
+    function togglePassword(){
+        const input = document.getElementById("password");
+        const icon = document.getElementById("eyeIcon");
+        if(input.type === "password"){
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+    }
+
+    // فتح وإغلاق نافذة الصورة
+    function openImageModal() {
+        document.getElementById("new-image-url").value = document.getElementById("admin-photo").src;
+        document.getElementById("imageModal").classList.add("active");
+    }
+    function closeImageModal() {
+        document.getElementById("imageModal").classList.remove("active");
+    }
+
+    // فتح وإغلاق نافذة البيانات وملئها تلقائياً من الصفحة
+    function openEditModal() {
+        document.getElementById("modal-input-name").value = document.getElementById("admin-name").innerText.trim();
+        document.getElementById("modal-input-phone").value = document.getElementById("admin-phone").innerText.trim();
+        document.getElementById("modal-input-password").value = document.getElementById("password").value;
+
+        document.getElementById("editModal").classList.add("active");
+    }
+    function closeEditModal() {
+        document.getElementById("editModal").classList.remove("active");
+    }
+</script>
