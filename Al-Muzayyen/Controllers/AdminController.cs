@@ -53,10 +53,35 @@ namespace Al_Muzayyen.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Students()
+        public async Task<IActionResult> Students(int? placeId, int? classId, int? groupId)
         {
             var stds = await bookingRepo.GetEnteredStudents();
-            return View(stds);
+            var query = stds.AsQueryable();
+
+            if (placeId.HasValue)
+            {
+                query = query.Where(s => s.PlaceId == placeId.Value);
+            }
+
+            if (classId.HasValue)
+            {
+                query = query.Where(s => s.ClassId == classId.Value);
+            }
+
+            if (groupId.HasValue)
+            {
+                query = query.Where(s => s.SlotId == groupId.Value);
+            }
+
+            ViewBag.Places = _placeServiceGeneric.GetAll();
+            ViewBag.Classes = _classService.GetAll();
+            ViewBag.Groups = _availableSlotService.GetAll();
+
+            ViewBag.SelectedPlace = placeId;
+            ViewBag.SelectedClass = classId;
+            ViewBag.SelectedGroup = groupId;
+
+            return View(query.ToList());
         }
 
 
@@ -105,32 +130,112 @@ namespace Al_Muzayyen.Controllers
 
             return View(query.ToList());
         }
-        [HttpGet]
-        public IActionResult Create(int? Number_Of_day)
-        {
-            ViewBag.Places = _placeServiceGeneric.GetAll();
-            ViewBag.Classes = _classService.GetAll();
+        //[HttpGet]
+        //public IActionResult Create(int? Number_Of_day)
+        //{
+        //    ViewBag.Places = _placeServiceGeneric.GetAll();
+        //    ViewBag.Classes = _classService.GetAll();
 
-            ViewBag.Number_Of_day = Number_Of_day ?? 1;
+        //    ViewBag.Number_Of_day = Number_Of_day ?? 1;
 
-            return View();
-        }
+        //    return View();
+        //}
+        //[HttpPost]
+        //public async Task<IActionResult> Create(Available_slot group)
+        //{
+        //    ModelState.Remove("SlotTimes.AvailableSlot");
+        //    ModelState.Remove("SlotTimes.AvailableSlotId");
+        //    if (ModelState.IsValid)
+        //    {
+        //        _availableSlotService.Add(group);
+        //        await _availableSlotService.SaveChangesAsync();
+        //        TempData["SuccessMessage"] = "تم إضافة المجموعة بنجاح!";
+        //        return RedirectToAction(nameof(Groups));
+        //    }
+
+        //    ViewBag.Places = _placeServiceGeneric.GetAll();
+        //    ViewBag.Classes = _classService.GetAll();
+        //    return View(group);
+        //}
+
         [HttpPost]
-        public async Task<IActionResult> Create(Available_slot group)
+        public async Task<IActionResult> CreateAjax([FromBody] GroupActionVM dto)
         {
-            ModelState.Remove("SlotTimes.AvailableSlot");
-            ModelState.Remove("SlotTimes.AvailableSlotId");
-            if (ModelState.IsValid)
+            if (dto == null)
             {
-                _availableSlotService.Add(group);
-                await _availableSlotService.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم إضافة المجموعة بنجاح!";
-                return RedirectToAction(nameof(Groups));
+                return Json(new { success = false, message = "فشل في قراءة البيانات المرسلة (Null Payload)" });
             }
 
-            ViewBag.Places = _placeServiceGeneric.GetAll();
-            ViewBag.Classes = _classService.GetAll();
-            return View(group);
+            if (string.IsNullOrEmpty(dto.Group_Name))
+            {
+                return Json(new { success = false, message = "اسم المجموعة مطلوب!" });
+            }
+
+            var group = new Available_slot
+            {
+                Group_Name = dto.Group_Name,
+                PlaceId = dto.PlaceId,
+                ClassId = dto.ClassId,
+                Number_Of_day = dto.Number_Of_day,
+                State = "Active",
+                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                {
+                    Day = s.Day,
+                    Time = DateTime.Parse(s.Time)
+                }).ToList()
+            };
+                _availableSlotService.Add(group);
+                await _availableSlotService.SaveChangesAsync();
+                return Json(new { success = true, message = "تم إضافة المجموعة بنجاح!" });
+            
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetGroupById(int id)
+        {
+            var groups = await groupRepo.GetAllGroupsWithRelations();
+            var group = groups.FirstOrDefault(g => g.Id == id);
+            if(group == null) return NotFound();
+            var result = new
+            {
+                id = group.Id,
+                name = group.Group_Name,
+                placeId = group.PlaceId,
+                classId = group.ClassId,
+                slots = group.SlotTimes.Select(s => new {day=s.Day,time=s.Time})
+            };
+            return Json(result);
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditAjax([FromBody] GroupActionVM dto)
+        {
+            if (dto == null || dto.Id == 0)
+            {
+                return Json(new { success = false, message = "بيانات التعديل غير صحيحة (Null Payload)" });
+            }
+
+            var group = new Available_slot
+            {
+                Id = dto.Id,
+                Group_Name = dto.Group_Name,
+                PlaceId = dto.PlaceId,
+                ClassId = dto.ClassId,
+                Number_Of_day = dto.Number_Of_day,
+                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                {
+                    Day = s.Day,
+                    Time = DateTime.Parse(s.Time)
+                }).ToList()
+            };
+
+            try
+            {
+                await groupRepo.UpdateGroupWithSlots(group);
+                return Json(new { success = true, message = "تم تعديل المجموعة بنجاح!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "حدث خطأ أثناء تعديل المجموعة!" });
+            }
         }
         public IActionResult Classes()
         {

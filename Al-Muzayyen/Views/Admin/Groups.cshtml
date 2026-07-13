@@ -3,9 +3,7 @@
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Groups";
 }
-
-
-<!-- قسم إدارة المجموعات -->
+<link href="~/css/Filters.css" rel="stylesheet" />
 <section id="groups-section">
     @if (TempData["SuccessMessage"] != null)
     {
@@ -14,17 +12,19 @@
         </div>
     }
 
-    <div class="section-header-block">
-        <h2>إدارة المجموعات</h2>
-        <a asp-action="Create" class="action-button" style="text-decoration: none; text-align: center; display: inline-block;">
-            إضافة مجموعة جديدة
-        </a>
+    <div class="groups-header">
+        <div class="groups-header-top">
 
-        <form method="get" asp-action="Groups" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-    
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-weight: bold;">الفلترة بالمكان:</label>
-                <select name="placeId" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        <h2>إدارة المجموعات</h2>
+        <button type="button" onclick="openCreateModal()" class="action-button" style="border:none; cursor:pointer;">
+            إضافة مجموعة جديدة
+        </button>
+        </div>
+
+        <form method="get" asp-action="Groups" class="groups-filter-form">
+            <div class="filter-field">
+                <label>الفلترة بالمكان:</label>
+                <select name="placeId" onchange="this.form.submit()">
                     <option value="">كل الأماكن</option>
                     @foreach (var place in ViewBag.Places)
                     {
@@ -33,9 +33,9 @@
                 </select>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-weight: bold;">الفلترة بالصف:</label>
-                <select name="classId" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <div class="filter-field">
+                <label>الفلترة بالصف:</label>
+                <select name="classId" onchange="this.form.submit()">
                     <option value="">كل الصفوف</option>
                     @foreach (var cls in ViewBag.Classes)
                     {
@@ -44,27 +44,24 @@
                 </select>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-weight: bold;">حالة المجموعات:</label>
-                <select name="status" onchange="this.form.submit()" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+            <div class="filter-field">
+                <label>حالة المجموعات:</label>
+                <select name="status" onchange="this.form.submit()">
                     <!option value="Active" @(ViewBag.SelectedStatus == "Active" ? "selected" : "")>المجموعات النشطة فقط</!option>
                     <!option value="Closed" @(ViewBag.SelectedStatus == "Closed" ? "selected" : "")>المجموعات المغلقة (المحذوفة)</!option>
                     <!option value="All" @(ViewBag.SelectedStatus == "All" ? "selected" : "")>عرض الكل</!option>
                 </select>
             </div>
 
-          <div>
-                <a asp-action="Groups" 
-                style="padding: 8px 15px; background: #6c757d; color: #fff; text-decoration: none; border-radius: 4px; display: inline-block;">إعادة تعيين</a>
+            <div class="filter-field filter-reset">
+                <label>&nbsp;</label>
+                <a asp-action="Groups" class="reset-btn">إعادة تعيين</a>
             </div>
         </form>
-
     </div>
 
     <div class="table-responsive-container">
-
         <table class="data-display-table">
-
             <thead>
                 <tr>
                     <th>اسم المجموعة</th>
@@ -74,7 +71,6 @@
                     <th>إجراءات</th>
                 </tr>
             </thead>
-
             <tbody>
                 @foreach(var group in Model)
                 {
@@ -83,372 +79,198 @@
                         <td>@group.Place?.Name</td>
                         <td>@group.Class?.Name</td>
                         <td>
-                            @string.Join(", ", group.SlotTimes.Select(time=>$"{time.Day} {time.Time}"))
+                            @string.Join(", ", group.SlotTimes.Select(time => $"{time.Day} {time.Time.ToString("hh:mm tt")}"))
                         </td>
                         <td>
-                            <a asp-action="Edit" asp-route-id="@group.Id"  class="action-icon-btn" style="color:blue;">تعديل</a>
-                            <form asp-action="Delete" asp-route-id="@group.Id" method="post" onsubmit="return confirm('متأكد؟')">
-                                <button type="submit" class="action-icon-btn" style="color:red;">حذف</button>
+                            <button type="button" onclick="openEditModal(@group.Id)" class="action-icon-btn" style="color:blue; background:none; border:none; cursor:pointer;"><i class="fas fa-edit"></i></button>
+                            
+                            <form asp-action="Delete" asp-route-id="@group.Id" method="post" onsubmit="return confirm('متأكد؟')" style="display:inline;">
+                                <button type="submit" class="action-icon-btn" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
                             </form>
-                          
-                        </td>
 
+                        </td>
                     </tr>
                 }
-
             </tbody>
-
         </table>
-
     </div>
-
 </section>
-@section model {
 
-    <div id="group-modal" class="custom-popup-overlay">
+<div id="group-modal" class="custom-popup-overlay">
+    <div class="popup-window-content">
+        <h3 id="modal-title">إضافة مجموعة جديدة</h3>
 
-        <div class="popup-window-content">
+        <form id="group-form" onsubmit="saveGroup(event)">
+            <input type="hidden" id="group-id">
 
-            <h3>إضافة / تعديل مجموعة</h3>
-
-            <form id="group-form">
-
-                <input type="hidden" id="group-id">
-
-                <div class="input-field-group">
-                    <label>اسم المجموعة</label>
-                    <input type="text" id="group-name" required>
-                </div>
-
-                <div class="input-field-group">
-                    <label>المكان</label>
-
-                    <select id="group-location" required>
-                        <!-- سيتم تعبئته من JavaScript -->
-                    </select>
-
-                </div>
-
-                <div class="input-field-group">
-
-                    <label>الصف</label>
-
-                    <select id="group-grade" required>
-                        <!-- سيتم تعبئته من JavaScript -->
-                    </select>
-
-                </div>
-
-                <div class="form-group">
-
-                    <label for="daysCount">
-                        عدد أيام الحضور
-                    </label>
-
-                    <select id="daysCount" onchange="generateDays()">
-                        <option> اختار عدد الايام </option>
-
-                        <option value="1">يوم واحد</option>
-                        <option value="2">يومان</option>
-                        <option value="3">3 أيام</option>
-                        <option value="4">4 أيام</option>
-                        <option value="5">5 أيام</option>
-                        <option value="6">6 أيام</option>
-                        <option value="7">7 أيام</option>
-
-                    </select>
-
-                </div>
-
-                <!-- سيتم إنشاء الأيام هنا -->
-                <div id="daysContainer"></div>
-
-                <div class="popup-actions-flex">
-
-                    <button type="submit"
-                            class="action-button">
-
-                        حفظ
-
-                    </button>
-
-                    <button type="button"
-                            class="action-button"
-                            style="background:#ccc;color:#333;"
-                            onclick="closeModal('group-modal')">
-
-                        إلغاء
-
-                    </button>
-
-                </div>
-
-            </form>
-
-        </div>
-
-    </div>
-
-}
-
-
-<script>
-
-    generateDays();
-
-    function generateDays() {
-
-        const count = parseInt(document.getElementById("daysCount").value);
-
-        const container = document.getElementById("daysContainer");
-
-        container.innerHTML = "";
-
-        const days = [
-            "السبت",
-            "الأحد",
-            "الإثنين",
-            "الثلاثاء",
-            "الأربعاء",
-            "الخميس",
-            "الجمعة"
-        ];
-
-        for (let i = 1; i <= count; i++) {
-
-            let options = "";
-
-            days.forEach(day => {
-
-                options += `
-                    <option value="${day}">
-                        ${day}
-                    </option>
-                `;
-
-            });
-
-            container.innerHTML += `
-
-            <div class="day-card">
-
-                <div class="day-title">
-
-                    اليوم ${i}
-
-                </div>
-
-                <div class="day-row">
-
-                    <div class="day-field">
-
-                        <label>اليوم</label>
-
-                        <select id="day${i}">
-
-                            ${options}
-
-                        </select>
-
-                    </div>
-
-                    <div class="day-field">
-
-                        <label>ميعاد الحصة</label>
-
-                        <input type="time" id="time${i}">
-
-                    </div>
-
-                </div>
-
+            <div class="input-field-group">
+                <label>اسم المجموعة</label>
+                <input type="text" id="group-name" required>
             </div>
 
+            <div class="input-field-group">
+                <label>المكان</label>
+                <select id="group-location" required>
+                    @foreach (var place in ViewBag.Places)
+                    {
+                        <option value="@place.Id">@place.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-field-group">
+                <label>الصف</label>
+                <select id="group-grade" required>
+                    @foreach (var cls in ViewBag.Classes)
+                    {
+                        <option value="@cls.Id">@cls.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="input-field-group">
+                <label>عدد أيام الحضور</label>
+                <select id="daysCount" onchange="generateDays()">
+                    @for (int i = 1; i <= 7; i++)
+                    {
+                        <option value="@i">@i أيام</option>
+                    }
+                </select>
+            </div>
+
+            <div id="daysContainer"></div>
+
+            <div class="popup-actions-flex">
+                <button type="submit" class="action-button">إضافة</button>
+                <button type="button" class="cancel-btn" onclick="closeModal()">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const daysArray = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+
+    // توليد حقول الأيام والمواعيد ديناميكياً
+    function generateDays() {
+        const count = parseInt(document.getElementById("daysCount").value) || 1;
+        const container = document.getElementById("daysContainer");
+        container.innerHTML = "";
+
+        for (let i = 0; i < count; i++) {
+            let options = daysArray.map(day => `<option value="${day}">${day}</option>`).join('');
+
+            container.innerHTML += `
+                <div class="day-card" style="border:1px solid #eee; padding:10px; margin-bottom:10px; border-radius:6px; background:#fafafa;">
+                    <div class="day-title" style="font-weight:bold; margin-bottom:5px; color:#555;">اليوم ${i + 1}</div>
+                    <div class="day-row" style="display:flex; gap:10px;">
+                        <div class="day-field" style="flex:1;">
+                            <label>اليوم</label>
+                            <select class="slot-day" style="width:100%; padding:6px; border-radius:4px; border:1px solid #ccc;">${options}</select>
+                        </div>
+                        <div class="day-field" style="flex:1;">
+                            <label>ميعاد الحصة</label>
+                            <input type="time" class="slot-time" required style="width:100%; padding:5px; border-radius:4px; border:1px solid #ccc;">
+                        </div>
+                    </div>
+                </div>
             `;
-
         }
-
     }
 
-    //=============================
-    // فتح الـ Modal
-    //=============================
-
-    function openModal(modalId){
-
-        document.getElementById(modalId).style.display="flex";
-
-        // مؤقتاً بيانات وهمية للـ Select
-        if(modalId=="group-modal"){
-
-            const locations=[
-                "سنتر المدينة",
-                "سنتر النور",
-                "سنتر المستقبل",
-                "سنتر الأمل"
-            ];
-
-            const grades=[
-                "الصف الأول الإعدادي",
-                "الصف الثاني الإعدادي",
-                "الصف الثالث الإعدادي",
-                "الصف الأول الثانوي",
-                "الصف الثاني الثانوي",
-                "الصف الثالث الثانوي"
-            ];
-
-            const location=document.getElementById("group-location");
-            const grade=document.getElementById("group-grade");
-
-            if(location.options.length==0){
-
-                locations.forEach((l,index)=>{
-
-                    location.innerHTML+=`<option value="${index+1}">${l}</option>`;
-
-                });
-
-            }
-
-            if(grade.options.length==0){
-
-                grades.forEach((g,index)=>{
-
-                    grade.innerHTML+=`<option value="${index+1}">${g}</option>`;
-
-                });
-
-            }
-
-        }
-
-    }
-
-    //=============================
-    // غلق الـ Modal
-    //=============================
-
-    function closeModal(modalId){
-
-        document.getElementById(modalId).style.display="none";
-
+    function openCreateModal() {
+        document.getElementById("group-id").value = "";
         document.getElementById("group-form").reset();
-
-        document.getElementById("group-id").value="";
-
+        document.getElementById("modal-title").innerText = "إضافة مجموعة جديدة";
+        document.getElementById("daysCount").value = "1";
         generateDays();
-
+        document.getElementById("group-modal").style.display = "flex";
     }
 
-    //=============================
-    // تعديل المجموعة
-    //=============================
+    async function openEditModal(id) {
+        document.getElementById("group-form").reset();
+        document.getElementById("modal-title").innerText = "تعديل مجموعة";
+        
+        // جلب البيانات الحقيقية من الداتا بيز بـ AJAX
+        let response = await fetch(`/Admin/GetGroupById?id=${id}`);
+        if (response.ok) {
+            let group = await response.json();
+            
+            document.getElementById("group-id").value = group.id;
+            document.getElementById("group-name").value = group.name;
+            document.getElementById("group-location").value = group.placeId;
+            document.getElementById("group-grade").value = group.classId;
+            document.getElementById("daysCount").value = group.slots.length;
+            
+            generateDays();
 
-    function editGroup(button){
+            // ملء المواعيد الحقيقية في الـ Inputs
+            const daySelects = document.querySelectorAll(".slot-day");
+            const timeInputs = document.querySelectorAll(".slot-time");
+            
+            group.slots.forEach((slot, index) => {
+                if(daySelects[index]) daySelects[index].value = slot.day;
+                if(timeInputs[index]) timeInputs[index].value = slot.time;
+            });
 
-        openModal("group-modal");
-
-        const row=button.closest("tr");
-
-        const cells=row.querySelectorAll("td");
-
-        document.getElementById("group-id").value=row.dataset.id;
-
-        document.getElementById("group-name").value=cells[0].innerText.trim();
-
-        //---------------------
-        // المكان
-        //---------------------
-
-        const location=document.getElementById("group-location");
-
-        [...location.options].forEach(option=>{
-
-            if(option.text.trim()==cells[1].innerText.trim()){
-
-                location.value=option.value;
-
-            }
-
-        });
-
-        //---------------------
-        // الصف
-        //---------------------
-
-        const grade=document.getElementById("group-grade");
-
-        [...grade.options].forEach(option=>{
-
-            if(option.text.trim()==cells[2].innerText.trim()){
-
-                grade.value=option.value;
-
-            }
-
-        });
-
-        //---------------------
-        // المواعيد
-        //---------------------
-
-        const schedule=cells[3].innerText.trim();
-
-        const lessons=schedule.split(",");
-
-        document.getElementById("daysCount").value=lessons.length;
-
-        generateDays();
-
-        lessons.forEach((lesson,index)=>{
-
-            lesson=lesson.trim();
-
-            // السبت 03:00 م
-            const match=lesson.match(/^(.+?)\s+(\d{1,2}:\d{2})\s*(ص|م)$/);
-
-            if(!match) return;
-
-            const day=match[1];
-
-            const time=match[2];
-
-            const period=match[3];
-
-            document.getElementById(`day${index+1}`).value=day;
-
-            let hour=parseInt(time.split(":")[0]);
-
-            let minute=time.split(":")[1];
-
-            if(period==="م" && hour!=12)
-                hour+=12;
-
-            if(period==="ص" && hour==12)
-                hour=0;
-
-            const htmlTime=
-                hour.toString().padStart(2,"0")+":"+minute;
-
-            document.getElementById(`time${index+1}`).value=htmlTime;
-
-        });
-
-    }
-
-    //=============================
-    // حذف (مؤقت)
-    //=============================
-
-    function deleteGroup(button){
-
-        if(confirm("هل تريد حذف المجموعة؟")){
-
-            button.closest("tr").remove();
-
+            document.getElementById("group-modal").style.display = "flex";
+        } else {
+            alert("فشل في جلب بيانات المجموعة.");
         }
-
     }
 
-</script>
+    function closeModal() {
+        document.getElementById("group-modal").style.display = "none";
+    }
 
+    // حفظ البيانات عبر الـ AJAX (الإرسال للـ Controller بصيغة JSON)
+  async function saveGroup(event) {
+    event.preventDefault();
+
+    const id = document.getElementById("group-id").value;
+    const name = document.getElementById("group-name").value;
+    const placeId = parseInt(document.getElementById("group-location").value);
+    const classId = parseInt(document.getElementById("group-grade").value);
+    const daysCount = parseInt(document.getElementById("daysCount").value);
+
+    const daySelects = document.querySelectorAll(".slot-day");
+    const timeInputs = document.querySelectorAll(".slot-time");
+    
+    let slotTimes = [];
+    for (let i = 0; i < daysCount; i++) {
+        slotTimes.push({
+            Day: daySelects[i].value,
+            Time: timeInputs[i].value
+        });
+    }
+
+const payload = {
+    id: id ? parseInt(id) : 0,
+    group_Name: name,
+    placeId: placeId,
+    classId: classId,
+    number_Of_day: daysCount,
+    slotTimes: slotTimes // تأكد أن المبيعات داخل المصفوفة ترسل الحقول كـ { Day: "...", Time: "..." }
+};
+
+    const url = id ? '/Admin/EditAjax' : '/Admin/CreateAjax';
+
+    let response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+        let result = await response.json();
+        if (result.success) {
+            alert(result.message);
+            location.reload(); 
+        } else {
+            alert(result.message);
+        }
+    } else {
+        alert("حدث خطأ في السيرفر أثناء الحفظ.");
+    }
+}
+</script>
