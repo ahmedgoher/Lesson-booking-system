@@ -162,12 +162,13 @@ a {
     margin-top: 50px;
 }
 
-.video-card{
-    background:#fff;
-    border-radius:15px;
-    overflow:hidden;
-    box-shadow:0 10px 25px rgba(0,0,0,.1);
-    transition:.3s;
+.video-card {
+    max-width: 400px;
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    transition: .3s;
 }
 
 .video-card:hover{
@@ -946,16 +947,18 @@ a {
 }
 
 
-@media(max-width:768px) {
 
+@media(max-width:768px) {
+    /**/
     .videos-header {
         flex-direction: column;
         align-items: center;
+        align-items: center !important;
     }
 
     .action-button {
         width: 100%;
-        margin-top: 20px;
+        margin-top: 10px;
     }
 
     .video-actions {
@@ -967,7 +970,8 @@ a {
     }
 
     .delete-video-btn {
-        width: 100%;
+        width: 100% !important;
         height: 45px;
     }
 }
+

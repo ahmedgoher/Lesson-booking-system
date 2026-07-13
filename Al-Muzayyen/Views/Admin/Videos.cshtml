@@ -9,13 +9,11 @@
         justify-content: space-between;
         align-items: flex-start;
         margin-bottom: 40px;
-        direction: ltr;
     }
 
-        .videos-header .section-title {
-            flex: 1;
-            text-align: center;
-        }
+    .bodyvideo{
+        padding:15px
+    }
 
     .action-button {
         margin-top: 10px;
@@ -58,10 +56,29 @@
         font-size: 16px;
         transition: .3s;
     }
+    .Deletemobile-video-btn {
+        flex: 2;
+        height: 45px;
+        border: none;
+        border-radius: 10px;
+        background: #e53935;
+        color: #fff;
+        cursor: pointer;
+        font-size: 16px;
+        transition: .3s;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .Deletemobile-video-btn:hover{
+        background: #c62828;
+    }
 
         .edit-video-btn:hover {
             background: #b38d46;
         }
+        
+
 
     .delete-video-btn {
         width: 45px;
@@ -92,13 +109,14 @@
     <div class="container">
 
         <div class="videos-header">
+          
+            <div class="section-title">
+                <h2>فيديوهات الأستاذ</h2>
+            </div>
             <button class="action-button" onclick="openAddVideoPopup()">
                 <i class="fas fa-plus"></i>
                 إضافة فيديو
             </button>
-            <div class="section-title">
-                <h2>فيديوهات الأستاذ</h2>
-            </div>
 
             
 
@@ -113,29 +131,32 @@
                             title="@video.Title"
                             allowfullscreen>
                     </iframe>
+                    <div class="bodyvideo">
+                        <h3>@video.Title</h3>
+                        <p>@video.Description</p>
 
-                    <h3>@video.Title</h3>
-                    <p>@video.Description</p>
+                        <div class="video-actions">
 
-                    <div class="video-actions">
+                            <button class="edit-video-btn"
+                                    onclick="openVideoPopup(this)">
 
-                        <button class="edit-video-btn"
-                                onclick="openVideoPopup(this)">
+                                <i class="fas fa-edit"></i>
+                                تعديل
 
-                            <i class="fas fa-edit"></i>
-                            تعديل
+                            </button>
 
-                        </button>
+                           
+                            <button class="delete-video-btn "
+                                    onclick="deleteVideo(this)"
+                                    title="حذف">
 
-                        <button class="delete-video-btn"
-                                onclick="deleteVideo(this)"
-                                title="حذف">
+                                حذف
 
-                            <i class="fas fa-trash"></i>
+                            </button>
 
-                        </button>
-
+                        </div>
                     </div>
+              
                 </div>
 
 
