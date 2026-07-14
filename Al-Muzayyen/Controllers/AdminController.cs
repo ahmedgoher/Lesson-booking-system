@@ -753,5 +753,66 @@ using ClosedXML.Excel;
             }
         }
 
+
+
+
+    private string GetMediaUrl(string url)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return "";
+
+            // ==========================
+            // Google Drive
+            // ==========================
+            if (url.Contains("drive.google.com/file/d/"))
+            {
+                var id = url.Split("/file/d/")[1].Split('/')[0];
+
+                // لو فيديو
+                return $"https://drive.google.com/file/d/{id}/preview";
+
+                // لو صورة استخدم السطر ده بدلاً من اللي فوق
+                // return $"https://drive.google.com/uc?export=view&id={id}";
+            }
+
+            // ==========================
+            // YouTube (youtu.be)
+            // ==========================
+            if (url.Contains("youtu.be/"))
+            {
+                var id = url.Split("youtu.be/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube (watch?v=)
+            // ==========================
+            if (url.Contains("youtube.com/watch?v="))
+            {
+                var id = url.Split("watch?v=")[1].Split('&')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube Shorts
+            // ==========================
+            if (url.Contains("youtube.com/shorts/"))
+            {
+                var id = url.Split("shorts/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // أي رابط آخر
+            return url;
+        }
+        catch (Exception)
+        {
+            // لو حصل أي خطأ، رجع الرابط كما هو
+            return url;
+        }
     }
+
+}
 
