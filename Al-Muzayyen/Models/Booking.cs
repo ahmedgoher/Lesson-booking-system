@@ -42,13 +42,14 @@ namespace Al_Muzayyen.Models
         public Class? Class { get; set; } // إضافة ? لمنع مشاكل الـ Validation في الفورم
 
         [Required(ErrorMessage = "يرجى تحديد مكان الدرس")]
-        [Range(1, int.MaxValue, ErrorMessage = "يرجى تحديد مكان الدرس من القائمة")]
+        [Range(1, int.MaxValue, ErrorMessage = "يرجى اختيار المجموعة المتاحة للموعد")]
         [ForeignKey("AvailableSlot")]
         public int SlotId { get; set; }
         public Available_slot? AvailableSlot { get; set; } // تعديل الاسم ليبدأ بحرف كابيتال
 
         [Required(ErrorMessage = "يرجى اختيار المجموعة المتاحة للموعد")]
-        [Range(1, int.MaxValue, ErrorMessage = "يرجى اختيار المجموعة المتاحة للموعد")]
+        [Range(1, int.MaxValue, ErrorMessage = "يرجى تحديد مكان الدرس من القائمة")]
+
         [ForeignKey("Place")]
         public int PlaceId { get; set; }
         public Place? Place { get; set; } // تعديل الاسم ليبدأ بحرف كابيتال
