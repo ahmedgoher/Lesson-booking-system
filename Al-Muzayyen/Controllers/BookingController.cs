@@ -34,11 +34,22 @@ namespace Al_Muzayyen.Controllers
         [HttpGet]
         public async Task<IActionResult> booking()
         {
-            var phonenumber = _admin.GetAll().FirstOrDefault().PhoneNumber;
+            var phone = _admin.GetAll();
+            string phonenumber;
+            if (phone.Count == 0)
+            {
+                ViewBag.number = "";
+
+            }
+            else 
+            {
+                phonenumber = phone.FirstOrDefault().PhoneNumber;
+                ViewBag.number = phonenumber;
+
+            }
 
             ViewBag.Classes = await _classService.GetAllClassesAsync();
             ViewBag.Places = await _placeService.GetAllPlacesAsync();
-            ViewBag.number = phonenumber;
 
             return View();
         }
