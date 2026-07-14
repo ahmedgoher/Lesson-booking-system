@@ -14,7 +14,7 @@
         border-radius: 12px;
         padding: 24px;
         display: flex;
-        align-items: flex-start;
+        align-items: center; /* ضبط المحاذاة لتكون عمودية متناسقة مع الصورة والاسم */
         gap: 25px;
         box-shadow: 0 4px 20px rgba(0,0,0,.05);
         margin-bottom: 20px;
@@ -62,15 +62,15 @@
     .profile-content {
         flex: 1;
         display: flex;
-        flex-direction: column;
+        flex-direction: row; /* توزيع العناصر أفقياً: الاسم أولاً ثم زر التعديل في الآخر */
+        justify-content: space-between;
+        align-items: center;
         gap: 15px;
     }
 
-    .profile-header-row {
+    .profile-info-block {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
+        flex-direction: column;
     }
 
     .profile-content h2 {
@@ -79,7 +79,12 @@
         margin: 0;
     }
 
-    /* زرار التعديل في أقصى الشمال */
+    /* كلاس مخصص لإخفاء رقم الهاتف تماماً من العرض */
+    .hidden-field {
+        display: none !important;
+    }
+
+    /* زرار التعديل ليصبح في أقصى اليسار/النهاية */
     .edit-profile-btn {
         background: #23395d;
         color: #fff;
@@ -92,7 +97,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-right: auto;
+        margin-right: auto; /* يدفع الزر إلى نهاية السطر تلقائياً */
     }
 
         .edit-profile-btn:hover {
@@ -171,14 +176,13 @@
         }
 
         .profile-content {
+            flex-direction: column; /* يعود لترتيب عمودي متناسق في الشاشات الصغيرة */
             align-items: center;
             width: 100%;
         }
 
-        .profile-header-row {
-            flex-direction: column;
-            justify-content: center;
-            gap: 10px;
+        .profile-info-block {
+            align-items: center;
         }
 
         .info-grid {
@@ -186,7 +190,7 @@
         }
 
         .edit-profile-btn {
-            margin: 10px 0 0 0;
+            margin: 15px 0 0 0;
             width: 100%;
             justify-content: center;
         }
@@ -320,16 +324,16 @@
 
         <div class="profile-content">
             
-            <div class="profile-header-row">
-                <h2 id="admin-name">@(Model?.Admin?.Name ?? "الأستاذ عبد الفتاح المزين")</h2>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-box" >
-                    <i class="fa-solid fa-phone"></i>
-                    <div>
-                        <span>رقم الهاتف</span>
-                        <strong id="admin-phone">@(Model?.Admin?.PhoneNumber ?? "")</strong>
+            <div class="profile-info-block">
+                <h2 id="admin-name">@(Model?.Admin?.Name ?? " ")</h2>
+               
+                <div class="info-grid" style="display: none;">
+                    <div class="info-box">
+                        <i class="fa-solid fa-phone"></i>
+                        <div>
+                            <span>رقم الهاتف</span>
+                            <strong id="admin-phone">@(Model?.Admin?.PhoneNumber ?? "")</strong>
+                        </div>
                     </div>
                 </div>
             </div>

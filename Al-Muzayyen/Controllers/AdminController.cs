@@ -15,7 +15,8 @@ using ClosedXML.Excel;
         private readonly IGenericService<Admin> _AdminService;
         private readonly IGenericService<Booking> _bookingService;
         private readonly IGenericService<Available_slot> _availableSlotService;
-        private readonly IGenericService<Place> _placeServiceGeneric;
+        private readonly IGenericService<Slot_time> _slotTimeService;
+    private readonly IGenericService<Place> _placeServiceGeneric;
         private readonly IGenericService<Video> _videoService;
         private readonly IPlaceService _placeService;
         private readonly IBookingRepo bookingRepo;
@@ -28,7 +29,8 @@ using ClosedXML.Excel;
 
     public AdminController
 
-            (
+            (IGenericService<Slot_time> slotTimeService,
+
         CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
             IGenericService<Admin> adminService,
             IGenericService<Class> classService,
@@ -41,7 +43,7 @@ using ClosedXML.Excel;
             IGroupRepo groupRepo,
             IConfiguration configuration)
         {
-
+        _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
         _webHostEnvironment = webHostEnvironment;
         _AdminService = adminService;
@@ -65,8 +67,6 @@ using ClosedXML.Excel;
                 Admin = _AdminService.GetAll().FirstOrDefault()
 
             };
-
-           
             return View(model);
         }
 
@@ -274,7 +274,7 @@ using ClosedXML.Excel;
                 ClassId = dto.ClassId,
                 Number_Of_day = dto.Number_Of_day,
                 State = "Active",
-                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                SlotTimes = dto.SlotTimes.Select(s => new Slot_time
                 {
                     Day = s.Day,
                     Time = DateTime.Parse(s.Time)
@@ -283,7 +283,6 @@ using ClosedXML.Excel;
                 _availableSlotService.Add(group);
                 await _availableSlotService.SaveChangesAsync();
                 return Json(new { success = true, message = "تم إضافة المجموعة بنجاح!" });
-            
         }
         [HttpGet]
         public async Task<IActionResult> GetGroupById(int id)
@@ -376,6 +375,27 @@ using ClosedXML.Excel;
                 TempData["DeleteClassError"] = "الصف غير موجود.";
                 return RedirectToAction(nameof(Classes));
             }
+            var slots = _availableSlotService.GetAll()
+                                             .Where(x => x.ClassId == id)
+                                             .ToList();
+
+            foreach (var slot in slots)
+            {
+                var times = _slotTimeService.GetAll()
+                                            .Where(x => x.SlotID == slot.Id)
+                                            .ToList();
+
+                foreach (var time in times)
+                {
+                    _slotTimeService.Delete(time);
+                }
+
+                _slotTimeService.SaveChanges();
+
+                _availableSlotService.Delete(slot);
+            }
+
+            _availableSlotService.SaveChanges();
 
             _classService.Delete(item);
             _classService.SaveChanges();

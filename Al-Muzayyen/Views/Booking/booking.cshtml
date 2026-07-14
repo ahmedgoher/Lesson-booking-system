@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_layouthome.cshtml";
     ViewData["Title"] = "Booking Page";
     var classes = ViewBag.Classes as IEnumerable<Al_Muzayyen.Models.Class>;
+    // var phone = ViewBag.number;
     var places = ViewBag.Places as IEnumerable<Al_Muzayyen.Models.Place>;
 }
 
@@ -172,19 +173,20 @@
         </form>
 
         <div class="whatsapp-contact">
-            <a href="https://wa.me/201202023821?text=
-السلام عليكم، أريد الاستفسار عن الحجز"
+
+            <a id="whatsappBtn"
                    target="_blank"
                    class="whatsapp-btn">
-                <i class="fa-brands fa-whatsapp"></i>
 
-                <div class="whatsapp-text">
-                    <span class="title">تواصل معنا عبر واتساب</span>
-                    @* <span class="sub-title">اضغط هنا للاستفسار أو طلب المساعدة</span> *@
-                </div>
+                <i class="fab fa-whatsapp"></i>
+
+                تواصل معنا عبر واتساب
 
                 <i class="fa-solid fa-arrow-left"></i>
+
+
             </a>
+          
         </div>
     </div>
 </div>
@@ -247,5 +249,19 @@
     if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
     updateGroups();
     }
+    });
+
+  
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+    var phone = "@ViewBag.number";
+
+    document.getElementById("whatsappBtn").href =
+    "https://wa.me/20" + phone +
+    "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز");
+
     });
 </script>
