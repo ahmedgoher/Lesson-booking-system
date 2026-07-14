@@ -365,20 +365,35 @@ using ClosedXML.Excel;
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteClass(int id)
+    public async Task<IActionResult> DeleteClass(int id)
+    {
+        try
         {
             var item = await _classService.GetByIdAsync(id);
 
-            if (item != null)
+            if (item == null)
             {
-                _classService.Delete(item);
-                _classService.SaveChanges();
+                TempData["DeleteClassError"] = "الصف غير موجود.";
+                return RedirectToAction(nameof(Classes));
             }
 
-            return RedirectToAction(nameof(Classes));
+            _classService.Delete(item);
+            _classService.SaveChanges();
+
+            TempData["DeleteClassSuccess"] = "تم حذف الصف بنجاح.";
+        }
+        catch
+        {
+            TempData["DeleteClassError"] = "تعذر حذف الصف، لأنه مرتبط ببيانات أخرى.";
         }
 
-        [HttpGet]
+        return RedirectToAction(nameof(Classes));
+    }
+
+
+
+
+    [HttpGet]
         public async Task<IActionResult> Edit(int id, int? Number_Of_day)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
