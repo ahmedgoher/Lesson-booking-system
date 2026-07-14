@@ -266,6 +266,18 @@
         }
 </style>
 <section id="students-section">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; margin-bottom: 20px; border: 1px solid #c3e6cb; border-radius: 4px; text-align: right; font-weight: bold;">
+            <i class="fas fa-check-circle" style="margin-left: 5px;"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin-bottom: 20px; border: 1px solid #f5c6cb; border-radius: 4px; text-align: right; font-weight: bold;">
+            <i class="fas fa-exclamation-circle" style="margin-left: 5px;"></i> @TempData["ErrorMessage"]
+        </div>
+    }
     <div class="section-header-block">
         <h2>قائمة الطلاب المسجلين</h2>
         <a asp-action="ExportStudents"
@@ -342,7 +354,7 @@
                         <th>@std.Class?.Name</th>
                         <th>@std.Place?.Name</th>
                         <th>@std.AvailableSlot?.Group_Name</th>
-                        <th>@std.CreatedAt</th>
+                        <th>@std.CreatedAt.ToString("hh:mm tt")</th>
                         <th>
                             <button class="action-icon-btn"
                                     onclick="show(

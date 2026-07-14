@@ -365,20 +365,35 @@ using ClosedXML.Excel;
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteClass(int id)
+    public async Task<IActionResult> DeleteClass(int id)
+    {
+        try
         {
             var item = await _classService.GetByIdAsync(id);
 
-            if (item != null)
+            if (item == null)
             {
-                _classService.Delete(item);
-                _classService.SaveChanges();
+                TempData["DeleteClassError"] = "الصف غير موجود.";
+                return RedirectToAction(nameof(Classes));
             }
 
-            return RedirectToAction(nameof(Classes));
+            _classService.Delete(item);
+            _classService.SaveChanges();
+
+            TempData["DeleteClassSuccess"] = "تم حذف الصف بنجاح.";
+        }
+        catch
+        {
+            TempData["DeleteClassError"] = "تعذر حذف الصف، لأنه مرتبط ببيانات أخرى.";
         }
 
-        [HttpGet]
+        return RedirectToAction(nameof(Classes));
+    }
+
+
+
+
+    [HttpGet]
         public async Task<IActionResult> Edit(int id, int? Number_Of_day)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
@@ -556,11 +571,12 @@ using ClosedXML.Excel;
                     TempData["Error"] = "البيانات غير صحيحة.";
                     return RedirectToAction("Videos");
                 }
+            video.URL = GetMediaUrl(video.URL);
 
                 _videoService.Update(video);
                 _videoService.SaveChanges();
 
-                TempData["Success"] = "تم تعديل الفيديو بنجاح.";
+                TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
                 return RedirectToAction("Videos");
             }
             catch (Exception)
@@ -573,6 +589,8 @@ using ClosedXML.Excel;
         [HttpPost]
         public async Task<IActionResult> AddVideo(Video video)
         {
+
+           video.URL=GetMediaUrl(video.URL);
             await _videoService.AddAsync(video);
             _videoService.SaveChanges();
 
@@ -649,40 +667,6 @@ using ClosedXML.Excel;
 
 
 
-
-
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken] // لحماية الفورم من هجمات CSRF
-        //public IActionResult UpdateProfileImage(string imageUrl)
-        //{
-        //    if (string.IsNullOrEmpty(imageUrl))
-        //    {
-        //        ModelState.AddModelError("", "رابط الصورة لا يمكن أن يكون فارغاً.");
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    try
-        //    {
-        //        var admin = _AdminService.GetAll().FirstOrDefault();
-        //        admin.ImageUrl = imageUrl;
-                
-        //        // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
-        //        _AdminService.Update(admin);
-        //        _AdminService.SaveChanges();
-
-        //        // 2. بعد الحفظ بنجاح، توجيه المستخدم لصفحة الـ Dashboard مرة أخرى
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // يمكنك تسجيل الخطأ هنا (Logging)
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //}
-
-        // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
-      
 
 
 
@@ -784,5 +768,66 @@ using ClosedXML.Excel;
             }
         }
 
+
+
+
+    private string GetMediaUrl(string url)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return "";
+
+            // ==========================
+            // Google Drive
+            // ==========================
+            if (url.Contains("drive.google.com/file/d/"))
+            {
+                var id = url.Split("/file/d/")[1].Split('/')[0];
+
+                // لو فيديو
+                return $"https://drive.google.com/file/d/{id}/preview";
+
+                // لو صورة استخدم السطر ده بدلاً من اللي فوق
+                // return $"https://drive.google.com/uc?export=view&id={id}";
+            }
+
+            // ==========================
+            // YouTube (youtu.be)
+            // ==========================
+            if (url.Contains("youtu.be/"))
+            {
+                var id = url.Split("youtu.be/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube (watch?v=)
+            // ==========================
+            if (url.Contains("youtube.com/watch?v="))
+            {
+                var id = url.Split("watch?v=")[1].Split('&')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube Shorts
+            // ==========================
+            if (url.Contains("youtube.com/shorts/"))
+            {
+                var id = url.Split("shorts/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // أي رابط آخر
+            return url;
+        }
+        catch (Exception)
+        {
+            // لو حصل أي خطأ، رجع الرابط كما هو
+            return url;
+        }
     }
+
+}
 
