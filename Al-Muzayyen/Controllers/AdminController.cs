@@ -556,11 +556,12 @@ using ClosedXML.Excel;
                     TempData["Error"] = "البيانات غير صحيحة.";
                     return RedirectToAction("Videos");
                 }
+            video.URL = GetMediaUrl(video.URL);
 
                 _videoService.Update(video);
                 _videoService.SaveChanges();
 
-                TempData["Success"] = "تم تعديل الفيديو بنجاح.";
+                TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
                 return RedirectToAction("Videos");
             }
             catch (Exception)
@@ -573,6 +574,8 @@ using ClosedXML.Excel;
         [HttpPost]
         public async Task<IActionResult> AddVideo(Video video)
         {
+
+           video.URL=GetMediaUrl(video.URL);
             await _videoService.AddAsync(video);
             _videoService.SaveChanges();
 
@@ -649,40 +652,6 @@ using ClosedXML.Excel;
 
 
 
-
-
-
-        //[HttpPost]
-        //[ValidateAntiForgeryToken] // لحماية الفورم من هجمات CSRF
-        //public IActionResult UpdateProfileImage(string imageUrl)
-        //{
-        //    if (string.IsNullOrEmpty(imageUrl))
-        //    {
-        //        ModelState.AddModelError("", "رابط الصورة لا يمكن أن يكون فارغاً.");
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    try
-        //    {
-        //        var admin = _AdminService.GetAll().FirstOrDefault();
-        //        admin.ImageUrl = imageUrl;
-                
-        //        // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
-        //        _AdminService.Update(admin);
-        //        _AdminService.SaveChanges();
-
-        //        // 2. بعد الحفظ بنجاح، توجيه المستخدم لصفحة الـ Dashboard مرة أخرى
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // يمكنك تسجيل الخطأ هنا (Logging)
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //}
-
-        // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
-      
 
 
 
