@@ -548,11 +548,12 @@ using ClosedXML.Excel;
                     TempData["Error"] = "البيانات غير صحيحة.";
                     return RedirectToAction("Videos");
                 }
+            video.URL = GetMediaUrl(video.URL);
 
                 _videoService.Update(video);
                 _videoService.SaveChanges();
 
-                TempData["Success"] = "تم تعديل الفيديو بنجاح.";
+                TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
                 return RedirectToAction("Videos");
             }
             catch (Exception)
@@ -565,6 +566,8 @@ using ClosedXML.Excel;
         [HttpPost]
         public async Task<IActionResult> AddVideo(Video video)
         {
+
+           video.URL=GetMediaUrl(video.URL);
             await _videoService.AddAsync(video);
             _videoService.SaveChanges();
 
@@ -657,7 +660,7 @@ using ClosedXML.Excel;
             try
             {
                 var admin = _AdminService.GetAll().FirstOrDefault();
-                admin.ImageUrl = imageUrl;
+                admin.ImageUrl = imageUrl; ;
                 
                 // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
                 _AdminService.Update(admin);
@@ -672,6 +675,65 @@ using ClosedXML.Excel;
                 return RedirectToAction(nameof(Index));
             }
         }
+
+
+    private string GetMediaUrl(string url)
+{
+    try
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return "";
+
+        // ==========================
+        // Google Drive
+        // ==========================
+        if (url.Contains("drive.google.com/file/d/"))
+        {
+            var id = url.Split("/file/d/")[1].Split('/')[0];
+
+            // لو فيديو
+            return $"https://drive.google.com/file/d/{id}/preview";
+
+            // لو صورة استخدم السطر ده بدلاً من اللي فوق
+            // return $"https://drive.google.com/uc?export=view&id={id}";
+        }
+
+        // ==========================
+        // YouTube (youtu.be)
+        // ==========================
+        if (url.Contains("youtu.be/"))
+        {
+            var id = url.Split("youtu.be/")[1].Split('?')[0];
+            return $"https://www.youtube.com/embed/{id}";
+        }
+
+        // ==========================
+        // YouTube (watch?v=)
+        // ==========================
+        if (url.Contains("youtube.com/watch?v="))
+        {
+            var id = url.Split("watch?v=")[1].Split('&')[0];
+            return $"https://www.youtube.com/embed/{id}";
+        }
+
+        // ==========================
+        // YouTube Shorts
+        // ==========================
+        if (url.Contains("youtube.com/shorts/"))
+        {
+            var id = url.Split("shorts/")[1].Split('?')[0];
+            return $"https://www.youtube.com/embed/{id}";
+        }
+
+        // أي رابط آخر
+        return url;
+    }
+    catch (Exception)
+    {
+        // لو حصل أي خطأ، رجع الرابط كما هو
+        return url;
+    }
+}
 
         // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
         [HttpPost]
