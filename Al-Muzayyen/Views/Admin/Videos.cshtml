@@ -103,7 +103,18 @@
         }
 </style>
 
-
+@if (TempData["Error"] != null)
+{
+    <div style="color: red; background: #f8d7da; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
+        @TempData["Error"]
+    </div>
+}
+@if (TempData["Success"] != null)
+{
+    <div style="color: green; background: #d4edda; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
+        @TempData["Success"]
+    </div>
+}
 <!-- قسم إدارة الفيديوهات -->
 <section id="videos-section"  " class="videos">
     <div class="container">

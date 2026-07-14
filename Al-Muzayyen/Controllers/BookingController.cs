@@ -12,14 +12,19 @@ namespace Al_Muzayyen.Controllers
         private readonly IClassService _classService;
         private readonly IPlaceService _placeService;
         private readonly ISlotService _slotService;
+        private readonly IGenericService<Admin> _admin;
+
+
 
         // حقن السيرفسز المنفصلة
         public BookingController(
+            IGenericService<Admin> admin,
             IBookingService bookingService,
             IClassService classService,
             IPlaceService placeService,
             ISlotService slotService)
         {
+            _admin = admin;
             _bookingService = bookingService;
             _classService = classService;
             _placeService = placeService;
@@ -29,13 +34,18 @@ namespace Al_Muzayyen.Controllers
         [HttpGet]
         public async Task<IActionResult> booking()
         {
+            var phonenumber = _admin.GetAll().FirstOrDefault().PhoneNumber;
+
             ViewBag.Classes = await _classService.GetAllClassesAsync();
             ViewBag.Places = await _placeService.GetAllPlacesAsync();
+            ViewBag.number = phonenumber;
+
             return View();
         }
         [HttpPost]
         public async Task<IActionResult> booking(Booking booking)
         {
+
             // شرط إضافي: لو الطالب لم يختار الصف أو المكان أو المجموعة (قيمتهم بـ 0)
             if (!ModelState.IsValid || booking.ClassId == 0 || booking.PlaceId == 0 || booking.SlotId == 0)
             {
