@@ -22,9 +22,14 @@ using ClosedXML.Excel;
         private readonly IGroupRepo groupRepo;
         private readonly IConfiguration _configuration;
 
-        public AdminController
+    private readonly IWebHostEnvironment _webHostEnvironment;
+
+    private readonly CloudinaryService _cloudinaryService;
+
+    public AdminController
 
             (
+        CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
             IGenericService<Admin> adminService,
             IGenericService<Class> classService,
             IGenericService<Booking> bookingService,
@@ -36,7 +41,10 @@ using ClosedXML.Excel;
             IGroupRepo groupRepo,
             IConfiguration configuration)
         {
-            _AdminService= adminService;
+
+        _cloudinaryService = cloudinaryService;
+        _webHostEnvironment = webHostEnvironment;
+        _AdminService = adminService;
             _classService = classService;
             _bookingService = bookingService;
             _placeService = placeService;
@@ -357,20 +365,35 @@ using ClosedXML.Excel;
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteClass(int id)
+    public async Task<IActionResult> DeleteClass(int id)
+    {
+        try
         {
             var item = await _classService.GetByIdAsync(id);
 
-            if (item != null)
+            if (item == null)
             {
-                _classService.Delete(item);
-                _classService.SaveChanges();
+                TempData["DeleteClassError"] = "الصف غير موجود.";
+                return RedirectToAction(nameof(Classes));
             }
 
-            return RedirectToAction(nameof(Classes));
+            _classService.Delete(item);
+            _classService.SaveChanges();
+
+            TempData["DeleteClassSuccess"] = "تم حذف الصف بنجاح.";
+        }
+        catch
+        {
+            TempData["DeleteClassError"] = "تعذر حذف الصف، لأنه مرتبط ببيانات أخرى.";
         }
 
-        [HttpGet]
+        return RedirectToAction(nameof(Classes));
+    }
+
+
+
+
+    [HttpGet]
         public async Task<IActionResult> Edit(int id, int? Number_Of_day)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
@@ -548,11 +571,12 @@ using ClosedXML.Excel;
                     TempData["Error"] = "البيانات غير صحيحة.";
                     return RedirectToAction("Videos");
                 }
+            video.URL = GetMediaUrl(video.URL);
 
                 _videoService.Update(video);
                 _videoService.SaveChanges();
 
-                TempData["Success"] = "تم تعديل الفيديو بنجاح.";
+                TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
                 return RedirectToAction("Videos");
             }
             catch (Exception)
@@ -565,6 +589,8 @@ using ClosedXML.Excel;
         [HttpPost]
         public async Task<IActionResult> AddVideo(Video video)
         {
+
+           video.URL=GetMediaUrl(video.URL);
             await _videoService.AddAsync(video);
             _videoService.SaveChanges();
 
@@ -644,40 +670,56 @@ using ClosedXML.Excel;
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken] // لحماية الفورم من هجمات CSRF
-        public IActionResult UpdateProfileImage(string imageUrl)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfileImage(IFormFile imageFile)
+    {
+        // 1. التأكد من أن المستخدم اختار صورة بالفعل
+        if (imageFile == null || imageFile.Length == 0)
         {
-            if (string.IsNullOrEmpty(imageUrl))
-            {
-                ModelState.AddModelError("", "رابط الصورة لا يمكن أن يكون فارغاً.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                var admin = _AdminService.GetAll().FirstOrDefault();
-                admin.ImageUrl = imageUrl;
-                
-                // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
-                _AdminService.Update(admin);
-                _AdminService.SaveChanges();
-
-                // 2. بعد الحفظ بنجاح، توجيه المستخدم لصفحة الـ Dashboard مرة أخرى
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                // يمكنك تسجيل الخطأ هنا (Logging)
-                return RedirectToAction(nameof(Index));
-            }
+            ModelState.AddModelError("", "برجاء اختيار ملف صورة صحيح.");
+            return RedirectToAction(nameof(Index));
         }
 
-        // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-     
-        public IActionResult UpdateProfileData(Admin updatedModel)
+        try
+        {
+            string imageUrl = "";
+
+            // 2. الرفع باستخدام الـ Service الخاصة بك تماماً مثل الـ Speciality
+            imageUrl = await _cloudinaryService.UploadImageAsync(imageFile);
+
+            // 3. جلب الأدمن الحالي من قاعدة البيانات
+            var admin = _AdminService.GetAll().FirstOrDefault();
+
+            if (admin == null)
+            {
+                // إذا كان الأدمن غير موجود، نقوم بإنشاء سجل جديد وحفظ رابط الصورة فيه
+                var newAdmin = new Admin
+                {
+                    ImageUrl = imageUrl,
+                    Name = "الأستاذ عبد الفتاح المزين", // قيم افتراضية حتى يقوم بتعديلها لاحقاً
+                    PhoneNumber = "غير محدد"
+                };
+                _AdminService.Add(newAdmin);
+            }
+            else
+            {
+                // إذا كان موجوداً، نقوم بتحديث رابط الصورة فقط
+                admin.ImageUrl = imageUrl;
+            }
+
+            // 4. حفظ التغييرات في قاعدة البيانات
+            _AdminService.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            // معالجة الخطأ في حالة حدوث مشكلة أثناء الرفع
+            return RedirectToAction(nameof(Index));
+        }
+    }
+    public IActionResult UpdateProfileData(Admin updatedModel)
         {
             // نقوم بفحص الحقول الأساسية فقط المطلوبة في الـ Popup
             if (string.IsNullOrEmpty(updatedModel.Name) || string.IsNullOrEmpty(updatedModel.PhoneNumber))
@@ -726,5 +768,66 @@ using ClosedXML.Excel;
             }
         }
 
+
+
+
+    private string GetMediaUrl(string url)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return "";
+
+            // ==========================
+            // Google Drive
+            // ==========================
+            if (url.Contains("drive.google.com/file/d/"))
+            {
+                var id = url.Split("/file/d/")[1].Split('/')[0];
+
+                // لو فيديو
+                return $"https://drive.google.com/file/d/{id}/preview";
+
+                // لو صورة استخدم السطر ده بدلاً من اللي فوق
+                // return $"https://drive.google.com/uc?export=view&id={id}";
+            }
+
+            // ==========================
+            // YouTube (youtu.be)
+            // ==========================
+            if (url.Contains("youtu.be/"))
+            {
+                var id = url.Split("youtu.be/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube (watch?v=)
+            // ==========================
+            if (url.Contains("youtube.com/watch?v="))
+            {
+                var id = url.Split("watch?v=")[1].Split('&')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube Shorts
+            // ==========================
+            if (url.Contains("youtube.com/shorts/"))
+            {
+                var id = url.Split("shorts/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // أي رابط آخر
+            return url;
+        }
+        catch (Exception)
+        {
+            // لو حصل أي خطأ، رجع الرابط كما هو
+            return url;
+        }
     }
+
+}
 
