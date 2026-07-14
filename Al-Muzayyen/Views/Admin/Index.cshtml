@@ -316,7 +316,7 @@
     <div class="profile-card">
 
         <div class="profile-image">
-            <img id="admin-photo" src="@(string.IsNullOrEmpty(Model?.Admin?.ImageUrl) ? "/images/image.png" : Model.Admin.ImageUrl)" alt="Admin">
+            <img id="admin-photo" src="@(string.IsNullOrEmpty(Model?.Admin?.ImageUrl) ? "/images/image.jifif" : Model.Admin.ImageUrl)" alt="Admin">
             <button type="button" class="change-image-btn" title="تغيير الصورة" onclick="openImageModal()">
                 <i class="fa-solid fa-camera"></i>
             </button>
@@ -325,7 +325,7 @@
         <div class="profile-content">
             
             <div class="profile-info-block">
-                <h2 id="admin-name">@(Model?.Admin?.Name ?? "الأستاذ عبد الفتاح المزين")</h2>
+                <h2 id="admin-name">@(Model?.Admin?.Name ?? " ")</h2>
                
                 <div class="info-grid" style="display: none;">
                     <div class="info-box">
