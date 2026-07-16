@@ -10,19 +10,8 @@
   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="~/css/style.css">
+    @RenderSection("Styles",required:false)
 </head>
-<style>
-    /* Hero Section */
-    .hero {
-        padding: 80px 0;
-        text-align: center;
-        background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('/images/logo.png');
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-</style>
-
 <body>
 
     <header>
@@ -57,7 +46,7 @@
             <p>جميع الحقوق محفوظة &copy; 2024 - الأستاذ عبد الفتاح المزين (<a asp-action="Index" asp-controller="Admin">فارس اللغة العربية</a>)</p>
         </div>
     </footer>
-
+    @RenderSection("Scripts",required:false);
 
 </body>
 </html>

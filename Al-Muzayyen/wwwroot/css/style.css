@@ -16,6 +16,9 @@
     box-sizing: border-box;
     font-family: 'Cairo', sans-serif;
 }
+html {
+    scroll-behavior: smooth;
+}
 
 body {
     direction: rtl;
@@ -131,6 +134,13 @@ nav {
     min-width: 300px;
 }
 
+.hero .container > div:nth-child(2) {
+    animation: MoveImg 3s ease-in-out infinite alternate;
+}
+.hero .container > div:nth-child(2):hover{
+/*    animation-play-state:paused;*/
+}
+
 .hero img {
     width: 100%;
     max-width: 450px;
@@ -139,7 +149,8 @@ nav {
     margin: auto;
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
+    }
+
 
 .hero .hero-btns {
     margin-top: 30px;
@@ -584,6 +595,14 @@ footer {
         margin-right: 6px; /* أو المسافة المناسبة */
     }}
 
+@keyframes MoveImg {
+    0% {
+        transform: translateY(0)
+    }
 
+    100% {
+        transform: translateY(-20px)
+    }
+}
 
 

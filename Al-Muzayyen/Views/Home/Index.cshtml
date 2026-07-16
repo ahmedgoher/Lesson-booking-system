@@ -5,10 +5,44 @@
     Layout = "~/Views/Shared/_layouthome.cshtml";
     ViewData["Title"] = "Home Page";
 }
+@section Styles{
+    <style>
+        .hero {
+            padding: 80px 0;
+            text-align: center;
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('/images/logo.png');
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .animate {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.6s ease,transform 0.6s ease;
+        }
+
+            .animate.visable {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .animate:nth-child(2n) {
+                transition-delay: 0.1s;
+            }
+
+            .animate:nth-child(3n) {
+                transition-delay: 0.2s;
+            }
+
+            .animate:nth-child(4n) {
+                transition-delay: 0.3s;
+            }
+    </style>
+}
 
 <section class="hero">
     <div class="container">
-        <div>
+        <div class="animate">
             <h2>فارس اللغة العربية</h2>
             <p>
                 نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا
@@ -16,7 +50,7 @@
             </p>
 
             <div class="hero-btns">
-                <a href="/Booking/booking" class="btn btn-primary">
+                <a href="/Booking/booking" class="btn btn-primary animate">
                     ابدأ رحلتك الآن
                 </a>
             </div>
@@ -30,24 +64,24 @@
 
 <section id="about" class="features">
     <div class="container">
-        <div class="section-title">
+        <div class="section-title animate">
             <h2>عن الأستاذ عبد الفتاح المزين</h2>
         </div>
 
         <div class="features-grid">
-            <div class="feature-card">
+            <div class="feature-card animate">
                 <i class="fas fa-user-tie"></i>
                 <h3>خبرة واسعة</h3>
                 <p>سنوات من الخبرة في تدريس اللغة العربية للمرحلة الثانوية بأسلوب مبسط ومبتكر.</p>
             </div>
 
-            <div class="feature-card">
+            <div class="feature-card animate">
                 <i class="fas fa-book-open"></i>
                 <h3>منهجية متطورة</h3>
                 <p>نعتمد على أحدث الوسائل التعليمية لضمان وصول المعلومة وتثبيتها في ذهن الطالب.</p>
             </div>
 
-            <div class="feature-card">
+            <div class="feature-card animate">
                 <i class="fas fa-tasks"></i>
                 <h3>متابعة دورية</h3>
                 <p>اختبارات أسبوعية وتقارير شهرية لولي الأمر لمتابعة مستوى الطالب خطوة بخطوة.</p>
@@ -57,10 +91,10 @@
 </section>
 
 <!-- Videos Section -->
-<section id="videos" class="videos">
+<section id="videos" class="videos ">
     <div class="container">
 
-        <div class="section-title">
+        <div class="section-title animate">
             <h2>فيديوهات الأستاذ</h2>
             <p>تعرف على الأستاذ عبد الفتاح المزين من خلال مجموعة من الفيديوهات المميزة.</p>
         </div>
@@ -71,7 +105,7 @@
             {
                 @foreach (var video in Model.LinkesVideos)
                 {
-                    <div class="video-card">
+                    <div class="video-card animate">
                         <iframe src="@(video?.URL ?? "")"
                                 title="@(video?.Title ?? "Video")"
                                 allowfullscreen>
@@ -95,7 +129,7 @@
 <section class="features">
     <div class="container">
 
-        <div class="section-title">
+        <div class="section-title animate">
             <h2>المراحل الدراسية</h2>
         </div>
 
@@ -105,7 +139,7 @@
             {
                 @foreach (var grade in Model.classes)
                 {
-                    <div class="feature-card">
+                    <div class="feature-card animate">
                         <i class="fas fa-book-open"></i>
                         <h3>@(grade?.Name ?? "غير محدد")</h3>
                     </div>
@@ -128,13 +162,13 @@
             <h2>أماكن السناتر</h2>
         </div>
 
-        <div id="locations-list" class="features-grid">
+        <div id="locations-list" class="features-grid animate">
 
             @if (Model?.places?.Any() == true)
             {
                 @foreach (var place in Model.places)
                 {
-                    <div class="feature-card">
+                    <div class="feature-card animate">
                         <i class="fas fa-map-marker-alt"></i>
                         <h3>@(place?.Name ?? "غير محدد")</h3>
                         <p>@(place?.Address ?? "لا يوجد عنوان")</p>
@@ -150,3 +184,17 @@
 
     </div>
 </section>
+@section Scripts {
+    <script>
+        // لما يظهر العنصر في الشاشة يشتغل الأنيميشين
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visable'); // متوافقة تماماً مع الـ CSS عندك
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.animate').forEach(el => observer.observe(el));
+    </script>
+}
