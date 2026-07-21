@@ -12,11 +12,39 @@ namespace Al_Muzayyen.Controllers
         {
             _configuration= configuration;
         }
+
+        [HttpGet]
+        public IActionResult login2()
+        {
+            return View();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public IActionResult Login()
         {
             if (User.Identity.IsAuthenticated) return RedirectToAction("Index", "Admin");
             return View();
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginVM model)

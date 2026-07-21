@@ -7,184 +7,111 @@
     var places = ViewBag.Places as IEnumerable<Al_Muzayyen.Models.Place>;
 }
 
-<style>
-    .whatsapp-contact {
-        margin-top: 20px;
-    }
 
-    .whatsapp-btn {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        background: #25D366;
-        border-radius: 14px;
-        padding: 15px 22px;
-        text-decoration: none;
-        color: #fff;
-        transition: .3s;
-        box-shadow: 0 8px 20px rgba(37,211,102,.18);
-    }
 
-        .whatsapp-btn:hover {
-            background: #1EBE5D;
-            transform: translateY(-2px);
-            box-shadow: 0 12px 25px rgba(37,211,102,.25);
-            color: #fff;
-        }
+<div class="booking-page-wrap">
+    <div class="container">
+        <div class="booking-form">
+            <a href="/Home" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                العودة للرئيسية
+            </a>
+            <h2 style="text-align: center; margin-bottom: 30px;">سجل بياناتك للحجز</h2>
 
-    .whatsapp-icon {
-        width: 55px;
-        height: 55px;
-        border-radius: 50%;
-        background: rgba(255,255,255,.15);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
+            @if (ViewBag.SuccessMessage != null)
+            {
+                <div class="alert alert-success" style="text-align: center; padding: 10px; margin-bottom: 20px;">
+                    @ViewBag.SuccessMessage
+                </div>
+            }
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-danger" style="text-align: center; padding: 10px; margin-bottom: 20px;">
+                    @ViewBag.ErrorMessage
+                </div>
+            }
 
-        .whatsapp-icon i {
-            font-size: 32px;
-        }
+            <form action="/Booking/booking" method="post" id="student-booking-form">
 
-    .whatsapp-content {
-        flex: 1;
-        margin: 0 18px;
-        text-align: right;
-    }
-
-        .whatsapp-content h5 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-        }
-
-        .whatsapp-content span {
-            font-size: 14px;
-            opacity: .9;
-        }
-
-    .whatsapp-arrow {
-        font-size: 22px;
-        opacity: .9;
-    }
-
-    .whatsapp-btn:hover .whatsapp-arrow {
-        transform: translateX(-6px);
-        transition: .3s;
-    }
-
-   @@media (max-width: 370px) {
-    .whatsapp-text {
-        font-size: 12px !important;
-    }
-}
-
-    
-</style>
-
-<div class="container">
-    <div class="booking-form">
-        <a href="/Home" class="back-btn">
-            <i class="fas fa-arrow-right"></i>
-            العودة للرئيسية
-        </a>
-        <h2 style="text-align: center; margin-bottom: 30px;">سجل بياناتك للحجز</h2>
-
-        @if (ViewBag.SuccessMessage != null)
-        {
-            <div class="alert alert-success" style="color: green; text-align: center; font-weight: bold; margin-bottom: 20px; background-color: #e2f0d9; padding: 10px; border-radius: 5px;">
-                @ViewBag.SuccessMessage
-            </div>
-        }
-        @if (ViewBag.ErrorMessage != null)
-        {
-            <div class="alert alert-danger" style="color: red; text-align: center; font-weight: bold; margin-bottom: 20px; background-color: #fce4d6; padding: 10px; border-radius: 5px;">
-                @ViewBag.ErrorMessage
-            </div>
-        }
-
-        <form action="/Booking/booking" method="post" id="student-booking-form">
-
-            <div class="form-group">
-                <label>اسم الطالب بالكامل</label>
-                <input type="text" name="STD_Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.STD_Name">
-                <span asp-validation-for="STD_Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>رقم الهاتف</label>
-                <input type="tel" name="Student_phone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.Student_phone">
-                <span asp-validation-for="Student_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>رقم ولي الأمر</label>
-                <input type="tel" name="Parent_phone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.Parent_phone">
-                <span asp-validation-for="Parent_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>الصف الدراسي</label>
-                <select name="ClassId" id="select-grade">
-                    <option value="0">اختر الصف</option>
-                    @if (classes != null)
-                    {
-                        foreach (var c in classes)
-                        {
-                            <option value="@c.Id" selected="@(Model?.ClassId == c.Id ? "selected" : null)">@c.Name</option>
-                        }
-                    }
-                </select>
-                <span asp-validation-for="ClassId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>مكان الدرس</label>
-                <select name="PlaceId" id="select-location">
-                    <option value="0">اختر المكان</option>
-                    @if (places != null)
-                    {
-                        foreach (var p in places)
-                        {
-                            <option value="@p.Id" selected="@(Model?.PlaceId == p.Id ? "selected" : null)">@p.Name</option>
-                        }
-                    }
-                </select>
-                <span asp-validation-for="PlaceId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>المجموعة المتاحة</label>
-                <select name="SlotId" id="select-group" disabled>
-                    <option value="0">اختر المجموعة</option>
-                </select>
-                <span asp-validation-for="SlotId" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
-
-            <div class="form-group">
-                <label>ملاحظات (اختياري)</label>
-                <textarea name="Problem_text" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Problem_text</textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
-        </form>
-
-        <div class="whatsapp-contact">
-            <a href="https://wa.me/201202023821?text=
-السلام عليكم، أريد الاستفسار عن الحجز"
-                   target="_blank"
-                   class="whatsapp-btn">
-                <i class="fa-brands fa-whatsapp"></i>
-
-                <div class="whatsapp-text">
-                    <span class="title">تواصل معنا عبر واتساب</span>
-                    @* <span class="sub-title">اضغط هنا للاستفسار أو طلب المساعدة</span> *@
+                <div class="form-group">
+                    <label>اسم الطالب بالكامل</label>
+                    <input type="text" name="STD_Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.STD_Name">
+                    <span asp-validation-for="STD_Name" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
-                <i class="fa-solid fa-arrow-left"></i>
-            </a>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" name="Student_phone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.Student_phone">
+                    <span asp-validation-for="Student_phone" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم ولي الأمر</label>
+                    <input type="tel" name="Parent_phone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.Parent_phone">
+                    <span asp-validation-for="Parent_phone" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>الصف الدراسي</label>
+                    <select name="ClassId" id="select-grade">
+                        <option value="0">اختر الصف</option>
+                        @if (classes != null)
+                        {
+                            foreach (var c in classes)
+                            {
+                                <option value="@c.Id" selected="@(Model?.ClassId == c.Id ? "selected" : null)">@c.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="ClassId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>مكان الدرس</label>
+                    <select name="PlaceId" id="select-location">
+                        <option value="0">اختر المكان</option>
+                        @if (places != null)
+                        {
+                            foreach (var p in places)
+                            {
+                                <option value="@p.Id" selected="@(Model?.PlaceId == p.Id ? "selected" : null)">@p.Name</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="PlaceId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>المجموعة المتاحة</label>
+                    <select name="SlotId" id="select-group" disabled>
+                        <option value="0">اختر المجموعة</option>
+                    </select>
+                    <span asp-validation-for="SlotId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>ملاحظات (اختياري)</label>
+                    <textarea name="Problem_text" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Problem_text</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
+            </form>
+
+            <div class="whatsapp-contact">
+                <a href="https://wa.me/201202023821?text=
+                    السلام عليكم، أريد الاستفسار عن الحجز"
+                   target="_blank"
+                   class="whatsapp-btn">
+                    <i class="fa-brands fa-whatsapp"></i>
+
+                    <div class="whatsapp-text">
+                        <span class="title">تواصل معنا عبر واتساب</span>
+                        @* <span class="sub-title">اضغط هنا للاستفسار أو طلب المساعدة</span> *@
+                    </div>
+
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -195,57 +122,57 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-    const gradeSelect = document.getElementById('select-grade');
-    const locationSelect = document.getElementById('select-location');
-    const groupSelect = document.getElementById('select-group');
+        const gradeSelect = document.getElementById('select-grade');
+        const locationSelect = document.getElementById('select-location');
+        const groupSelect = document.getElementById('select-group');
 
-    async function updateGroups() {
-    const gradeId = gradeSelect.value;
-    const locationId = locationSelect.value;
+        async function updateGroups() {
+            const gradeId = gradeSelect.value;
+            const locationId = locationSelect.value;
 
-    if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
-    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
-    groupSelect.disabled = true;
-    return;
-    }
+            if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
+                groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+                groupSelect.disabled = true;
+                return;
+            }
 
-    groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
-    groupSelect.disabled = true;
+            groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
+            groupSelect.disabled = true;
 
-    try {
-    const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
+            try {
+                const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
 
-    if (response.ok) {
-    const slots = await response.json();
-    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+                if (response.ok) {
+                    const slots = await response.json();
+                    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
 
-    if (slots.length > 0) {
-    slots.forEach(slot => {
-    const opt = document.createElement('option');
-    opt.value = slot.id;
-    opt.textContent = slot.name; // سيعرض النص المدمج الجاهز من السيرفر
-    if ("@Model?.SlotId" == slot.id) opt.selected = true;
-    groupSelect.appendChild(opt);
-    });
-    groupSelect.disabled = false;
-    } else {
-    groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
-    }
+                    if (slots.length > 0) {
+                        slots.forEach(slot => {
+                            const opt = document.createElement('option');
+                            opt.value = slot.id;
+                            opt.textContent = slot.name; // سيعرض النص المدمج الجاهز من السيرفر
+                            if ("@Model?.SlotId" == slot.id) opt.selected = true;
+                            groupSelect.appendChild(opt);
+                        });
+                        groupSelect.disabled = false;
+                    } else {
+                        groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
+                    }
 
-    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي ليعمل بشكل سليم
-    $("form").validate().element("#select-group");
-    }
-    } catch (error) {
-    console.error("حدث خطأ أثناء جلب المجموعات:", error);
-    groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
-    }
-    }
+                    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي ليعمل بشكل سليم
+                    $("form").validate().element("#select-group");
+                }
+            } catch (error) {
+                console.error("حدث خطأ أثناء جلب المجموعات:", error);
+                groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
+            }
+        }
 
-    gradeSelect.addEventListener('change', updateGroups);
-    locationSelect.addEventListener('change', updateGroups);
+        gradeSelect.addEventListener('change', updateGroups);
+        locationSelect.addEventListener('change', updateGroups);
 
-    if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
-    updateGroups();
-    }
+        if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
+            updateGroups();
+        }
     });
 </script>

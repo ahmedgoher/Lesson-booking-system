@@ -1,49 +1,84 @@
 ﻿<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
-        <title>فارس اللغة العربية | الأستاذ عبد الفتاح المزين</title>
-
-        <link rel="icon" type="image/png" href="~/images/logo.png" asp-append-version="true" />
-  
+    <title>فارس اللغة العربية | الأستاذ عبد الفتاح المزين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
-<style>
-    /* Hero Section */
-    .hero {
-        padding: 80px 0;
-        text-align: center;
-        background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('/images/logo.png');
-        background-size: contain;
-        background-position: center;
-        background-repeat: no-repeat;
-    }
-</style>
+
 
 <body>
-
+  
     <header>
         <div class="container">
             <nav>
-                <a a asp-action="Index" asp-controller="Home">
+                <a href="/">
                     <div class="logo">
-                        <img src="~/images/logo.png" alt="فارس اللغة العربية">
+                        <img src="~/images/image.png" alt="فارس اللغة العربية">
                         <h1>الأستاذ عبد الفتاح المزين</h1>
                     </div>
-
                 </a>
+
+
 
                 <ul class="nav-links">
                     <li><a a asp-action="Index" asp-controller="Home">الرئيسية</a></li>
                     <li><a href="#about">من هو</a></li>
-                    <li><a href="#services">ماذا نقدم</a></li>
-                    <li><a asp-action="booking" asp-controller="Booking">حجز موعد</a></li>
-                    @* <li><a asp-action="Index" asp-controller="Admin">لوحة التحكم</a></li> *@
+                  
                 </ul>
-                <a href="/Booking/booking" class="btn btn-primary boooking">احجز الآن</a>
+                <div class="header-actions">
+                    <!-- زر تغيير الوضع Dark/Light Mode -->
+                    <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <!-- حالة المستخدم المسجل (Logged In) -->
+                        <div class="custom-dropdown">
+                            <button class="user-avatar-btn dropdown-trigger" aria-label="User Menu">
+                                <i class="fas fa-user-circle"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="/Account/Profile" class="dropdown-item">
+                                    <i class="fas fa-id-card"></i> الملف الشخصي
+                                </a>
+                                <hr class="dropdown-divider">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item logout-btn">
+                                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- حالة الزائر للشاشات الكبيرة (Desktop) -->
+                        <div class="auth-buttons desktop-only">
+                            <a href="/Account/login2" class="btn btn-outline nav-btn">تسجيل الدخول</a>
+                            <a href="/Booking/booking" class="btn btn-primary nav-btn">إنشاء حساب</a>
+                        </div>
+
+                        <!-- حالة الزائر للشاشات الصغيرة (Mobile Menu) -->
+                        <div class="custom-dropdown mobile-only">
+                            <button class="guest-menu-btn dropdown-trigger" aria-label="Guest Menu">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="/Account/login2" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                                </a>
+                                <a href="/Booking/booking" class="dropdown-item primary-link">
+                                    <i class="fas fa-user-plus"></i> إنشاء حساب
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
             </nav>
         </div>
     </header>
@@ -58,7 +93,7 @@
         </div>
     </footer>
 
-
+    <script src="/js/script.js"></script>
 </body>
 </html>
 
