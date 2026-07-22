@@ -100,7 +100,7 @@
                     border-color: var(--primary-color, #d4af37);
                 }
 
-            /* 📱 قائمة الهامبرجر للموبايل (مخفية بالافتراضي) */
+            /* 📱 قائمة الهامبرجر للموبايل */
             .mobile-menu-panel {
                 display: none;
                 position: absolute;
@@ -117,7 +117,6 @@
                 border-radius: 0 0 12px 12px;
             }
 
-                /* إظهار القائمة فقط عند الضغط وإضافة كلاس show */
                 .mobile-menu-panel.show {
                     display: flex !important;
                     animation: slideDown 0.25s ease-out;
@@ -165,19 +164,36 @@
                 margin: 4px 0;
             }
 
-            /* 👤 البروفايل للكمبيوتر */
+            /* 👤 البروفايل للكمبيوتر - تم تصغيره وتحسين شكله هنا 👇 */
             .user-avatar-btn {
                 background: var(--bg-alt, rgba(255, 255, 255, 0.08));
                 border: 1px solid var(--border-color, #263349);
                 color: var(--primary-color, #d4af37);
-                padding: 6px 14px;
+                padding: 5px 12px; /* تصغير المسافات الداخلية */
                 border-radius: 20px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
                 gap: 6px;
+                font-size: 0.83rem; /* تصغير حجم الخط */
                 font-weight: 600;
+                transition: all 0.2s ease;
             }
+
+                .user-avatar-btn:hover {
+                    border-color: var(--primary-color, #d4af37);
+                    background: rgba(212, 175, 55, 0.12);
+                }
+
+                /* تحديد أقصى عرض للكمبيوتر وقص الاسم بـ ... إذا كان طويلاً */
+                .user-avatar-btn span {
+                    display: inline-block;
+                    max-width: 110px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    vertical-align: middle;
+                }
 
             .desktop-dropdown {
                 display: none;
@@ -187,7 +203,7 @@
                 background-color: var(--card-bg, #111827);
                 border: 1px solid var(--border-color, #374151);
                 border-radius: 10px;
-                min-width: 180px;
+                min-width: 170px;
                 box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
                 z-index: 99999;
                 overflow: hidden;
@@ -241,10 +257,10 @@
                         @if (User.Identity != null && User.Identity.IsAuthenticated)
                         {
                             <div style="position: relative;">
-                                <button class="user-avatar-btn" type="button" onclick="toggleDesktopDropdown(event)">
-                                    <i class="fas fa-user-circle" style="font-size: 1.1rem;"></i>
+                                <button class="user-avatar-btn" type="button" onclick="toggleDesktopDropdown(event)" title="@User.Identity.Name">
+                                    <i class="fas fa-user-circle" style="font-size: 1rem;"></i>
                                     <span>@User.Identity.Name</span>
-                                    <i class="fas fa-chevron-down" style="font-size: 0.65rem;"></i>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.6rem;"></i>
                                 </button>
                                 <div class="desktop-dropdown" id="desktopDropdown">
                                     @if (User.IsInRole("Admin"))
@@ -282,9 +298,8 @@
                     </button>
                 </div>
 
-                <!-- 📱 قائمة الهامبرجر المجمعة للموبايل -->
+                <!-- 📱 قائمة الهامبرجر للموبايل -->
                 <div class="mobile-menu-panel" id="mobileMenu">
-                    <!-- الروابط الثابتة -->
                     <a asp-action="Index" asp-controller="Home" class="mobile-menu-item">
                         <i class="fas fa-home"></i> الرئيسية
                     </a>
@@ -294,10 +309,8 @@
 
                     <hr class="menu-divider">
 
-                    <!-- الشرط الخاص بالموبايل حسب تسجيل الدخول -->
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
-                        <!-- 🟢 مسجل دخول في الموبايل -->
                         <div class="mobile-user-badge">
                             <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
                             <span>مرحباً، @User.Identity.Name</span>
@@ -325,7 +338,6 @@
                     }
                     else
                     {
-                        <!-- 🔴 زائر في الموبايل -->
                         <a href="/Account/login2" class="mobile-menu-item">
                             <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
                         </a>
@@ -348,9 +360,7 @@
 
     <script src="/js/script.js"></script>
 
-    <!-- ⚡ كود التشغيل والفتح والتدوير -->
     <script>
-        // فتح وإغلاق قائمة الهامبرجر الموبايل عند الضغط
         function toggleMobileMenu(event) {
         event.stopPropagation();
         const mobileMenu = document.getElementById("mobileMenu");
@@ -359,7 +369,6 @@
         }
         }
 
-        // فتح وإغلاق دروب داون الكمبيوتر
         function toggleDesktopDropdown(event) {
         event.stopPropagation();
         const desktopDropdown = document.getElementById("desktopDropdown");
@@ -368,7 +377,6 @@
         }
         }
 
-        // إغلاق القائمة عند الضغط في أي مكان خارجي
         document.addEventListener("click", function (event) {
         const mobileMenu = document.getElementById("mobileMenu");
         const desktopDropdown = document.getElementById("desktopDropdown");
