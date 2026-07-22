@@ -56,33 +56,34 @@ namespace Al_Muzayyen.Controllers
         [HttpPost]
         public async Task<IActionResult> booking(Student booking)
         {
-
-            // شرط إضافي: لو الطالب لم يختار الصف أو المكان أو المجموعة (قيمتهم بـ 0)
-            if (!ModelState.IsValid || booking.ClassId == 0 || booking.PlaceId == 0 || booking.SlotId == 0)
+            // 1. التحقق من صحة البيانات ومن إدخال كلمة المرور واختيار الصف والمكان والمجموعة
+            if (!ModelState.IsValid
+                || string.IsNullOrWhiteSpace(booking.Password)
+                || booking.ClassId == 0
+                || booking.PlaceId == 0
+                || booking.SlotId == 0)
             {
-                ViewBag.ErrorMessage = "برجاء اختيار الصف الدراسي، المكان، والمجموعة المتاحة بشكل صحيح.";
+                ViewBag.ErrorMessage = "برجاء استكمال جميع البيانات وإدخال كلمة المرور واختيار الصف، المكان، والمجموعة بشكل صحيح.";
 
-                // إعادة ملء القوائم حتى لا تظهر فارغة
                 ViewBag.Classes = await _classService.GetAllClassesAsync();
                 ViewBag.Places = await _placeService.GetAllPlacesAsync();
                 return View(booking);
             }
 
+            // 2. إنشاء الحساب وتخزين بيانات الطالب في الداتا بيز بواسطة السيرفس
             var result = await _bookingService.CreateBookingAsync(booking);
+
             if (result)
             {
-                // 1. نضع رسالة النجاح
-                ViewBag.SuccessMessage = "🎉 تم تسجيل بياناتك وحجز الموعد بنجاح!";
+                ViewBag.SuccessMessage = " تم إنشاء حسابك وتسجيل بيانات الحجز بنجاح!";
 
-                // 2. نعيد ملء القوائم عشان الصفحة متضربش وهي بتفتح تاني
                 ViewBag.Classes = await _classService.GetAllClassesAsync();
                 ViewBag.Places = await _placeService.GetAllPlacesAsync();
 
-                // 3. نرجع الصفحة مباشرة (View) بدل الـ Redirect عشان الـ ViewBag يفضل عايش ويظهر
-                return View(new Student()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
+                return View(new Student()); // إعادة كائن جديد فارغ لتفريغ النماذج
             }
 
-            ViewBag.ErrorMessage = "حدث خطأ أثناء حفظ الحجز.";
+            ViewBag.ErrorMessage = "حدث خطأ أثناء تسجيل الحساب، قد يكون رقم الهاتف مسجلاً بالفعل.";
             ViewBag.Classes = await _classService.GetAllClassesAsync();
             ViewBag.Places = await _placeService.GetAllPlacesAsync();
             return View(booking);

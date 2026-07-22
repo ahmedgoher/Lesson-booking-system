@@ -24,7 +24,10 @@ namespace Al_Muzayyen.Models
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم")]
         [Display(Name = "رقم هاتف ولي الأمر")]
         public string ParentPhone { get; set; }
-
+        [Required(ErrorMessage = "برجاء إدخال كلمة المرور")]
+        [MinLength(6, ErrorMessage = "كلمة المرور يجب ألا تقل عن 6 أحرف/أرقام")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
         // توكين فريد لرابط ولي الأمر عبر الواتساب بدون تسجيل دخول
         public string ParentAccessToken { get; set; } = Guid.NewGuid().ToString("N");
 

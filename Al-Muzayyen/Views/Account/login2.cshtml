@@ -1,13 +1,10 @@
-﻿@using Al_Muzayyen.Viewmodel
+﻿@model Al_Muzayyen.Viewmodel.StudentLoginVM
 
 @{
     Layout = "~/Views/Shared/_layouthome.cshtml";
-    ViewData["Title"] = "تسجيل الدخول";
+    ViewData["Title"] = "تسجيل دخول الطالب";
 }
 
-<!-- ===================================================
-         2. Integrated CSS Styles
-    =================================================== -->
 <style>
     /* Auth Section Layout */
     .auth-section {
@@ -35,23 +32,17 @@
         margin-bottom: 2rem;
     }
 
-    .auth-logo img {
-        width: 75px;
-        height: auto;
-        margin-bottom: 0.75rem;
-    }
+        .auth-header h2 {
+            color: var(--text-color);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+        }
 
-    .auth-header h2 {
-        color: var(--text-color);
-        font-size: 1.6rem;
-        font-weight: 700;
-        margin-bottom: 0.4rem;
-    }
-
-    .auth-header p {
-        color: var(--text-muted);
-        font-size: 0.88rem;
-    }
+        .auth-header p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
 
     /* Form & Controls */
     .auth-form {
@@ -82,13 +73,7 @@
         color: var(--primary-color);
         font-size: 0.8rem;
         text-decoration: none;
-        transition: color 0.2s ease;
     }
-
-        .forgot-pass-link:hover {
-            color: var(--primary-hover);
-            text-decoration: underline;
-        }
 
     /* Input Wrapper & Icons */
     .input-wrapper {
@@ -107,7 +92,7 @@
 
     .form-control {
         width: 100%;
-        padding: 0.75rem 2.6rem 0.75rem 2.6rem; /* مساحة مناسبة للأيقونات */
+        padding: 0.75rem 2.6rem 0.75rem 2.6rem;
         background-color: var(--bg-alt);
         border: 1px solid var(--border-color);
         border-radius: 8px;
@@ -120,7 +105,6 @@
         .form-control:focus {
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px var(--primary-glow);
-            background-color: var(--bg-alt-2);
         }
 
     .toggle-password {
@@ -131,16 +115,8 @@
         color: var(--text-muted);
         cursor: pointer;
         padding: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
-        .toggle-password:hover {
-            color: var(--primary-color);
-        }
-
-    /* Checkbox Options */
     .form-group-checkbox {
         display: flex;
         align-items: center;
@@ -155,19 +131,11 @@
         cursor: pointer;
     }
 
-        .remember-label input[type="checkbox"] {
-            accent-color: var(--primary-color);
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
-
-    /* Submit Button */
     .auth-submit-btn {
         width: 100%;
         padding: 0.8rem;
         background-color: var(--primary-color);
-        color: #000000; /* نص أسر باللون الداكن ليناسب الخلفية الذهبية */
+        color: #000000;
         font-weight: 700;
         font-size: 0.95rem;
         border: none;
@@ -177,17 +145,8 @@
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        transition: all 0.2s ease;
-        margin-top: 0.5rem;
     }
 
-        .auth-submit-btn:hover {
-            background-color: var(--primary-hover);
-            box-shadow: var(--shadow-glow);
-            transform: translateY(-1px);
-        }
-
-    /* Footer Text */
     .auth-footer {
         margin-top: 1.8rem;
         text-align: center;
@@ -195,90 +154,71 @@
         padding-top: 1.2rem;
     }
 
-        .auth-footer p {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-        }
-
     .register-link {
         color: var(--primary-color);
         font-weight: 600;
         text-decoration: none;
     }
 
-        .register-link:hover {
-            text-decoration: underline;
-        }
-
-    /* Validation Message */
     .text-danger {
         color: #ef4444;
-        font-size: 0.78rem;
+        font-size: 0.8rem;
         margin-top: 0.2rem;
     }
+</style>
 
-    /* Responsive Design */
-    @@media (max-width: 480px) {
-        .auth-card {
-            padding: 1.8rem 1.2rem;
-        }
-    }
-</style>
-</style>
 <section class="auth-section">
     <div class="auth-card">
-        <!-- Logo / Brand Header -->
         <div class="auth-header">
-        
-            <h2>تسجيل الدخول</h2>
-            <p>أهلاً بك مجدداً! ادخل بياناتك للمتابعة</p>
+            <h2>تسجيل الدخول للطالب</h2>
+            <p>أهلاً بك مجدداً! أدخل بياناتك للمتابعة</p>
         </div>
 
+        <!-- رسالة الخطأ العامة إن وجدت -->
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 10px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #ef4444;">
+                @ViewBag.Error
+            </div>
+        }
+
         <!-- Form -->
-        <form action="#" method="post" class="auth-form" id="loginForm">
+        <form asp-controller="Account" asp-action="login2" method="post" class="auth-form" id="loginForm">
 
             <!-- Phone Number Input -->
             <div class="form-group">
-                <label for="PhoneNumber">رقم الهاتف</label>
+                <label asp-for="PhoneNumber">رقم الهاتف</label>
                 <div class="input-wrapper">
                     <i class="fas fa-phone-alt input-icon"></i>
-                    <input type="tel"
-                           id="PhoneNumber"
-                           name="PhoneNumber"
+                    <input asp-for="PhoneNumber"
                            class="form-control"
-                           placeholder="010XXXXXXXX"
-                           required
-                           pattern="^01[0125][0-9]{8}$"
-                           title="يرجى إدخال رقم هاتف مصري صحيح مكون من 11 رقم">
+                           placeholder="010XXXXXXXX" />
                 </div>
-                <span class="text-danger" id="phoneError"></span>
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
             </div>
 
             <!-- Password Input -->
             <div class="form-group">
                 <div class="label-row">
-                    <label for="Password">كلمة السر</label>
-                    <a href="forgot-password.html" class="forgot-pass-link">نسيت كلمة السر؟</a>
+                    <label asp-for="Password">كلمة السر</label>
+                    <a href="#" class="forgot-pass-link">نسيت كلمة السر؟</a>
                 </div>
                 <div class="input-wrapper">
                     <i class="fas fa-lock input-icon"></i>
-                    <input type="password"
-                           id="Password"
-                           name="Password"
+                    <input asp-for="Password"
                            class="form-control"
-                           placeholder="••••••••"
-                           required>
-                    <button type="button" class="toggle-password" id="togglePasswordBtn" aria-label="Show Password">
+                           placeholder="••••••••" />
+                    <button type="button" class="toggle-password" id="togglePasswordBtn">
                         <i class="fas fa-eye" id="toggleIcon"></i>
                     </button>
                 </div>
-                <span class="text-danger" id="passwordError"></span>
+                <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
             <!-- Remember Me Checkbox -->
             <div class="form-group-checkbox">
                 <label class="remember-label">
-                    <input type="checkbox" name="RememberMe" value="true">
+                    <input asp-for="RememberMe" type="checkbox" />
                     <span>تذكرني على هذا الجهاز</span>
                 </label>
             </div>
@@ -290,25 +230,18 @@
             </button>
         </form>
 
-        <!-- Footer / Register Link -->
         <div class="auth-footer">
             <p>ليس لديك حساب حتى الآن؟ <a href="/Booking/booking" class="register-link">إنشاء حساب جديد</a></p>
         </div>
     </div>
 </section>
 
-
-
-<!-- ===================================================
-         3. Integrated JavaScript
-    =================================================== -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const togglePasswordBtn = document.getElementById('togglePasswordBtn');
         const passwordInput = document.getElementById('Password');
         const toggleIcon = document.getElementById('toggleIcon');
 
-        // إظهار وإخفاء كلمة المرور
         if (togglePasswordBtn && passwordInput && toggleIcon) {
             togglePasswordBtn.addEventListener('click', function () {
                 const isPassword = passwordInput.getAttribute('type') === 'password';
@@ -318,5 +251,4 @@
             });
         }
     });
-</script> 
- 
+</script>

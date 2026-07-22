@@ -4,8 +4,6 @@ using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-//using Al_Muzayyen.Configurations;
-
 
 namespace Al_Muzayyen
 {
@@ -17,57 +15,63 @@ namespace Al_Muzayyen
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            // 1. تفعيل خدمات الـ Authentication والـ Cookies
+
+            // 1. تفعيل خدمات الـ Authentication وتحديد كوكيز لكل من (الآدمن والطالب)
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "AdminAuth";
-                options.DefaultChallengeScheme = "AdminAuth";
+                options.DefaultScheme = "StudentAuth"; // المخطط الافتراضي لزوار وطالب الموقع
+                options.DefaultChallengeScheme = "StudentAuth";
             })
- .AddCookie("AdminAuth", options =>
- {
-     options.LoginPath = "/Account/Login";
+            .AddCookie("AdminAuth", options =>
+            {
+                options.Cookie.Name = "AdminAuthCookie";
+                options.LoginPath = "/Account/Login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+                options.SlidingExpiration = true;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            })
+            .AddCookie("StudentAuth", options =>
+            {
+                options.Cookie.Name = "StudentAuthCookie";
+                options.LoginPath = "/Account/login2"; // صفحة دخول الطالب
+                options.ExpireTimeSpan = TimeSpan.FromDays(7); // مدة حفظ الجلسة للطالب
+                options.SlidingExpiration = true;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
 
-     // 1. وقت انتهاء صلاحية الكوكي (مثلاً 20 دقيقة من الخمول)
-     options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
-
-     // 2. تجديد الوقت تلقائياً طالما الآدمن بيتحرك في الموقع (Sliding Expiration)
-     options.SlidingExpiration = true;
-
-     // 3. تأمين الكوكي بحيث لا يتم الوصول إليه عبر برمجيات خبيثة (Javascript)
-     options.Cookie.HttpOnly = true;
-
-     // 4. جعل الكوكي ينتهي بمجرد قفل المتصفح بالكامل لو الآدمن معلمش على "تذكرني"
-     options.Cookie.IsEssential = true;
- });
             // قراءة الكونيكشن استرنج من ملف appsettings.json
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
             builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
-            // تسجيل الـ Generic Repository
+            // تسجيل الـ Generic Repository & Services
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericSevice<>));
+
+            // تسجيل الخدمات (Services)
             builder.Services.AddScoped<IClassService, ClassService>();
             builder.Services.AddScoped<IPlaceService, PlaceService>();
             builder.Services.AddScoped<ISlotService, SlotService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
-            // Repos
+
+            // تسجيل المستودعات (Repos)
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
             builder.Services.AddScoped<IGroupRepo, GroupRepo>();
 
-            builder.Services.Configure<CloudinarySettings>(
-builder.Configuration.GetSection("CloudinarySettings"));
-
+            // إعدادات Cloudinary
+            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
             builder.Services.AddScoped<CloudinaryService>();
-            // تسجيل سيرفيس الحجوزات
-            builder.Services.AddScoped<IBookingService, BookingService>();
+
             // تسجيل الـ DbContext داخل خدمات المشروع
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-
+            // إعدادات Identity
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = false;
@@ -76,8 +80,8 @@ builder.Configuration.GetSection("CloudinarySettings"));
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 6;
             })
-.AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
             var app = builder.Build();
 
@@ -85,14 +89,14 @@ builder.Configuration.GetSection("CloudinarySettings"));
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseStaticFiles();
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            // 2. تفعيل جدار الحماية (الترتيب هنا إجباري ومهم جداً!)
+            // 2. تفعيل جدار الحماية (الترتيب مهم)
             app.UseAuthentication(); // التحقق من الهوية
             app.UseAuthorization();  // التحقق من الصلاحيات
 

@@ -1,13 +1,40 @@
 ﻿@model Al_Muzayyen.Models.Student
 @{
     Layout = "~/Views/Shared/_layouthome.cshtml";
-    ViewData["Title"] = "Booking Page";
+    ViewData["Title"] = "إنشاء حساب طالب جديد";
     var classes = ViewBag.Classes as IEnumerable<Al_Muzayyen.Models.Class>;
-    // var phone = ViewBag.number;
     var places = ViewBag.Places as IEnumerable<Al_Muzayyen.Models.Place>;
 }
 
+<!-- 🎨 تنسيقات خاصة بهذه الصفحة فقط لعدم التعديل على style.css الرئيسي -->
+<style>
+    .booking-form input[type="password"] {
+        width: 100%;
+        background-color: var(--bg-alt, #0e1524);
+        border: 1px solid var(--border-color, #263349);
+        color: var(--text-color, #f8fafc);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        font-family: 'Cairo', sans-serif;
+        outline: none;
+        box-sizing: border-box;
+    }
 
+        .booking-form input[type="password"]:focus {
+            border-color: var(--primary-color, #d4af37);
+            box-shadow: 0 0 0 3px var(--primary-glow, rgba(212, 175, 55, 0.45));
+        }
+
+    /* إصلاح لون خلفية الإكمال التلقائي من المتصفح (Autofill) */
+    .booking-form input:-webkit-autofill,
+    .booking-form input:-webkit-autofill:hover,
+    .booking-form input:-webkit-autofill:focus {
+        -webkit-text-fill-color: var(--text-color, #f8fafc) !important;
+        -webkit-box-shadow: 0 0 0px 1000px var(--bg-alt, #0e1524) inset !important;
+        transition: background-color 5000s ease-in-out 0s;
+    }
+</style>
 
 <div class="booking-page-wrap">
     <div class="container">
@@ -16,7 +43,7 @@
                 <i class="fas fa-arrow-right"></i>
                 العودة للرئيسية
             </a>
-            <h2 style="text-align: center; margin-bottom: 30px;">سجل بياناتك للحجز</h2>
+            <h2 style="text-align: center; margin-bottom: 30px;">إنشاء حساب طالب جديد</h2>
 
             @if (ViewBag.SuccessMessage != null)
             {
@@ -33,23 +60,30 @@
 
             <form action="/Booking/booking" method="post" id="student-booking-form">
 
-            <div class="form-group">
-                <label>اسم الطالب بالكامل</label>
-                <input type="text" name="Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.Name">
-                <span asp-validation-for="Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
+                <div class="form-group">
+                    <label>اسم الطالب بالكامل</label>
+                    <input type="text" name="Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.Name">
+                    <span asp-validation-for="Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
 
-            <div class="form-group">
-                <label>رقم الهاتف</label>
-                <input type="tel" name="StdPhone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.StdPhone">
-                <span asp-validation-for="StdPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
+                <div class="form-group">
+                    <label>رقم الهاتف (سيستخدم لتسجيل الدخول)</label>
+                    <input type="tel" name="StdPhone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.StdPhone">
+                    <span asp-validation-for="StdPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
 
-            <div class="form-group">
-                <label>رقم ولي الأمر</label>
-                <input type="tel" name="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.ParentPhone">
-                <span asp-validation-for="ParentPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-            </div>
+                <div class="form-group">
+                    <label>رقم ولي الأمر</label>
+                    <input type="tel" name="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.ParentPhone">
+                    <span asp-validation-for="ParentPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <!-- 🔑 حقل كلمة المرور -->
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" name="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)">
+                    <span asp-validation-for="Password" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
 
                 <div class="form-group">
                     <label>الصف الدراسي</label>
@@ -89,29 +123,21 @@
                     <span asp-validation-for="SlotId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
-            <div class="form-group">
-                <label>ملاحظات (اختياري)</label>
-                <textarea name="Notes" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Notes</textarea>
-            </div>
+                <div class="form-group">
+                    <label>ملاحظات (اختياري)</label>
+                    <textarea name="Notes" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Notes</textarea>
+                </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">إنشاء الحساب وتأكيد الحجز</button>
             </form>
 
-        <div class="whatsapp-contact">
-
-            <a id="whatsappBtn"
-                   target="_blank"
-                   class="whatsapp-btn">
-
-                <i class="fab fa-whatsapp"></i>
-
-                تواصل معنا عبر واتساب
-
-                <i class="fa-solid fa-arrow-left"></i>
-
-
-            </a>
-          
+            <div class="whatsapp-contact">
+                <a id="whatsappBtn" target="_blank" class="whatsapp-btn">
+                    <i class="fab fa-whatsapp"></i>
+                    تواصل معنا عبر واتساب
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -122,71 +148,65 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const gradeSelect = document.getElementById('select-grade');
-        const locationSelect = document.getElementById('select-location');
-        const groupSelect = document.getElementById('select-group');
+    const gradeSelect = document.getElementById('select-grade');
+    const locationSelect = document.getElementById('select-location');
+    const groupSelect = document.getElementById('select-group');
 
-        async function updateGroups() {
-            const gradeId = gradeSelect.value;
-            const locationId = locationSelect.value;
+    async function updateGroups() {
+    const gradeId = gradeSelect.value;
+    const locationId = locationSelect.value;
 
-            if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
-                groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
-                groupSelect.disabled = true;
-                return;
-            }
+    if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
+    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+    groupSelect.disabled = true;
+    return;
+    }
 
-            groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
-            groupSelect.disabled = true;
+    groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
+    groupSelect.disabled = true;
 
-            try {
-                const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
+    try {
+    const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
 
-                if (response.ok) {
-                    const slots = await response.json();
-                    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+    if (response.ok) {
+    const slots = await response.json();
+    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
 
-                    if (slots.length > 0) {
-                        slots.forEach(slot => {
-                            const opt = document.createElement('option');
-                            opt.value = slot.id;
-                            opt.textContent = slot.name; // سيعرض النص المدمج الجاهز من السيرفر
-                            if ("@Model?.SlotId" == slot.id) opt.selected = true;
-                            groupSelect.appendChild(opt);
-                        });
-                        groupSelect.disabled = false;
-                    } else {
-                        groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
-                    }
-
-                    // إعادة تشغيل الفاليديشن على حقل المجموعات بعد التحديث الديناميكي ليعمل بشكل سليم
-                    $("form").validate().element("#select-group");
-                }
-            } catch (error) {
-                console.error("حدث خطأ أثناء جلب المجموعات:", error);
-                groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
-            }
-        }
-
-        gradeSelect.addEventListener('change', updateGroups);
-        locationSelect.addEventListener('change', updateGroups);
-
-        if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
-            updateGroups();
-        }
+    if (slots.length > 0) {
+    slots.forEach(slot => {
+    const opt = document.createElement('option');
+    opt.value = slot.id;
+    opt.textContent = slot.name;
+    if ("@Model?.SlotId" == slot.id) opt.selected = true;
+    groupSelect.appendChild(opt);
     });
+    groupSelect.disabled = false;
+    } else {
+    groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
+    }
 
-  
+    $("form").validate().element("#select-group");
+    }
+    } catch (error) {
+    console.error("حدث خطأ أثناء جلب المجموعات:", error);
+    groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
+    }
+    }
+
+    gradeSelect.addEventListener('change', updateGroups);
+    locationSelect.addEventListener('change', updateGroups);
+
+    if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
+    updateGroups();
+    }
+    });
 </script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-
     var phone = "@ViewBag.number";
-
     document.getElementById("whatsappBtn").href =
     "https://wa.me/20" + phone +
-    "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز");
-
+    "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز وتسجيل الحساب");
     });
 </script>
