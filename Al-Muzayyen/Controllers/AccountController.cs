@@ -119,11 +119,16 @@ namespace Al_Muzayyen.Controllers
             TempData["Error"] = "اسم المستخدم أو كلمة المرور غير صحيحة!";
             return View(model);
         }
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            // مسح كوكيز الطالب وكوكيز الآدمن
+            await HttpContext.SignOutAsync("StudentAuth");
             await HttpContext.SignOutAsync("AdminAuth");
-            return RedirectToAction("Login");
+
+            return RedirectToAction("Index", "Home");
         }
+        
     }
 }

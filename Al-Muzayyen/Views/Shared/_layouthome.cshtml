@@ -6,97 +6,332 @@
     <title>فارس اللغة العربية | الأستاذ عبد الفتاح المزين</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+            body {
+                direction: rtl;
+                background-color: var(--bg-main);
+                color: var(--text-color);
+                line-height: 1.7;
+                padding-top: 70px;
+            }
+
+            /* 🟢 إصلاح الطبقات والقوائم */
+            header, nav, .container {
+                overflow: visible !important;
+            }
+
+            header {
+                background-color: var(--card-bg, #111827);
+                border-bottom: 1px solid var(--border-color, #263349);
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 10000;
+                box-shadow: var(--shadow-sm);
+            }
+
+            nav {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 0;
+                position: relative;
+            }
+
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            /* 🖥️ تقسيم الشاشات باستعمال @@ لعدم التعارض مع Razor */
+            @@media (min-width: 769px) {
+                .mobile-only {
+                    display: none !important;
+                }
+
+                .desktop-only {
+                    display: flex !important;
+                    align-items: center;
+                    gap: 10px;
+                }
+
+                .mobile-menu-panel {
+                    display: none !important;
+                }
+            }
+
+            @@media (max-width: 768px) {
+                .desktop-only {
+                    display: none !important;
+                }
+
+                .mobile-only {
+                    display: flex !important;
+                }
+
+                .logo h1 {
+                    font-size: 0.85rem;
+                }
+
+                .logo img {
+                    height: 28px;
+                }
+            }
+
+            /* 🍔 زر الهامبرجر للموبايل */
+            .hamburger-btn {
+                background: var(--bg-alt, rgba(255, 255, 255, 0.08));
+                border: 1px solid var(--border-color, #263349);
+                color: var(--text-color, #fff);
+                padding: 7px 12px;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .hamburger-btn:hover {
+                    color: var(--primary-color, #d4af37);
+                    border-color: var(--primary-color, #d4af37);
+                }
+
+            /* 📱 قائمة الهامبرجر للموبايل (مخفية بالافتراضي) */
+            .mobile-menu-panel {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                left: 0;
+                background-color: var(--card-bg, #111827);
+                border-bottom: 2px solid var(--primary-color, #d4af37);
+                padding: 1rem 1.25rem;
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+                flex-direction: column;
+                gap: 8px;
+                z-index: 99999;
+                border-radius: 0 0 12px 12px;
+            }
+
+                /* إظهار القائمة فقط عند الضغط وإضافة كلاس show */
+                .mobile-menu-panel.show {
+                    display: flex !important;
+                    animation: slideDown 0.25s ease-out;
+                }
+
+            .mobile-menu-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 14px;
+                color: var(--text-color, #f3f4f6);
+                text-decoration: none;
+                font-size: 0.95rem;
+                border-radius: 8px;
+                transition: background 0.2s;
+                width: 100%;
+                background: none;
+                border: none;
+                text-align: right;
+                cursor: pointer;
+            }
+
+                .mobile-menu-item:hover {
+                    background-color: rgba(255, 255, 255, 0.08);
+                    color: var(--primary-color, #d4af37);
+                }
+
+            .mobile-user-badge {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 14px;
+                background: rgba(212, 175, 55, 0.1);
+                border: 1px solid rgba(212, 175, 55, 0.3);
+                border-radius: 8px;
+                color: var(--primary-color, #d4af37);
+                font-weight: bold;
+                font-size: 0.9rem;
+                margin-bottom: 4px;
+            }
+
+            .menu-divider {
+                border: 0;
+                border-top: 1px solid var(--border-color, #374151);
+                margin: 4px 0;
+            }
+
+            /* 👤 البروفايل للكمبيوتر */
+            .user-avatar-btn {
+                background: var(--bg-alt, rgba(255, 255, 255, 0.08));
+                border: 1px solid var(--border-color, #263349);
+                color: var(--primary-color, #d4af37);
+                padding: 6px 14px;
+                border-radius: 20px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+            }
+
+            .desktop-dropdown {
+                display: none;
+                position: absolute;
+                top: calc(100% + 8px);
+                left: 0;
+                background-color: var(--card-bg, #111827);
+                border: 1px solid var(--border-color, #374151);
+                border-radius: 10px;
+                min-width: 180px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+                z-index: 99999;
+                overflow: hidden;
+            }
+
+                .desktop-dropdown.show {
+                    display: block !important;
+                }
+
+            @@keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+    </style>
 </head>
-<style>
-    body {
-        direction: rtl;
-        background-color: var(--bg-main);
-        color: var(--text-color);
-        line-height: 1.7;
-        padding-top: 50px;
-    }
 
-    header {
-        background-color: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 1000;
-        box-shadow: var(--shadow-sm);
-    }
-</style>
-
-  
 <body>
 
     <header>
         <div class="container">
             <nav>
+                <!-- اللوجو -->
                 <a href="/">
                     <div class="logo">
-                        <img src="~/images/image.png" alt="فارس اللغة العربية">
+                        <img src="/images/image.png" alt="فارس اللغة العربية">
                         <h1>الأستاذ عبد الفتاح المزين</h1>
                     </div>
                 </a>
 
-
-
-                <ul class="nav-links">
-                    <li><a a asp-action="Index" asp-controller="Home">الرئيسية</a></li>
+                <!-- 🖥️ روابط النافبار للكمبيوتر فقط -->
+                <ul class="nav-links desktop-only">
+                    <li><a asp-action="Index" asp-controller="Home">الرئيسية</a></li>
                     <li><a href="#about">من هو</a></li>
-
                 </ul>
+
                 <div class="header-actions">
-                    <!-- زر تغيير الوضع Dark/Light Mode -->
+                    <!-- زر الدارك مود -->
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
                         <i class="fas fa-sun"></i>
                     </button>
 
+                    <!-- 🖥️ حالة الحساب للكمبيوتر فقط -->
+                    <div class="desktop-only">
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <div style="position: relative;">
+                                <button class="user-avatar-btn" type="button" onclick="toggleDesktopDropdown(event)">
+                                    <i class="fas fa-user-circle" style="font-size: 1.1rem;"></i>
+                                    <span>@User.Identity.Name</span>
+                                    <i class="fas fa-chevron-down" style="font-size: 0.65rem;"></i>
+                                </button>
+                                <div class="desktop-dropdown" id="desktopDropdown">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a href="/Admin/Index" class="mobile-menu-item">
+                                            <i class="fas fa-user-shield"></i> لوحة التحكم
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Account/Profile" class="mobile-menu-item">
+                                            <i class="fas fa-id-card"></i> الملف الشخصي
+                                        </a>
+                                    }
+                                    <hr class="menu-divider">
+                                    <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="mobile-menu-item" style="color: #ef4444;">
+                                            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <a href="/Account/login2" class="btn btn-outline nav-btn">تسجيل الدخول</a>
+                            <a href="/Booking/booking" class="btn btn-primary nav-btn">إنشاء حساب</a>
+                        }
+                    </div>
+
+                    <!-- 📱 زر الهامبرجر للموبايل فقط -->
+                    <button class="hamburger-btn mobile-only" type="button" onclick="toggleMobileMenu(event)" aria-label="Toggle Menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+
+                <!-- 📱 قائمة الهامبرجر المجمعة للموبايل -->
+                <div class="mobile-menu-panel" id="mobileMenu">
+                    <!-- الروابط الثابتة -->
+                    <a asp-action="Index" asp-controller="Home" class="mobile-menu-item">
+                        <i class="fas fa-home"></i> الرئيسية
+                    </a>
+                    <a href="#about" class="mobile-menu-item">
+                        <i class="fas fa-info-circle"></i> من هو
+                    </a>
+
+                    <hr class="menu-divider">
+
+                    <!-- الشرط الخاص بالموبايل حسب تسجيل الدخول -->
                     @if (User.Identity != null && User.Identity.IsAuthenticated)
                     {
-                        <!-- حالة المستخدم المسجل (Logged In) -->
-                        <div class="custom-dropdown">
-                            <button class="user-avatar-btn dropdown-trigger" aria-label="User Menu">
-                                <i class="fas fa-user-circle"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="/Account/Profile" class="dropdown-item">
-                                    <i class="fas fa-id-card"></i> الملف الشخصي
-                                </a>
-                                <hr class="dropdown-divider">
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="dropdown-item logout-btn">
-                                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-                                    </button>
-                                </form>
-                            </div>
+                        <!-- 🟢 مسجل دخول في الموبايل -->
+                        <div class="mobile-user-badge">
+                            <i class="fas fa-user-circle" style="font-size: 1.2rem;"></i>
+                            <span>مرحباً، @User.Identity.Name</span>
                         </div>
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a href="/Admin/Index" class="mobile-menu-item">
+                                <i class="fas fa-user-shield"></i> لوحة التحكم
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/Account/Profile" class="mobile-menu-item">
+                                <i class="fas fa-id-card"></i> الملف الشخصي
+                            </a>
+                        }
+
+                        <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="mobile-menu-item" style="color: #ef4444;">
+                                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                            </button>
+                        </form>
                     }
                     else
                     {
-                        <!-- حالة الزائر للشاشات الكبيرة (Desktop) -->
-                        <div class="auth-buttons desktop-only">
-                            <a href="/Account/login2" class="btn btn-outline nav-btn">تسجيل الدخول</a>
-                            <a href="/Booking/booking" class="btn btn-primary nav-btn">إنشاء حساب</a>
-                        </div>
-
-                        <!-- حالة الزائر للشاشات الصغيرة (Mobile Menu) -->
-                        <div class="custom-dropdown mobile-only">
-                            <button class="guest-menu-btn dropdown-trigger" aria-label="Guest Menu">
-                                <i class="fas fa-bars"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a href="/Account/login2" class="dropdown-item">
-                                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                                </a>
-                                <a href="/Booking/booking" class="dropdown-item primary-link">
-                                    <i class="fas fa-user-plus"></i> إنشاء حساب
-                                </a>
-                            </div>
-                        </div>
+                        <!-- 🔴 زائر في الموبايل -->
+                        <a href="/Account/login2" class="mobile-menu-item">
+                            <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                        </a>
+                        <a href="/Booking/booking" class="mobile-menu-item" style="color: var(--primary-color, #d4af37);">
+                            <i class="fas fa-user-plus"></i> إنشاء حساب
+                        </a>
                     }
                 </div>
             </nav>
@@ -105,8 +340,6 @@
 
     @RenderBody()
 
-
-
     <footer>
         <div class="container">
             <p>جميع الحقوق محفوظة &copy; 2024 - الأستاذ عبد الفتاح المزين (<a asp-action="Index" asp-controller="Admin">فارس اللغة العربية</a>)</p>
@@ -114,5 +347,39 @@
     </footer>
 
     <script src="/js/script.js"></script>
+
+    <!-- ⚡ كود التشغيل والفتح والتدوير -->
+    <script>
+        // فتح وإغلاق قائمة الهامبرجر الموبايل عند الضغط
+        function toggleMobileMenu(event) {
+        event.stopPropagation();
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (mobileMenu) {
+        mobileMenu.classList.toggle("show");
+        }
+        }
+
+        // فتح وإغلاق دروب داون الكمبيوتر
+        function toggleDesktopDropdown(event) {
+        event.stopPropagation();
+        const desktopDropdown = document.getElementById("desktopDropdown");
+        if (desktopDropdown) {
+        desktopDropdown.classList.toggle("show");
+        }
+        }
+
+        // إغلاق القائمة عند الضغط في أي مكان خارجي
+        document.addEventListener("click", function (event) {
+        const mobileMenu = document.getElementById("mobileMenu");
+        const desktopDropdown = document.getElementById("desktopDropdown");
+
+        if (mobileMenu && !mobileMenu.contains(event.target)) {
+        mobileMenu.classList.remove("show");
+        }
+        if (desktopDropdown && !desktopDropdown.contains(event.target)) {
+        desktopDropdown.classList.remove("show");
+        }
+        });
+    </script>
 </body>
 </html>

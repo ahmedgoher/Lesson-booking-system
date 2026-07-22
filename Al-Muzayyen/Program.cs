@@ -16,10 +16,30 @@ namespace Al_Muzayyen
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
-            // 1. تفعيل خدمات الـ Authentication وتحديد كوكيز لكل من (الآدمن والطالب)
+            // قراءة الكونيكشن استرنج
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            // تسجيل الـ DbContext
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            // 🟢 1. إعدادات Identity (أولاً)
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+            })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
+            // 🟢 2. تفعيل خدمات الـ Authentication والـ Cookies (ثانياً لتحديد المخطط الافتراضي)
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "StudentAuth"; // المخطط الافتراضي لزوار وطالب الموقع
+                options.DefaultScheme = "StudentAuth";
+                options.DefaultAuthenticateScheme = "StudentAuth";
                 options.DefaultChallengeScheme = "StudentAuth";
             })
             .AddCookie("AdminAuth", options =>
@@ -34,58 +54,33 @@ namespace Al_Muzayyen
             .AddCookie("StudentAuth", options =>
             {
                 options.Cookie.Name = "StudentAuthCookie";
-                options.LoginPath = "/Account/login2"; // صفحة دخول الطالب
-                options.ExpireTimeSpan = TimeSpan.FromDays(7); // مدة حفظ الجلسة للطالب
+                options.LoginPath = "/Account/login2";
+                options.ExpireTimeSpan = TimeSpan.FromDays(7);
                 options.SlidingExpiration = true;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
-
-            // قراءة الكونيكشن استرنج من ملف appsettings.json
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
             builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             });
 
-            // تسجيل الـ Generic Repository & Services
+            // Repositories & Services
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericSevice<>));
-
-            // تسجيل الخدمات (Services)
             builder.Services.AddScoped<IClassService, ClassService>();
             builder.Services.AddScoped<IPlaceService, PlaceService>();
             builder.Services.AddScoped<ISlotService, SlotService>();
             builder.Services.AddScoped<IBookingService, BookingService>();
-
-            // تسجيل المستودعات (Repos)
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
             builder.Services.AddScoped<IGroupRepo, GroupRepo>();
 
-            // إعدادات Cloudinary
             builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
             builder.Services.AddScoped<CloudinaryService>();
 
-            // تسجيل الـ DbContext داخل خدمات المشروع
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer(connectionString));
-
-            // إعدادات Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-            {
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequiredLength = 6;
-            })
-            .AddEntityFrameworkStores<AppDbContext>()
-            .AddDefaultTokenProviders();
-
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -96,9 +91,9 @@ namespace Al_Muzayyen
             app.UseHttpsRedirection();
             app.UseRouting();
 
-            // 2. تفعيل جدار الحماية (الترتيب مهم)
-            app.UseAuthentication(); // التحقق من الهوية
-            app.UseAuthorization();  // التحقق من الصلاحيات
+            // جدار الحماية
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapStaticAssets();
             app.MapControllerRoute(
