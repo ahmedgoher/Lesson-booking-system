@@ -1,0 +1,227 @@
+﻿@{
+    ViewData["Title"] = "تسجيل الغياب والواجبات";
+    Layout = "~/Views/Shared/_layoutAdmin.cshtml";
+    // بيانات وهمية تجريبية داخل الـ View مباشرة
+    var mockStudents = new[]
+    {
+        new { Id = 101, Name = "أحمد محمد محمود", Phone = "01012345678", WasAbsentLastTime = false },
+        new { Id = 102, Name = "سارة أيمن علي", Phone = "01198765432", WasAbsentLastTime = true },
+        new { Id = 103, Name = "عمر خالد عبد الرحمن", Phone = "01234567890", WasAbsentLastTime = false },
+        new { Id = 104, Name = "محمود إبراهيم سيد", Phone = "01555443322", WasAbsentLastTime = true },
+        new { Id = 105, Name = "مريم حسن علي", Phone = "01099887766", WasAbsentLastTime = false }
+    };
+}
+
+
+<!-- CSS الأنماط الخاص بالصفحة - متوافق ومتجاوب بالكامل -->
+
+<div class="attendance-wrapper">
+
+
+
+    <!-- الفلاتر العلوية -->
+    <div class="filter-card">
+        <h3 class="filter-title"><i class="fa-solid fa-filter"></i> اختيار الحصة والمجموعة</h3>
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="lessonDate">تاريخ الحصة:</label>
+                <input id="lessonDate" type="date" class="custom-input" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label for="gradeSelect">الصف الدراسي:</label>
+                <select id="gradeSelect" class="custom-select">
+                    <option value="">اختر الصف...</option>
+                    <option value="1">الصف الأول الثانوي</option>
+                    <option value="2">الصف الثاني الثانوي</option>
+                    <option value="3">الصف الثالث الثانوي</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="centerSelect">المكان / السنتر:</label>
+                <select id="centerSelect" class="custom-select">
+                    <option value="">اختر المكان...</option>
+                    <option value="1">سنتر التميز</option>
+                    <option value="2">سنتر الأكاديمية</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="groupSelect">المجموعة:</label>
+                <select id="groupSelect" class="custom-select">
+                    <option value="">اختر المجموعة...</option>
+                    <option value="1">مجموعة A (10:00 صباحاً)</option>
+                    <option value="2">مجموعة B (12:00 ظهراً)</option>
+                </select>
+            </div>
+        </div>
+        <button type="button" class="action-button fetch-btn" onclick="showMockTable()">
+            <i class="fa-solid fa-users"></i> عرض الطلاب
+        </button>
+    </div>
+
+    <!-- جدول عرض الطلاب (بيانات وهمية ثابته) -->
+    <section id="attendance-section">
+        <div class="table-toolbar">
+            <h3><i class="fa-solid fa-clipboard-user"></i> كشف الطلاب (<span style="color: var(--primary-color);">@mockStudents.Length</span>)</h3>
+
+            <div class="search-box-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-student" class="custom-input" placeholder="ابحث باسم الطالب أو الهاتف..." onkeyup="filterStudentsTable()">
+            </div>
+
+          
+        </div>
+
+        <div class="color-legend">
+            <span class="legend-box-absent"></span>
+            <span>تنبيه: اللون الأحمر يوضح أن الطالب كان **غائباً في الحصة السابقة**</span>
+        </div>
+
+        <div class="table-responsive-container">
+            <table class="data-display-table" id="studentsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>اسم الطالب</th>
+                        <th>رقم الهاتف</th>
+                        <th>حالة الحضور</th>
+                        <th>حالة الواجب</th>
+                        <th>ملاحظة</th>
+                    </tr>
+                </thead>
+                <tbody id="students-table-body">
+                    @for (int i = 0; i < mockStudents.Length; i++)
+                    {
+                        var student = mockStudents[i];
+                        var absentClass = student.WasAbsentLastTime ? "was-absent-last-time" : "";
+
+                        <tr class="@absentClass" data-name="@student.Name" data-phone="@student.Phone">
+                            <td>@(i + 1)</td>
+                            <td>
+                                @student.Name
+                                @if (student.WasAbsentLastTime)
+                                {
+                                    <span class="absent-badge-inline">غائب سابقاً</span>
+                                }
+                            </td>
+                            <td dir="ltr" style="text-align: right;">@student.Phone</td>
+                            <td>
+                                <select class="table-select att-select">
+                                    <option value="حاضر">حاضر</option>
+                                    <option value="متأخر">متأخر</option>
+                                    <option value="غائب">غائب</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="table-select hw-select">
+                                    <option value="سلم">سلم الواجب</option>
+                                    <option value="ناقص">واجب ناقص</option>
+                                    <option value="لم يسلم">لم يسلم</option>
+                                    <option value="غاشش">غاشش</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="hidden" id="note-input-@student.Id" value="" />
+                                <button type="button" class="note-indicator-btn" id="note-btn-@student.Id" onclick="openNoteModal(@student.Id, '@student.Name')">
+                                    <i class="fa-regular fa-comment-dots"></i>
+                                    <span id="note-text-btn-@student.Id">ملاحظة</span>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="save-action-container">
+            <button type="button" class="action-button save-btn" onclick="alert('تم حفظ البيانات وهمياً!')">
+                <i class="fa-solid fa-floppy-disk"></i> حفظ الغياب والواجبات
+            </button>
+        </div>
+    </section>
+</div>
+
+<!-- النافذة المنبثقة للملاحظات -->
+<div class="custom-popup-overlay" id="noteModal">
+    <div class="popup-window-content">
+        <h3><i class="fa-regular fa-note-sticky" style="color: var(--primary-color);"></i> إضافة ملاحظة للطالب</h3>
+        <p id="modal-student-name" style="color: var(--primary-color); font-weight: bold; margin-top: 5px;"></p>
+
+        <div style="margin-top: 15px;">
+            <textarea id="student-note-textarea" placeholder="اكتب الملاحظة الخاصة بالطالب هنا..."></textarea>
+        </div>
+
+        <div class="popup-actions-flex">
+            <button type="button" onclick="saveStudentNote()">حفظ</button>
+            <button type="button" onclick="closeNoteModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        let activeStudentForNote = null;
+
+      
+
+ 
+
+        // إظهار الجدول
+        function showMockTable() {
+            document.getElementById('attendance-section').style.display = 'block';
+        }
+
+        // فلترة بالاسم والرقم بداخل الجدول مباشرة
+        function filterStudentsTable() {
+            const query = document.getElementById('search-student').value.toLowerCase();
+            const rows = document.querySelectorAll('#students-table-body tr');
+
+            rows.forEach(row => {
+                const name = (row.getAttribute('data-name') || '').toLowerCase();
+                const phone = row.getAttribute('data-phone') || '';
+
+                if (name.includes(query) || phone.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+   
+
+        // إدارة الملاحظات
+        function openNoteModal(studentId, studentName) {
+            activeStudentForNote = studentId;
+            document.getElementById('modal-student-name').innerText = studentName;
+
+            const existingNote = document.getElementById(`note-input-${studentId}`).value;
+            document.getElementById('student-note-textarea').value = existingNote;
+
+            document.getElementById('noteModal').style.display = 'flex';
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').style.display = 'none';
+            activeStudentForNote = null;
+        }
+
+        function saveStudentNote() {
+            if (activeStudentForNote) {
+                const text = document.getElementById('student-note-textarea').value.trim();
+                const hiddenInput = document.getElementById(`note-input-${activeStudentForNote}`);
+                const noteBtn = document.getElementById(`note-btn-${activeStudentForNote}`);
+                const noteBtnText = document.getElementById(`note-text-btn-${activeStudentForNote}`);
+
+                hiddenInput.value = text;
+
+                if (text !== "") {
+                    noteBtn.classList.add('has-note');
+                    noteBtnText.innerText = "تمت الملاحظة";
+                } else {
+                    noteBtn.classList.remove('has-note');
+                    noteBtnText.innerText = "ملاحظة";
+                }
+            }
+            closeNoteModal();
+        }
+    </script>

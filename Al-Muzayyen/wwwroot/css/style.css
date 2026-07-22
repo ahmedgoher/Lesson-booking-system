@@ -59,6 +59,7 @@ body {
     background-color: var(--bg-main);
     color: var(--text-color);
     line-height: 1.7;
+    padding-top: 50px;
 }
 
 a {
@@ -80,14 +81,7 @@ ul {
 /* ==========================================
    2. الهيدر (Header)
    ========================================== */
-header {
-    background-color: var(--card-bg);
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: var(--shadow-sm);
-}
+
 
 nav {
     display: flex;
@@ -1278,8 +1272,6 @@ footer {
     .whatsapp-text .title {
         font-size: 14px;
     }
-
-
 }
 
 @media (max-width: 370px) {

@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Bibliography;
 
-
-    [Authorize(AuthenticationSchemes = "AdminAuth")]
+[Authorize(AuthenticationSchemes = "AdminAuth")]
     public class AdminController : Controller
     {
         private readonly IGenericService<Class> _classService;
@@ -786,7 +786,30 @@ using ClosedXML.Excel;
                 // يمكنك معالجة الخطأ أو تسجيله هنا (Logging)
                 return RedirectToAction(nameof(Index));
             }
-        }
 
     }
+
+
+
+
+
+
+
+
+
+    //===================================================================================================
+    public IActionResult FetchStudents() { 
+        return View(); 
+    }
+
+
+
+
+
+
+
+
+
+
+}
 
