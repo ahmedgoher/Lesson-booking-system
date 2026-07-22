@@ -6,9 +6,9 @@ namespace Al_Muzayyen.Services
 {
     public interface IBookingService
     {
-        Task<IEnumerable<Booking>> GetAllBookingsAsync();
-        Task<Booking?> GetBookingByIdAsync(int id);
-        Task<bool> CreateBookingAsync(Booking booking);
+        Task<IEnumerable<Student>> GetAllBookingsAsync();
+        Task<Student?> GetBookingByIdAsync(int id);
+        Task<bool> CreateBookingAsync(Student booking);
         Task<bool> DeleteBookingAsync(int id);
     }
 }

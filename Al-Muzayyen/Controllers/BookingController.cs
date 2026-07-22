@@ -12,14 +12,19 @@ namespace Al_Muzayyen.Controllers
         private readonly IClassService _classService;
         private readonly IPlaceService _placeService;
         private readonly ISlotService _slotService;
+        private readonly IGenericService<Admin> _admin;
+
+
 
         // حقن السيرفسز المنفصلة
         public BookingController(
+            IGenericService<Admin> admin,
             IBookingService bookingService,
             IClassService classService,
             IPlaceService placeService,
             ISlotService slotService)
         {
+            _admin = admin;
             _bookingService = bookingService;
             _classService = classService;
             _placeService = placeService;
@@ -29,13 +34,29 @@ namespace Al_Muzayyen.Controllers
         [HttpGet]
         public async Task<IActionResult> booking()
         {
+            var phone = _admin.GetAll();
+            string phonenumber;
+            if (phone.Count == 0)
+            {
+                ViewBag.number = "";
+
+            }
+            else 
+            {
+                phonenumber = phone.FirstOrDefault().PhoneNumber;
+                ViewBag.number = phonenumber;
+
+            }
+
             ViewBag.Classes = await _classService.GetAllClassesAsync();
             ViewBag.Places = await _placeService.GetAllPlacesAsync();
+
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> booking(Booking booking)
+        public async Task<IActionResult> booking(Student booking)
         {
+
             // شرط إضافي: لو الطالب لم يختار الصف أو المكان أو المجموعة (قيمتهم بـ 0)
             if (!ModelState.IsValid || booking.ClassId == 0 || booking.PlaceId == 0 || booking.SlotId == 0)
             {
@@ -58,7 +79,7 @@ namespace Al_Muzayyen.Controllers
                 ViewBag.Places = await _placeService.GetAllPlacesAsync();
 
                 // 3. نرجع الصفحة مباشرة (View) بدل الـ Redirect عشان الـ ViewBag يفضل عايش ويظهر
-                return View(new Booking()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
+                return View(new Student()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
             }
 
             ViewBag.ErrorMessage = "حدث خطأ أثناء حفظ الحجز.";

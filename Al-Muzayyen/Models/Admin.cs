@@ -18,6 +18,11 @@ namespace Al_Muzayyen.Models
 
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم مصري")]
         [Display(Name = "رقم التواصل")]
-        public string? PhoneNumber { get; set; } // تعديل الحرف الأول لكابيتال لتناسق الكود
+        public string? PhoneNumber { get; set; }
+
+        // --- الربط مع حساب الـ Identity ---
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
     }
 }

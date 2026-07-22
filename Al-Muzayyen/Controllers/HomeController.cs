@@ -27,6 +27,7 @@ namespace Al_Muzayyen.Controllers
         public IActionResult Index()
         {
 
+            var LINLIMGAE = _adminService.GetAll().FirstOrDefault()?.ImageUrl;
             var model = new HomeVM
             {
 

@@ -13,21 +13,28 @@ using DocumentFormat.OpenXml.Bibliography;
     {
         private readonly IGenericService<Class> _classService;
         private readonly IGenericService<Admin> _AdminService;
-        private readonly IGenericService<Booking> _bookingService;
+        private readonly IGenericService<Student> _bookingService;
         private readonly IGenericService<Available_slot> _availableSlotService;
-        private readonly IGenericService<Place> _placeServiceGeneric;
+        private readonly IGenericService<Slot_time> _slotTimeService;
+    private readonly IGenericService<Place> _placeServiceGeneric;
         private readonly IGenericService<Video> _videoService;
         private readonly IPlaceService _placeService;
         private readonly IBookingRepo bookingRepo;
         private readonly IGroupRepo groupRepo;
         private readonly IConfiguration _configuration;
 
-        public AdminController
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-            (
+    private readonly CloudinaryService _cloudinaryService;
+
+    public AdminController
+
+            (IGenericService<Slot_time> slotTimeService,
+
+        CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
             IGenericService<Admin> adminService,
             IGenericService<Class> classService,
-            IGenericService<Booking> bookingService,
+            IGenericService<Student> bookingService,
             IPlaceService placeService,
             IGenericService<Video> videoService,
             IGenericService<Place> genericServiceGeneric,
@@ -36,7 +43,10 @@ using DocumentFormat.OpenXml.Bibliography;
             IGroupRepo groupRepo,
             IConfiguration configuration)
         {
-            _AdminService= adminService;
+        _slotTimeService = slotTimeService;
+        _cloudinaryService = cloudinaryService;
+        _webHostEnvironment = webHostEnvironment;
+        _AdminService = adminService;
             _classService = classService;
             _bookingService = bookingService;
             _placeService = placeService;
@@ -57,8 +67,6 @@ using DocumentFormat.OpenXml.Bibliography;
                 Admin = _AdminService.GetAll().FirstOrDefault()
 
             };
-
-           
             return View(model);
         }
 
@@ -69,12 +77,12 @@ using DocumentFormat.OpenXml.Bibliography;
 
             if (placeId.HasValue)
             {
-                query = query.Where(s => s.PlaceId == placeId.Value);
+                query = query.Where(s => s.Id == placeId.Value);
             }
 
             if (classId.HasValue)
             {
-                query = query.Where(s => s.ClassId == classId.Value);
+                query = query.Where(s => s.Id == classId.Value);
             }
 
             if (groupId.HasValue)
@@ -100,10 +108,10 @@ using DocumentFormat.OpenXml.Bibliography;
         var query = stds.AsQueryable();
 
         if (placeId.HasValue)
-            query = query.Where(s => s.PlaceId == placeId.Value);
+            query = query.Where(s => s.Id == placeId.Value);
 
         if (classId.HasValue)
-            query = query.Where(s => s.ClassId == classId.Value);
+            query = query.Where(s => s.Id == classId.Value);
 
         if (groupId.HasValue)
             query = query.Where(s => s.SlotId == groupId.Value);
@@ -135,8 +143,8 @@ using DocumentFormat.OpenXml.Bibliography;
         int row = 2;
         foreach (var std in students)
         {
-            worksheet.Cell(row, 1).Value = std.STD_Name;
-            worksheet.Cell(row, 2).Value = std.Student_phone;
+            worksheet.Cell(row, 1).Value = std.Name;
+            worksheet.Cell(row, 2).Value = std.StdPhone;
             worksheet.Cell(row, 3).Value = std.Class?.Name;
             worksheet.Cell(row, 4).Value = std.Place?.Name;
             worksheet.Cell(row, 5).Value = std.AvailableSlot?.Group_Name;
@@ -266,7 +274,7 @@ using DocumentFormat.OpenXml.Bibliography;
                 ClassId = dto.ClassId,
                 Number_Of_day = dto.Number_Of_day,
                 State = "Active",
-                SlotTimes = dto.SlotTimes?.Select(s => new Slot_time
+                SlotTimes = dto.SlotTimes.Select(s => new Slot_time
                 {
                     Day = s.Day,
                     Time = DateTime.Parse(s.Time)
@@ -275,7 +283,6 @@ using DocumentFormat.OpenXml.Bibliography;
                 _availableSlotService.Add(group);
                 await _availableSlotService.SaveChangesAsync();
                 return Json(new { success = true, message = "تم إضافة المجموعة بنجاح!" });
-            
         }
         [HttpGet]
         public async Task<IActionResult> GetGroupById(int id)
@@ -357,20 +364,56 @@ using DocumentFormat.OpenXml.Bibliography;
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteClass(int id)
+    public async Task<IActionResult> DeleteClass(int id)
+    {
+        try
         {
             var item = await _classService.GetByIdAsync(id);
 
-            if (item != null)
+            if (item == null)
             {
-                _classService.Delete(item);
-                _classService.SaveChanges();
+                TempData["DeleteClassError"] = "الصف غير موجود.";
+                return RedirectToAction(nameof(Classes));
+            }
+            var slots = _availableSlotService.GetAll()
+                                             .Where(x => x.ClassId == id)
+                                             .ToList();
+
+            foreach (var slot in slots)
+            {
+                var times = _slotTimeService.GetAll()
+                                            .Where(x => x.SlotID == slot.Id)
+                                            .ToList();
+
+                foreach (var time in times)
+                {
+                    _slotTimeService.Delete(time);
+                }
+
+                _slotTimeService.SaveChanges();
+
+                _availableSlotService.Delete(slot);
             }
 
-            return RedirectToAction(nameof(Classes));
+            _availableSlotService.SaveChanges();
+
+            _classService.Delete(item);
+            _classService.SaveChanges();
+
+            TempData["DeleteClassSuccess"] = "تم حذف الصف بنجاح.";
+        }
+        catch
+        {
+            TempData["DeleteClassError"] = "تعذر حذف الصف، لأنه مرتبط ببيانات أخرى.";
         }
 
-        [HttpGet]
+        return RedirectToAction(nameof(Classes));
+    }
+
+
+
+
+    [HttpGet]
         public async Task<IActionResult> Edit(int id, int? Number_Of_day)
         {
             var groups = await groupRepo.GetAllGroupsWithRelations();
@@ -647,93 +690,164 @@ using DocumentFormat.OpenXml.Bibliography;
 
 
 
-        [HttpPost]
-        [ValidateAntiForgeryToken] // لحماية الفورم من هجمات CSRF
-        public IActionResult UpdateProfileImage(string imageUrl)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfileImage(IFormFile imageFile)
+    {
+        // 1. التأكد من أن المستخدم اختار صورة بالفعل
+        if (imageFile == null || imageFile.Length == 0)
         {
-            if (string.IsNullOrEmpty(imageUrl))
-            {
-                ModelState.AddModelError("", "رابط الصورة لا يمكن أن يكون فارغاً.");
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                var admin = _AdminService.GetAll().FirstOrDefault();
-                admin.ImageUrl = imageUrl; ;
-                
-                // 1. هنا تقوم بكتابة كود تحديث رابط الصورة في قاعدة البيانات للمستخدم الحالي
-                _AdminService.Update(admin);
-                _AdminService.SaveChanges();
-
-                // 2. بعد الحفظ بنجاح، توجيه المستخدم لصفحة الـ Dashboard مرة أخرى
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                // يمكنك تسجيل الخطأ هنا (Logging)
-                return RedirectToAction(nameof(Index));
-            }
+            ModelState.AddModelError("", "برجاء اختيار ملف صورة صحيح.");
+            return RedirectToAction(nameof(Index));
         }
+
+        try
+        {
+            string imageUrl = "";
+
+            // 2. الرفع باستخدام الـ Service الخاصة بك تماماً مثل الـ Speciality
+            imageUrl = await _cloudinaryService.UploadImageAsync(imageFile);
+
+            // 3. جلب الأدمن الحالي من قاعدة البيانات
+            var admin = _AdminService.GetAll().FirstOrDefault();
+
+            if (admin == null)
+            {
+                // إذا كان الأدمن غير موجود، نقوم بإنشاء سجل جديد وحفظ رابط الصورة فيه
+                var newAdmin = new Admin
+                {
+                    ImageUrl = imageUrl,
+                    Name = "الأستاذ عبد الفتاح المزين", // قيم افتراضية حتى يقوم بتعديلها لاحقاً
+                    PhoneNumber = "غير محدد"
+                };
+                _AdminService.Add(newAdmin);
+            }
+            else
+            {
+                // إذا كان موجوداً، نقوم بتحديث رابط الصورة فقط
+                admin.ImageUrl = imageUrl;
+            }
+
+            // 4. حفظ التغييرات في قاعدة البيانات
+            _AdminService.SaveChanges();
+
+            return RedirectToAction(nameof(Index));
+        }
+        catch (Exception ex)
+        {
+            // معالجة الخطأ في حالة حدوث مشكلة أثناء الرفع
+            return RedirectToAction(nameof(Index));
+        }
+    }
+    //public IActionResult UpdateProfileData(Admin updatedModel)
+    //    {
+    //        // نقوم بفحص الحقول الأساسية فقط المطلوبة في الـ Popup
+    //        if (string.IsNullOrEmpty(updatedModel.Name) || string.IsNullOrEmpty(updatedModel.PhoneNumber))
+    //        {
+    //            ModelState.AddModelError("", "برجاء ملء جميع الحقول المطلوبة.");
+    //            return RedirectToAction(nameof(Index));
+    //        }
+
+    //        try
+    //        {
+    //            // جلب الأدمن الحالي من قاعدة البيانات
+    //            var admin = _AdminService.GetAll().FirstOrDefault();
+
+    //            if (admin == null)
+    //            {
+    //                // 1. في حالة الـ null: نقوم بإنشاء سجل جديد تماماً
+    //                var newAdmin = new Admin
+    //                {
+    //                    Name = updatedModel.Name,
+    //                    PhoneNumber = updatedModel.PhoneNumber
+    //                    // يمكنك إضافة كلمة مرور افتراضية هنا لو أحببت:
+    //                    // Password = "..." 
+    //                };
+
+    //                // تأكد من أن الـ Service بتاعتك تدعم دالة الإضافة مثل Add أو Insert
+    //                _AdminService.Add(newAdmin);
+    //            }
+    //            else
+    //            {
+    //                // 2. في حالة وجود بيانات: نقوم بالتحديث الطبيعي
+    //                admin.Name = updatedModel.Name;
+    //                admin.PhoneNumber = updatedModel.PhoneNumber;
+    //                // admin.Password = updatedModel.Password;
+    //            }
+
+    //            // حفظ التغييرات في قاعدة البيانات (سواء كانت إضافة أو تحديث)
+    //            _AdminService.SaveChanges();
+
+    //            // إعادة التوجيه لصفحة الـ Dashboard لرؤية البيانات الجديدة
+    //            return RedirectToAction(nameof(Index));
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            // يمكنك معالجة الخطأ أو تسجيله هنا (Logging)
+    //            return RedirectToAction(nameof(Index));
+    //        }
+    //    }
+
+
 
 
     private string GetMediaUrl(string url)
-{
-    try
     {
-        if (string.IsNullOrWhiteSpace(url))
-            return "";
-
-        // ==========================
-        // Google Drive
-        // ==========================
-        if (url.Contains("drive.google.com/file/d/"))
+        try
         {
-            var id = url.Split("/file/d/")[1].Split('/')[0];
+            if (string.IsNullOrWhiteSpace(url))
+                return "";
 
-            // لو فيديو
-            return $"https://drive.google.com/file/d/{id}/preview";
+            // ==========================
+            // Google Drive
+            // ==========================
+            if (url.Contains("drive.google.com/file/d/"))
+            {
+                var id = url.Split("/file/d/")[1].Split('/')[0];
 
-            // لو صورة استخدم السطر ده بدلاً من اللي فوق
-            // return $"https://drive.google.com/uc?export=view&id={id}";
+                // لو فيديو
+                return $"https://drive.google.com/file/d/{id}/preview";
+
+                // لو صورة استخدم السطر ده بدلاً من اللي فوق
+                // return $"https://drive.google.com/uc?export=view&id={id}";
+            }
+
+            // ==========================
+            // YouTube (youtu.be)
+            // ==========================
+            if (url.Contains("youtu.be/"))
+            {
+                var id = url.Split("youtu.be/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube (watch?v=)
+            // ==========================
+            if (url.Contains("youtube.com/watch?v="))
+            {
+                var id = url.Split("watch?v=")[1].Split('&')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // ==========================
+            // YouTube Shorts
+            // ==========================
+            if (url.Contains("youtube.com/shorts/"))
+            {
+                var id = url.Split("shorts/")[1].Split('?')[0];
+                return $"https://www.youtube.com/embed/{id}";
+            }
+
+            // أي رابط آخر
+            return url;
         }
-
-        // ==========================
-        // YouTube (youtu.be)
-        // ==========================
-        if (url.Contains("youtu.be/"))
+        catch (Exception)
         {
-            var id = url.Split("youtu.be/")[1].Split('?')[0];
-            return $"https://www.youtube.com/embed/{id}";
+            // لو حصل أي خطأ، رجع الرابط كما هو
+            return url;
         }
-
-        // ==========================
-        // YouTube (watch?v=)
-        // ==========================
-        if (url.Contains("youtube.com/watch?v="))
-        {
-            var id = url.Split("watch?v=")[1].Split('&')[0];
-            return $"https://www.youtube.com/embed/{id}";
-        }
-
-        // ==========================
-        // YouTube Shorts
-        // ==========================
-        if (url.Contains("youtube.com/shorts/"))
-        {
-            var id = url.Split("shorts/")[1].Split('?')[0];
-            return $"https://www.youtube.com/embed/{id}";
-        }
-
-        // أي رابط آخر
-        return url;
     }
-    catch (Exception)
-    {
-        // لو حصل أي خطأ، رجع الرابط كما هو
-        return url;
-    }
-}
 
         // 2. الأكشن الخاص بتعديل البيانات الأساسية (الاسم، الهاتف، الباسورد)
         [HttpPost]
