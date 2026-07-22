@@ -919,6 +919,11 @@ using DocumentFormat.OpenXml.Bibliography;
 
 
 
+    public IActionResult Exams()
+    {
+        return View();
+    }
+
 
 
 
