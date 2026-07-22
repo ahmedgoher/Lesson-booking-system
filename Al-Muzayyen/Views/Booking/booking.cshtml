@@ -1,5 +1,4 @@
-﻿@model Al_Muzayyen.Models.Booking
-
+﻿@model Al_Muzayyen.Models.Student
 @{
     Layout = "~/Views/Shared/_layouthome.cshtml";
     ViewData["Title"] = "Booking Page";
@@ -110,20 +109,20 @@
 
             <div class="form-group">
                 <label>اسم الطالب بالكامل</label>
-                <input type="text" name="STD_Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.STD_Name">
-                <span asp-validation-for="STD_Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                <input type="text" name="Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.Name">
+                <span asp-validation-for="Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
 
             <div class="form-group">
                 <label>رقم الهاتف</label>
-                <input type="tel" name="Student_phone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.Student_phone">
-                <span asp-validation-for="Student_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                <input type="tel" name="StdPhone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.StdPhone">
+                <span asp-validation-for="StdPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
 
             <div class="form-group">
                 <label>رقم ولي الأمر</label>
-                <input type="tel" name="Parent_phone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.Parent_phone">
-                <span asp-validation-for="Parent_phone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
+                <input type="tel" name="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.ParentPhone">
+                <span asp-validation-for="ParentPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
             </div>
 
             <div class="form-group">
@@ -166,7 +165,7 @@
 
             <div class="form-group">
                 <label>ملاحظات (اختياري)</label>
-                <textarea name="Problem_text" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Problem_text</textarea>
+                <textarea name="Notes" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Notes</textarea>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%;">تأكيد الحجز</button>

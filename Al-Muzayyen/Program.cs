@@ -2,6 +2,7 @@ using Al_Muzayyen.Configurations;
 using Al_Muzayyen.Models;
 using Al_Muzayyen.Repositories;
 using Al_Muzayyen.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 //using Al_Muzayyen.Configurations;
 
@@ -65,6 +66,19 @@ builder.Configuration.GetSection("CloudinarySettings"));
             // تسجيل الـ DbContext داخل خدمات المشروع
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(connectionString));
+
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+            })
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

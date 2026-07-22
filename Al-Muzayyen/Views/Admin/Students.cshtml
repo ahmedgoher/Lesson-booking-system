@@ -1,4 +1,4 @@
-﻿@model List<Booking>
+﻿@model List<Student>
 @{
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Students";
@@ -349,8 +349,8 @@
                 {
                     <tr>
 
-                        <th>@std.STD_Name</th>
-                        <th>@std.Student_phone</th>
+                        <th>@std.Name</th>
+                        <th>@std.StdPhone</th>
                         <th>@std.Class?.Name</th>
                         <th>@std.Place?.Name</th>
                         <th>@std.AvailableSlot?.Group_Name</th>
@@ -358,14 +358,14 @@
                         <th>
                             <button class="action-icon-btn"
                                     onclick="show(
-                                '@std.STD_Name',
-                                '@std.Student_phone',
+                                '@std.Name',
+                                '@std.StdPhone',
                                 '@std.Class?.Name',
                                 '@std.AvailableSlot?.Place?.Name',
                                 '@std.AvailableSlot?.Group_Name',
                                 '@std.CreatedAt.ToString("hh:mm tt")',
-                                '@std.Parent_phone',
-                                '@std.Problem_text'
+                                '@std.ParentPhone',
+                                '@std.Notes'
                                 )">
 
                                 <i class="fas fa-eye"></i>

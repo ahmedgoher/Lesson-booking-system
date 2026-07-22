@@ -13,7 +13,7 @@ using ClosedXML.Excel;
     {
         private readonly IGenericService<Class> _classService;
         private readonly IGenericService<Admin> _AdminService;
-        private readonly IGenericService<Booking> _bookingService;
+        private readonly IGenericService<Student> _bookingService;
         private readonly IGenericService<Available_slot> _availableSlotService;
         private readonly IGenericService<Slot_time> _slotTimeService;
     private readonly IGenericService<Place> _placeServiceGeneric;
@@ -34,7 +34,7 @@ using ClosedXML.Excel;
         CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
             IGenericService<Admin> adminService,
             IGenericService<Class> classService,
-            IGenericService<Booking> bookingService,
+            IGenericService<Student> bookingService,
             IPlaceService placeService,
             IGenericService<Video> videoService,
             IGenericService<Place> genericServiceGeneric,
@@ -77,12 +77,12 @@ using ClosedXML.Excel;
 
             if (placeId.HasValue)
             {
-                query = query.Where(s => s.PlaceId == placeId.Value);
+                query = query.Where(s => s.Id == placeId.Value);
             }
 
             if (classId.HasValue)
             {
-                query = query.Where(s => s.ClassId == classId.Value);
+                query = query.Where(s => s.Id == classId.Value);
             }
 
             if (groupId.HasValue)
@@ -108,10 +108,10 @@ using ClosedXML.Excel;
         var query = stds.AsQueryable();
 
         if (placeId.HasValue)
-            query = query.Where(s => s.PlaceId == placeId.Value);
+            query = query.Where(s => s.Id == placeId.Value);
 
         if (classId.HasValue)
-            query = query.Where(s => s.ClassId == classId.Value);
+            query = query.Where(s => s.Id == classId.Value);
 
         if (groupId.HasValue)
             query = query.Where(s => s.SlotId == groupId.Value);
@@ -143,8 +143,8 @@ using ClosedXML.Excel;
         int row = 2;
         foreach (var std in students)
         {
-            worksheet.Cell(row, 1).Value = std.STD_Name;
-            worksheet.Cell(row, 2).Value = std.Student_phone;
+            worksheet.Cell(row, 1).Value = std.Name;
+            worksheet.Cell(row, 2).Value = std.StdPhone;
             worksheet.Cell(row, 3).Value = std.Class?.Name;
             worksheet.Cell(row, 4).Value = std.Place?.Name;
             worksheet.Cell(row, 5).Value = std.AvailableSlot?.Group_Name;

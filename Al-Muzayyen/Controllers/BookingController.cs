@@ -54,7 +54,7 @@ namespace Al_Muzayyen.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> booking(Booking booking)
+        public async Task<IActionResult> booking(Student booking)
         {
 
             // شرط إضافي: لو الطالب لم يختار الصف أو المكان أو المجموعة (قيمتهم بـ 0)
@@ -79,7 +79,7 @@ namespace Al_Muzayyen.Controllers
                 ViewBag.Places = await _placeService.GetAllPlacesAsync();
 
                 // 3. نرجع الصفحة مباشرة (View) بدل الـ Redirect عشان الـ ViewBag يفضل عايش ويظهر
-                return View(new Booking()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
+                return View(new Student()); // بعتنا كائن جديد فاضي عشان نفضي الفورم للطالب بعد النجاح
             }
 
             ViewBag.ErrorMessage = "حدث خطأ أثناء حفظ الحجز.";

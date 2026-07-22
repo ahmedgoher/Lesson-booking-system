@@ -2,8 +2,8 @@
 
 namespace Al_Muzayyen.Repositories
 {
-    public interface IBookingRepo:IGenericRepository<Booking>
+    public interface IBookingRepo:IGenericRepository<Student>
     {
-        public  Task<List<Booking>> GetEnteredStudents();
+        public  Task<List<Student>> GetEnteredStudents();
     }
 }
