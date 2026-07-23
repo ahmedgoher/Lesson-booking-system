@@ -14,8 +14,6 @@ namespace Al_Muzayyen.Controllers
         private readonly ISlotService _slotService;
         private readonly IGenericService<Admin> _admin;
 
-
-
         // حقن السيرفسز المنفصلة
         public BookingController(
             IGenericService<Admin> admin,
@@ -34,58 +32,48 @@ namespace Al_Muzayyen.Controllers
         [HttpGet]
         public async Task<IActionResult> booking()
         {
-            var phone = _admin.GetAll();
-            string phonenumber;
-            if (phone.Count == 0)
-            {
-                ViewBag.number = "";
-
-            }
-            else 
-            {
-                phonenumber = phone.FirstOrDefault().PhoneNumber;
-                ViewBag.number = phonenumber;
-
-            }
-
-            ViewBag.Classes = await _classService.GetAllClassesAsync();
-            ViewBag.Places = await _placeService.GetAllPlacesAsync();
-
+            // تحميل القوائم ورقم الواتساب
+            await LoadViewDataAsync();
             return View();
         }
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> booking(Student booking)
         {
-            // 1. التحقق من صحة البيانات ومن إدخال كلمة المرور واختيار الصف والمكان والمجموعة
-            if (!ModelState.IsValid
-                || string.IsNullOrWhiteSpace(booking.Password)
-                || booking.ClassId == 0
-                || booking.PlaceId == 0
-                || booking.SlotId == 0)
+            // 🟢 1. إعادة تحميل القوائم ورقم الواتساب حتى لا تفرغ عند وجود خطأ
+            await LoadViewDataAsync();
+
+            // 🟢 2. التحقق من القوائم المنسدلة
+            if (booking.ClassId == 0)
+                ModelState.AddModelError("ClassId", "يرجى اختيار الصف الدراسي");
+
+            if (booking.PlaceId == 0)
+                ModelState.AddModelError("PlaceId", "يرجى اختيار مكان الدرس");
+
+            if (booking.SlotId == 0)
+                ModelState.AddModelError("SlotId", "يرجى اختيار المجموعة");
+
+            // 🟢 3. إذا كان نموذج البيانات يحتوي على أخطاء من البداية
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(booking.Password))
             {
                 ViewBag.ErrorMessage = "برجاء استكمال جميع البيانات وإدخال كلمة المرور واختيار الصف، المكان، والمجموعة بشكل صحيح.";
-
-                ViewBag.Classes = await _classService.GetAllClassesAsync();
-                ViewBag.Places = await _placeService.GetAllPlacesAsync();
                 return View(booking);
             }
 
-            // 2. إنشاء الحساب وتخزين بيانات الطالب في الداتا بيز بواسطة السيرفس
+            // 🟢 4. محاولة إنشاء الحساب في السيرفس
             var result = await _bookingService.CreateBookingAsync(booking);
 
             if (result)
             {
-                ViewBag.SuccessMessage = " تم إنشاء حسابك وتسجيل بيانات الحجز بنجاح!";
-
-                ViewBag.Classes = await _classService.GetAllClassesAsync();
-                ViewBag.Places = await _placeService.GetAllPlacesAsync();
-
-                return View(new Student()); // إعادة كائن جديد فارغ لتفريغ النماذج
+                ViewBag.SuccessMessage = "تم إنشاء حسابك وتسجيل بيانات الحجز بنجاح!";
+                return View(new Student()); // تفريغ النموذج بعد النجاح
             }
 
+            // 🔴 5. إذا فشل الحفظ (غالباً بسبب تكرار رقم الهاتف)
+            ModelState.AddModelError("StdPhone", "رقم الهاتف هذا مسجل بالفعل لطالب آخر!");
             ViewBag.ErrorMessage = "حدث خطأ أثناء تسجيل الحساب، قد يكون رقم الهاتف مسجلاً بالفعل.";
-            ViewBag.Classes = await _classService.GetAllClassesAsync();
-            ViewBag.Places = await _placeService.GetAllPlacesAsync();
+
             return View(booking);
         }
 
@@ -98,10 +86,20 @@ namespace Al_Muzayyen.Controllers
                 id = s.Id,
                 name = s.SlotTimes != null && s.SlotTimes.Any()
                     ? $"{s.Group_Name} ( " + string.Join(" - ", s.SlotTimes.Select(t => $"{t.Day} الساعة {t.Time.ToString("hh:mm tt")}")) + " )"
-                    : s.Group_Name // لو المواعيد مجتش لأي سبب يعرض اسم المجموعة فقط بدون أقواس فاضية
+                    : s.Group_Name
             }).ToList();
 
             return Json(result);
+        }
+
+        // 🛠️ دالة مساعدة لتجهيز بيانات الـ View بدون تكرار الكود
+        private async Task LoadViewDataAsync()
+        {
+            var admins = _admin.GetAll();
+            ViewBag.number = admins.FirstOrDefault()?.PhoneNumber ?? "";
+
+            ViewBag.Classes = await _classService.GetAllClassesAsync();
+            ViewBag.Places = await _placeService.GetAllPlacesAsync();
         }
     }
 }

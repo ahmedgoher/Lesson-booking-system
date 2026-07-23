@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Al_Muzayyen.Models
 {
+    [Index(nameof(StdPhone), IsUnique = true, Name = "Index_Unique_StdPhone")]
     public class Student
     {
         [Key]
@@ -21,14 +23,17 @@ namespace Al_Muzayyen.Models
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم")]
         [Display(Name = "رقم هاتف الطالب")]
         public string StdPhone { get; set; }
+
         [Required(ErrorMessage = "رقم هاتف ولي الأمر مطلوب")]
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم")]
         [Display(Name = "رقم هاتف ولي الأمر")]
         public string ParentPhone { get; set; }
+
         [Required(ErrorMessage = "برجاء إدخال كلمة المرور")]
         [MinLength(6, ErrorMessage = "كلمة المرور يجب ألا تقل عن 6 أحرف/أرقام")]
-        [DataType(DataType.Password)]
+        [DataType(System.ComponentModel.DataAnnotations.DataType.Password)]
         public string Password { get; set; }
+
         // توكين فريد لرابط ولي الأمر عبر الواتساب بدون تسجيل دخول
         public string ParentAccessToken { get; set; } = Guid.NewGuid().ToString("N");
 
@@ -45,19 +50,15 @@ namespace Al_Muzayyen.Models
 
         // --- العلاقات ---
         [ForeignKey("Class")]
-
         [Required(ErrorMessage = "يرجى اختيار الصف الدراسي")]
-
         [Range(1, int.MaxValue, ErrorMessage = "يرجى اختيار الصف الدراسي من القائمة")]
-
         public int ClassId { get; set; }
+        public Class? Class { get; set; }
 
-        public Class? Class { get; set; } // إضافة ? لمنع مشاكل الـ Validation
         [ForeignKey("Place")]
-
         public int PlaceId { get; set; }
+        public Place? Place { get; set; }
 
-        public Place? Place { get; set; } // تعديل الاسم ليبدأ بحرف كابيتال
         [Required(ErrorMessage = "يرجى اختيار المجموعة")]
         [ForeignKey("AvailableSlot")]
         public int SlotId { get; set; }
