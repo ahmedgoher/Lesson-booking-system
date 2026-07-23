@@ -16,6 +16,7 @@ namespace Al_Muzayyen.Models
         [MaxLength(50, ErrorMessage = "لا يمكن تجاوز 50 حرف للاسم")]
         [MinLength(3, ErrorMessage = "لا يمكن للاسم أن يقل عن 3 حروف")]
         [Display(Name = "اسم الطالب")]
+        [UniqueName]
         public string Name { get; set; }
 
         [Required(ErrorMessage = "رقم هاتف الطالب مطلوب")]
