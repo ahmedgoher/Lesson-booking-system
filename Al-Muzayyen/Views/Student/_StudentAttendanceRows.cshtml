@@ -1,0 +1,63 @@
+﻿@using Al_Muzayyen.Viewmodel
+@model List<StudentAttendanceVM>
+
+@if (Model != null && Model.Any())
+{
+    foreach (var item in Model)
+    {
+        var isAbsent = item.IsPresent == Al_Muzayyen.Models.AttendanceStatus.Absent;
+        var absentClass = isAbsent ? "was-absent-last-time" : "";
+
+        <tr class="@absentClass">
+            <td>@item.Date.ToString("yyyy-MM-dd")</td>
+            <td>
+                @switch (item.IsPresent)
+                {
+                    case Al_Muzayyen.Models.AttendanceStatus.Present:
+                        <span style="color: green; font-weight: bold;">حاضر</span>
+                        break;
+                    case Al_Muzayyen.Models.AttendanceStatus.Absent:
+                        <span style="color: red; font-weight: bold;">غائب</span>
+                        break;
+                    case Al_Muzayyen.Models.AttendanceStatus.Excused:
+                        <span>غائب <span class="absent-badge-inline">بعذر</span></span>
+                        break;
+                }
+            </td>
+            <td>
+                @switch (item.Homework)
+                {
+                    case Al_Muzayyen.Models.HomeworkStatus.Done:
+                        <span>سلم الواجب</span>
+                        break;
+                    case Al_Muzayyen.Models.HomeworkStatus.NotDone:
+                        <span style="color: red;">لم يسلم</span>
+                        break;
+                    case Al_Muzayyen.Models.HomeworkStatus.NoHomework:
+                        <span style="color: gray;">لا يوجد واجب</span>
+                        break;
+                }
+            </td>
+            <td>
+                @if (!string.IsNullOrEmpty(item.Notes))
+                {
+                    <button class="note-indicator-btn has-note" onclick="showNoteModal('@item.Notes')">
+                        عرض الملاحظة
+                    </button>
+                }
+                else
+                {
+                    <span style="color: #aaa;">لا توجد ملاحظات</span>
+                }
+            </td>
+        </tr>
+    }
+}
+else
+{
+    <tr>
+        <td colspan="4" style="text-align: center; color: #888; padding: 20px;">
+            لا توجد سجلات حضور أو غياب لهذا الشهر.
+        </td>
+    </tr>
+}

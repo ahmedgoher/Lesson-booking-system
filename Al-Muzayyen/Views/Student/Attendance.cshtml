@@ -1,40 +1,46 @@
-﻿@{
-    Layout = "~/Views/Shared/_StudentLayout.cshtml";
-    ViewData["Title"] = "Attendance";
-}
+﻿@using Al_Muzayyen.Viewmodel
+@model List<StudentAttendanceVM>
 
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "سجل الحضور والغياب";
+    var arabicMonths = new string[]
+        {
+            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+        };
+    var currentMonth = DateTime.Now.Month;
+    var currentYear = DateTime.Now.Year;
+ 
+}
 
 <div class="attendance-wrapper">
     <div class="section-header-block">
         <h2>سجل الحضور والغياب</h2>
     </div>
 
+    <!-- بطاقة الفلترة -->
     <div class="filter-card">
         <h3 class="filter-title"><i class="fas fa-filter"></i> تصفية السجل</h3>
         <div class="filter-grid">
             <div class="form-group">
                 <label for="attendance-month">الشهر:</label>
                 <select id="attendance-month" class="custom-select">
-                    <option value="1">يناير</option>
-                    <option value="2">فبراير</option>
-                    <option value="3">مارس</option>
-                    <option value="4">أبريل</option>
-                    <option value="5">مايو</option>
-                    <option value="6">يونيو</option>
-                    <option value="7">يوليو</option>
-                    <option value="8">أغسطس</option>
-                    <option value="9">سبتمبر</option>
-                    <option value="10">أكتوبر</option>
-                    <option value="11">نوفمبر</option>
-                    <option value="12">ديسمبر</option>
+                    @for (int m = 0; m < arabicMonths.Length; m++)
+                    {
+                        int monthNumber = m + 1;
+                       <option value="@monthNumber" selected="@(monthNumber == currentMonth)">
+                           @arabicMonths[m]
+                       </option>
+                    }
                 </select>
             </div>
             <div class="form-group">
                 <label for="attendance-year">السنة:</label>
                 <select id="attendance-year" class="custom-select">
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
+                    <option value="2026" selected="@(currentYear == 2026)">2026</option>
+                    <option value="2025" selected="@(currentYear == 2025)">2025</option>
+                    <option value="2024" selected="@(currentYear == 2024)">2024</option>
                 </select>
             </div>
             <div class="form-group">
@@ -43,45 +49,62 @@
                     <option value="all">الكل</option>
                     <option value="present">حاضر</option>
                     <option value="absent">غائب</option>
+                    <option value="excused">معذور</option>
                 </select>
             </div>
         </div>
-        <button class="action-button fetch-btn">عرض السجل</button>
+        <button type="button" class="action-button fetch-btn" onclick="fetchStudentAttendance()">عرض السجل</button>
     </div>
 
+    <!-- جدول السجلات -->
     <div class="table-responsive-container">
         <table class="data-display-table">
             <thead>
                 <tr>
                     <th>التاريخ</th>
-                    <th>الحالة</th>
+                    <th>حالة الحضور</th>
+                    <th>حالة الواجب</th>
                     <th>الملاحظات</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr class="was-absent-last-time">
-                    <td>2026-07-22</td>
-                    <td>غائب <span class="absent-badge-inline">بعذر</span></td>
-                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
-                </tr>
-                <tr>
-                    <td>2026-07-21</td>
-                    <td>حاضر</td>
-                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
-                </tr>
-                <tr>
-                    <td>2026-07-20</td>
-                    <td>حاضر</td>
-                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
-                </tr>
+            <tbody id="attendance-rows-container">
+                @await Html.PartialAsync("_StudentAttendanceRows", Model)
             </tbody>
         </table>
     </div>
 </div>
 
+<!-- Popup لعرض الملاحظة -->
+<div class="custom-popup-overlay" id="viewNoteModal" style="display: none;">
+    <div class="popup-window-content">
+        <h3><i class="fa-regular fa-comment-dots" style="color: var(--primary-color);"></i> ملاحظة الحصة</h3>
+        <p id="modal-note-text" style="margin-top: 15px; font-size: 1.1rem; line-height: 1.6;"></p>
+        <div class="popup-actions-flex" style="margin-top: 20px;">
+            <button type="button" onclick="closeNoteModal()">إغلاق</button>
+        </div>
+    </div>
+</div>
 
-    <script>
-        // أي سكريبتات خاصة بصفحة الحضور والغياب هنا
-        console.log("صفحة سجل الحضور والغياب جاهزة!");
-    </script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // طلب جلب البيانات بناءً على الفلاتر
+    function fetchStudentAttendance() {
+    var month = $('#attendance-month').val();
+    var year = $('#attendance-year').val();
+    var status = $('#attendance-status').val();
 
+    $.get('/Student/FilterAttendance', { month: month, year: year, status: status }, function (html) {
+    $('#attendance-rows-container').html(html);
+    });
+    }
+
+    // إظهار الملاحظة في النافذة المنبثقة
+    function showNoteModal(noteText) {
+    $('#modal-note-text').text(noteText);
+    $('#viewNoteModal').css('display', 'flex');
+    }
+
+    function closeNoteModal() {
+    $('#viewNoteModal').hide();
+    }
+</script>
