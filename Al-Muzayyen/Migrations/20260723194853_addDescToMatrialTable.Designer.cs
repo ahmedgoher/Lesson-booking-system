@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Al_Muzayyen.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260723091241_addadminpass")]
-    partial class addadminpass
+    [Migration("20260723194853_addDescToMatrialTable")]
+    partial class addDescToMatrialTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,27 +229,80 @@ namespace Al_Muzayyen.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowReview")
+                        .HasColumnType("bit");
+
                     b.Property<int>("ClassId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("EndExamTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PassingMarks")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RandomQuestions")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShowResult")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ShuffleAnswers")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartExamTime")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TotalMarks")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClassId");
 
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("Al_Muzayyen.Models.ExamGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SlotId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("SlotId");
+
+                    b.ToTable("ExamGroup");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Material", b =>
@@ -262,6 +315,9 @@ namespace Al_Muzayyen.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SlotId")
                         .HasColumnType("int");
@@ -430,7 +486,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.Property<string>("StdPhone")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
@@ -444,6 +500,9 @@ namespace Al_Muzayyen.Migrations
                     b.HasIndex("SlotId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "StdPhone" }, "Index_Unique_StdPhone")
+                        .IsUnique();
 
                     b.ToTable("Students");
                 });
@@ -696,6 +755,25 @@ namespace Al_Muzayyen.Migrations
                     b.Navigation("Class");
                 });
 
+            modelBuilder.Entity("Al_Muzayyen.Models.ExamGroup", b =>
+                {
+                    b.HasOne("Al_Muzayyen.Models.Exam", "Exam")
+                        .WithMany("ExamGroups")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Al_Muzayyen.Models.Available_slot", "AvailableSlot")
+                        .WithMany("ExamGroups")
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AvailableSlot");
+
+                    b.Navigation("Exam");
+                });
+
             modelBuilder.Entity("Al_Muzayyen.Models.Material", b =>
                 {
                     b.HasOne("Al_Muzayyen.Models.Available_slot", "AvailableSlot")
@@ -723,7 +801,7 @@ namespace Al_Muzayyen.Migrations
                     b.HasOne("Al_Muzayyen.Models.Question", "Question")
                         .WithMany("Options")
                         .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Question");
@@ -848,6 +926,8 @@ namespace Al_Muzayyen.Migrations
                 {
                     b.Navigation("Attendances");
 
+                    b.Navigation("ExamGroups");
+
                     b.Navigation("Materials");
 
                     b.Navigation("SlotTimes");
@@ -864,6 +944,8 @@ namespace Al_Muzayyen.Migrations
 
             modelBuilder.Entity("Al_Muzayyen.Models.Exam", b =>
                 {
+                    b.Navigation("ExamGroups");
+
                     b.Navigation("Questions");
 
                     b.Navigation("StudentExams");

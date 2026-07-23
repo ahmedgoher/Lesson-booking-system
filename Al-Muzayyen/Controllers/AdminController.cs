@@ -601,7 +601,7 @@ public class AdminController : Controller
                 if (!ModelState.IsValid)
                 {
                     TempData["Error"] = "البيانات غير صحيحة.";
-                    return RedirectToAction("Videos");
+                    return RedirectToAction("Matrials");
                 }
             video.URL = GetMediaUrl(video.URL);
 
@@ -609,7 +609,7 @@ public class AdminController : Controller
                 _videoService.SaveChanges();
 
                 TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
-                return RedirectToAction("Videos");
+                return RedirectToAction("Matrials");
             }
             catch (Exception)
             {
@@ -1224,16 +1224,6 @@ public class AdminController : Controller
         }
     }
 
-
-
-
-
-
-
-    public IActionResult GroupManagement()
-    {
-        return View();
-    }
 
 
 }

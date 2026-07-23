@@ -27,7 +27,29 @@ namespace Al_Muzayyen.Controllers
         }
         public IActionResult Videos()
         {
-            return View();
+            var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentIdClaim) || !int.TryParse(studentIdClaim, out int studentId))
+            {
+                return RedirectToAction("login2", "Account");
+            }
+            var student = _context.Students
+                .Include(s => s.AvailableSlot)
+                .FirstOrDefault(s => s.Id == studentId);
+
+            if (student == null || student.SlotId == null)
+            {
+                return View(new StudentMatrialVM());
+            }
+            var videos = _context.Materials
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.VideoLink)
+                .OrderByDescending(v => v.CreatedAt)
+                .ToList();
+            var viewModel = new StudentMatrialVM
+            {
+                GroupName = student.AvailableSlot?.Group_Name ?? "مجموعتي",
+                Matrials = videos
+            };
+            return View(viewModel);
         }
         public async Task<IActionResult> Exams()
         {
@@ -149,7 +171,29 @@ namespace Al_Muzayyen.Controllers
         }
         public IActionResult Materials()
         {
-            return View();
+            var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentIdClaim) || !int.TryParse(studentIdClaim, out int studentId))
+            {
+                return RedirectToAction("login2", "Account");
+            }
+            var student = _context.Students
+                .Include(s => s.AvailableSlot)
+                .FirstOrDefault(s => s.Id == studentId);
+            if (student == null)
+            {
+                return View(new StudentMatrialVM());
+            }
+
+            var materials = _context.Materials
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.PDF)
+                .OrderByDescending(v => v.CreatedAt)
+                .ToList();
+            var viewModel = new StudentMatrialVM
+            {
+                GroupName = student.AvailableSlot?.Group_Name ?? "مجموعتي",
+                Matrials = materials
+            };
+            return View(viewModel);
         }
         public async Task<IActionResult> Profile()
         {

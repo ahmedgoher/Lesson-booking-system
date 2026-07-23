@@ -510,7 +510,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos");
+                    b.ToTable("Matrials");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

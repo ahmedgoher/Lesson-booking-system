@@ -80,7 +80,7 @@ namespace Al_Muzayyen.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Videos",
+                name: "Matrials",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -625,7 +625,7 @@ namespace Al_Muzayyen.Migrations
                 name: "StudentExams");
 
             migrationBuilder.DropTable(
-                name: "Videos");
+                name: "Matrials");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

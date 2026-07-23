@@ -1,31 +1,37 @@
-﻿@{
+﻿@using Al_Muzayyen.Viewmodel
+@model StudentMatrialVM
+@{
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "Materials";
 }
-
+@section Styles{
+    <style>
+        .video-card{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        }
+    </style>
+}
 
 
 <div class="materials-content">
     <div class="section-header-block">
-        <h2>الملازم والمذكرات</h2>
+        <h2>@Model.GroupName الملازم والمذكرات</h2>
     </div> 
 
     <div class="materials-grid videos-grid">
-        <div class="video-card">
-            <h3>ملزمة الرياضيات - الفصل الأول</h3>
-            <p>ملخص شامل لمادة الرياضيات للفصل الدراسي الأول.</p>
-            <button class="edit-video-btn">تحميل الملزمة</button>
-        </div>
-        <div class="video-card">
-            <h3>مذكرات الفيزياء - الوحدة الثانية</h3>
-            <p>ملاحظات ومسائل محلولة لوحدة الفيزياء الثانية.</p>
-            <button class="edit-video-btn">تحميل المذكرة</button>
-        </div>
-        <div class="video-card">
-            <h3>كتاب الكيمياء العضوية</h3>
-            <p>الكتاب المقرر لمادة الكيمياء العضوية.</p>
-            <button class="edit-video-btn">تحميل الكتاب</button>
-        </div>
+        @foreach(var mat in Model.Matrials)
+        {
+            <div class="video-card">
+                <h3>@mat.Title</h3>
+                <p>@mat.Description</p>
+                <a href="@mat.Url" target="_blank" class="action-icon-btn" title="تحميل / فتح">
+                    <i class="fas fa-download"></i>
+                </a>
+            </div>
+            
+        }
     </div>
 </div>
 

@@ -1,12 +1,14 @@
-﻿@{
+﻿@using Al_Muzayyen.Viewmodel
+@model GroupManagementViewModel
+
+@{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    // أو _TeacherLayout حسب ما بتستخدم
-    ViewData["Title"] = "Group Management";
+    ViewData["Title"] = "إدارة المجموعة";
 }
+
 <link rel="stylesheet" href="~/css/styleadmin.css">
 
 <style>
-    /* تنسيقات إضافية بسيطة للـ Popups و الكروت الإحصائية تتطابق مع التصميم */
     .group-stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -70,6 +72,25 @@
             background-color: var(--primary-hover, #b08d4a);
         }
 
+    /* أزرار الحذف الحمراء */
+    .btn-delete-icon {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.2s;
+    }
+
+        .btn-delete-icon:hover {
+            background-color: #dc2626;
+        }
+
     /* Modal Styling */
     .custom-modal-overlay {
         position: fixed;
@@ -128,33 +149,66 @@
         border-radius: 8px;
         outline: none;
     }
+
+    .videos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .video-card {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        overflow: hidden;
+        padding: 12px;
+        box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,0.05));
+        position: relative;
+    }
+
+        .video-card iframe {
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+        }
+
+    .video-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .video-card h3 {
+        font-size: 16px;
+        margin: 0;
+    }
 </style>
 
 <div class="group-management-content" style="padding: 20px 0;">
 
     <!-- 1. الهيدر والإحصائيات -->
     <div class="section-header-block">
-        <h2>إدارة المجموعة: مجموعة أبطال الرياضيات (أ)</h2>
+        <h2>إدارة المجموعة: @Model.GroupName</h2>
     </div>
 
     <div class="group-stats-grid">
-
         <div class="stat-card-box">
             <i class="fas fa-user-graduate"></i>
             <div class="stat-card-info">
                 <h3>عدد الطلاب</h3>
-                <p>45 طالب</p>
+                <p>@Model.StudentCount طالب</p>
             </div>
         </div>
 
-         
         <div class="stat-card-box">
             <i class="fas fa-video"></i>
             <div class="stat-card-info">
                 <h3>عدد الفيديوهات</h3>
-                <p>12 فيديو</p>
+                <p>@Model.VideoCount فيديو</p>
             </div>
         </div>
+
         <div class="stat-card-box">
             <i class="fas fa-file-signature"></i>
             <div class="stat-card-info">
@@ -164,8 +218,7 @@
         </div>
     </div>
 
-   
-    <!-- 3. قسم الامتحانات والاختبارات -->
+    <!-- 2. قسم الامتحانات والاختبارات (فرونت إند) -->
     <div class="exams-content" style="margin-bottom: 40px;">
         <div class="section-header-block header-with-btn">
             <h2>امتحانات المجموعة</h2>
@@ -210,8 +263,8 @@
         </div>
     </div>
 
-    <!-- 4. قسم الملازم والمذكرات (معدّل ليكون كجدول) -->
-    <div class="materials-content">
+    <!-- 3. قسم الملازم والمذكرات المرفوعة -->
+    <div class="materials-content" style="margin-bottom: 40px;">
         <div class="section-header-block header-with-btn">
             <h2>الملازم والمذكرات المرفوعة</h2>
             <button class="btn-main-action" onclick="openModal('addMaterialModal')">
@@ -224,50 +277,51 @@
                 <thead>
                     <tr>
                         <th>عنوان الملزمة</th>
-                        <th>الوصف</th>
                         <th>تاريخ الإضافة</th>
-                        <th>الإجراءات</th>
+                        <th style="width: 120px; text-align: center;">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>ملزمة الرياضيات - الفصل الأول</td>
-                        <td>ملخص شامل لمادة الرياضيات للفصل الدراسي الأول.</td>
-                        <td>2026-08-01</td>
-                        <td>
-                            <button class="action-icon-btn" title="تحميل">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>ملاحظات وتمارين التفاضل</td>
-                        <td>مسائل إضافية محلولة بالكامل مخصصة لهذه المجموعة.</td>
-                        <td>2026-07-15</td>
-                        <td>
-                            <button class="action-icon-btn" title="تحميل">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>كتاب الكيمياء العضوية</td>
-                        <td>الكتاب المقرر لمادة الكيمياء العضوية.</td>
-                        <td>2026-07-01</td>
-                        <td>
-                            <button class="action-icon-btn" title="تحميل">
-                                <i class="fas fa-download"></i>
-                            </button>
-                        </td>
-                    </tr>
+                    @if (Model.Materials != null && Model.Materials.Any())
+                    {
+                        @foreach (var item in Model.Materials)
+                        {
+                            <tr>
+                                <td>@item.Title</td>
+                                <td>@item.CreatedAt.ToString("yyyy-MM-dd")</td>
+                                <td style="text-align: center;">
+                                    <div style="display: flex; gap: 8px; justify-content: center;">
+                                        <!-- زر التحميل -->
+                                        <a href="@item.Url" target="_blank" class="action-icon-btn" title="تحميل / فتح">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+
+                                        <!-- زر الحذف الأحمر -->
+                                        <form asp-action="DeleteMaterial" method="post" style="display:inline;" onsubmit="return confirm('هل أنت تأكد من حذف هذه الملزمة؟');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="slotId" value="@Model.SlotId" />
+                                            <button type="submit" class="btn-delete-icon" title="حذف">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" style="text-align: center; color: var(--text-muted);">لا توجد ملازم مرفوعة لهذه المجموعة حالياً.</td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- 2. قسم المحاضرات والدروس (الفيديوهات المرفوعة للمجموعة) -->
-    <!-- 2. قسم المحاضرات والدروس (الفيديوهات المرفوعة للمجموعة) -->
-    <div class="videos-content" style="margin-bottom: 40px; margin-top: 40px;">
+    <!-- 4. قسم الفيديوهات المرفوعة للمجموعة -->
+    <div class="videos-content" style="margin-bottom: 40px;">
         <div class="section-header-block header-with-btn">
             <h2>الفيديوهات المرفوعة للمجموعة</h2>
             <button class="btn-main-action" onclick="openModal('addVideoModal')">
@@ -276,16 +330,33 @@
         </div>
 
         <div class="videos-grid">
-            <!-- الفيديوهات الحالية... -->
-            <div class="video-card">
-                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-                <h3>شرح أساسيات التفاضل</h3>
-                <p>محاضرة تغطي المفاهيم الأساسية للتفاضل مع أمثلة محلولة.</p>
-            </div>
-            <!-- ... باقي الفيديوهات ... -->
+            @if (Model.Videos != null && Model.Videos.Any())
+            {
+                @foreach (var video in Model.Videos)
+                {
+                    <div class="video-card">
+                        <!-- تم إضافة allowfullscreen مع الرابط الصحيح لتشغيل الفيديو بدون مشاكل -->
+                        <iframe src="@video.Url" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        <div class="video-card-header">
+                            <h3>@video.Title</h3>
+                            <!-- زر حذف الفيديو الأحمر -->
+                            <form asp-action="DeleteMaterial" method="post" style="display:inline;" onsubmit="return confirm('هل أنت تأكد من حذف هذا الفيديو؟');">
+                                <input type="hidden" name="id" value="@video.Id" />
+                                <input type="hidden" name="slotId" value="@Model.SlotId" />
+                                <button type="submit" class="btn-delete-icon" title="حذف الفيديو">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="color: var(--text-muted); grid-column: 1 / -1;">لا توجد فيديوهات مرفوعة لهذه المجموعة حالياً.</p>
+            }
         </div>
     </div>
-
 
 </div>
 
@@ -336,10 +407,8 @@
             <button class="close-modal-btn" onclick="closeModal('addExamModal')">&times;</button>
         </div>
 
-        <!-- فلترة الامتحانات -->
         <div class="filter-inputs-container">
             <input type="text" class="form-control-custom" placeholder="ابحث باسم الامتحان...">
-           
         </div>
 
         <div class="table-responsive-container">
@@ -379,24 +448,22 @@
             <h3>إضافة ملزمة أو مذكرة جديدة</h3>
             <button class="close-modal-btn" onclick="closeModal('addMaterialModal')">&times;</button>
         </div>
-        <form style="display: flex; flex-direction: column; gap: 15px;">
+        <form asp-action="AddMaterial" method="post" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="hidden" name="slotId" value="@Model.SlotId" />
+
             <div>
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">عنوان الملزمة/المذكرة</label>
-                <input type="text" class="form-control-custom" placeholder="أدخل العنوان...">
+                <input type="text" name="title" class="form-control-custom" placeholder="أدخل العنوان..." required>
             </div>
             <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">وصف قصير</label>
-                <textarea class="form-control-custom" rows="3" placeholder="أدخل وصفاً لمحتوى الملزمة..."></textarea>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">رابط الملزمة (Google Drive / Direct Link)</label>
+                <input type="url" name="url" class="form-control-custom" placeholder="https://drive.google.com/..." required>
             </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">اختر الملف</label>
-                <input type="file" class="form-control-custom">
-            </div>
-            <button type="button" class="btn-main-action" style="justify-content: center; margin-top: 10px;">رفع إلى المجموعة</button>
+
+            <button type="submit" class="btn-main-action" style="justify-content: center; margin-top: 10px;">رفع إلى المجموعة</button>
         </form>
     </div>
 </div>
-
 
 <!-- Popup 4: إضافة فيديو جديد -->
 <div class="custom-modal-overlay" id="addVideoModal">
@@ -405,27 +472,24 @@
             <h3>إضافة فيديو جديد للمجموعة</h3>
             <button class="close-modal-btn" onclick="closeModal('addVideoModal')">&times;</button>
         </div>
-        <form style="display: flex; flex-direction: column; gap: 15px;">
+        <form asp-action="AddVideo" method="post" style="display: flex; flex-direction: column; gap: 15px;">
+            <input type="hidden" name="slotId" value="@Model.SlotId" />
+
             <div>
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">عنوان الفيديو</label>
-                <input type="text" class="form-control-custom" placeholder="أدخل عنوان الفيديو...">
+                <input type="text" name="title" class="form-control-custom" placeholder="أدخل عنوان الفيديو..." required>
             </div>
             <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">رابط الفيديو (YouTube مثلاً)</label>
-                <input type="url" class="form-control-custom" placeholder="https://www.youtube.com/watch?v=...">
-                <small style="color: var(--text-muted, #64748b); font-size: 12px; margin-top: 5px; display: block;">يرجى إدخال الرابط كاملاً.</small>
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">رابط الفيديو (YouTube)</label>
+                <input type="url" name="url" class="form-control-custom" placeholder="https://www.youtube.com/watch?v=... أو https://youtu.be/..." required>
             </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">وصف قصير</label>
-                <textarea class="form-control-custom" rows="3" placeholder="أدخل وصفاً لمحتوى الفيديو..."></textarea>
-            </div>
-            <button type="button" class="btn-main-action" style="justify-content: center; margin-top: 10px;">حفظ وإضافة الفيديو</button>
+
+            <button type="submit" class="btn-main-action" style="justify-content: center; margin-top: 10px;">حفظ وإضافة الفيديو</button>
         </form>
     </div>
 </div>
 
 <script>
-    // وظائف فتح وغلق الـ Popups
     function openModal(modalId) {
         document.getElementById(modalId).classList.add('active');
     }
@@ -434,12 +498,9 @@
         document.getElementById(modalId).classList.remove('active');
     }
 
-    // إغلاق النافذة المنبثقة عند الضغط على المساحة الخارجية
     window.onclick = function(event) {
         if (event.target.classList.contains('custom-modal-overlay')) {
             event.target.classList.remove('active');
         }
     }
-
-    console.log("صفحة إدارة المجموعة جاهزة!");
 </script>

@@ -313,6 +313,9 @@ namespace Al_Muzayyen.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("SlotId")
                         .HasColumnType("int");
 
@@ -554,7 +557,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos");
+                    b.ToTable("Matrials");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

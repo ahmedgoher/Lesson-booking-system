@@ -18,8 +18,10 @@ namespace Al_Muzayyen.Models
         [Required(ErrorMessage = "الرابط مطلوب")]
         [Display(Name = "رابط الملف أو Drive")]
         public string Url { get; set; }
+        [Display(Name = "الوصف")]
+        public string? Description { get; set; }
 
-        [Display(Name = "نوع المادة")]
+        [Display(Name = "نوع المادة")]              
         public MaterialType Type { get; set; } = MaterialType.PDF;
 
         [DataType(DataType.Date)]
