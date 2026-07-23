@@ -762,6 +762,7 @@ public class AdminController : Controller
 
         // حفظ التعديلات باستخدام _AdminService
         _AdminService.Update(admin);
+        _AdminService.SaveChanges();
 
         TempData["Success"] = "تم تحديث بيانات الحساب بنجاح!";
         return RedirectToAction(nameof(ChangeProfile));
