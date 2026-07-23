@@ -158,70 +158,138 @@
 </div>
 
 
-    <script>
-        let activeStudentForNote = null;
+<script>
+    let activeStudentForNote = null;
 
       
 
  
 
-        // إظهار الجدول
-        function showMockTable() {
-            document.getElementById('attendance-section').style.display = 'block';
-        }
+    // إظهار الجدول
+    function showMockTable() {
+        document.getElementById('attendance-section').style.display = 'block';
+    }
 
-        // فلترة بالاسم والرقم بداخل الجدول مباشرة
-        function filterStudentsTable() {
-            const query = document.getElementById('search-student').value.toLowerCase();
-            const rows = document.querySelectorAll('#students-table-body tr');
+    // فلترة بالاسم والرقم بداخل الجدول مباشرة
+    function filterStudentsTable() {
+        const query = document.getElementById('search-student').value.toLowerCase();
+        const rows = document.querySelectorAll('#students-table-body tr');
 
-            rows.forEach(row => {
-                const name = (row.getAttribute('data-name') || '').toLowerCase();
-                const phone = row.getAttribute('data-phone') || '';
+        rows.forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const phone = row.getAttribute('data-phone') || '';
 
-                if (name.includes(query) || phone.includes(query)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
+            if (name.includes(query) || phone.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
 
    
 
-        // إدارة الملاحظات
-        function openNoteModal(studentId, studentName) {
-            activeStudentForNote = studentId;
-            document.getElementById('modal-student-name').innerText = studentName;
+    // إدارة الملاحظات
+    function openNoteModal(studentId, studentName) {
+        activeStudentForNote = studentId;
+        document.getElementById('modal-student-name').innerText = studentName;
 
-            const existingNote = document.getElementById(`note-input-${studentId}`).value;
-            document.getElementById('student-note-textarea').value = existingNote;
+        const existingNote = document.getElementById(`note-input-${studentId}`).value;
+        document.getElementById('student-note-textarea').value = existingNote;
 
-            document.getElementById('noteModal').style.display = 'flex';
-        }
+        document.getElementById('noteModal').style.display = 'flex';
+    }
 
-        function closeNoteModal() {
-            document.getElementById('noteModal').style.display = 'none';
-            activeStudentForNote = null;
-        }
+    function closeNoteModal() {
+        document.getElementById('noteModal').style.display = 'none';
+        activeStudentForNote = null;
+    }
 
-        function saveStudentNote() {
-            if (activeStudentForNote) {
-                const text = document.getElementById('student-note-textarea').value.trim();
-                const hiddenInput = document.getElementById(`note-input-${activeStudentForNote}`);
-                const noteBtn = document.getElementById(`note-btn-${activeStudentForNote}`);
-                const noteBtnText = document.getElementById(`note-text-btn-${activeStudentForNote}`);
+    function saveStudentNote() {
+        if (activeStudentForNote) {
+            const text = document.getElementById('student-note-textarea').value.trim();
+            const hiddenInput = document.getElementById(`note-input-${activeStudentForNote}`);
+            const noteBtn = document.getElementById(`note-btn-${activeStudentForNote}`);
+            const noteBtnText = document.getElementById(`note-text-btn-${activeStudentForNote}`);
 
-                hiddenInput.value = text;
+            hiddenInput.value = text;
 
-                if (text !== "") {
-                    noteBtn.classList.add('has-note');
-                    noteBtnText.innerText = "تمت الملاحظة";
-                } else {
-                    noteBtn.classList.remove('has-note');
-                    noteBtnText.innerText = "ملاحظة";
-                }
+            if (text !== "") {
+                noteBtn.classList.add('has-note');
+                noteBtnText.innerText = "تمت الملاحظة";
+            } else {
+                noteBtn.classList.remove('has-note');
+                noteBtnText.innerText = "ملاحظة";
             }
-            closeNoteModal();
         }
-    </script>
+        closeNoteModal();
+    }
+        // 1. عند تغيير الصف أو المكان، يتم تحميل المجموعات المتاحة
+    $('#gradeSelect, #centerSelect').change(function () {
+        var classId = $('#gradeSelect').val();
+        var placeId = $('#centerSelect').val();
+        var groupSelect = $('#groupSelect');
+
+        groupSelect.empty().append('<option value="">اختر المجموعة...</option>');
+
+        if (classId && placeId) {
+            $.getJSON('/Attendance/GetSlots', { classId: classId, placeId: placeId }, function (data) {
+                $.each(data, function (i, item) {
+                    groupSelect.append($('<option>', { value: item.id, text: item.name }));
+                });
+            });
+        }
+    });
+
+    // 2. عرض كشف الطلاب عبر Partial View
+    function fetchStudentsData() {
+        var slotId = $('#groupSelect').val();
+        var date = $('#lessonDate').val();
+
+        if (!slotId) {
+            alert("يرجى اختيار المجموعة أولاً");
+            return;
+        }
+
+        $.get('/Attendance/FetchStudents', { slotId: slotId, date: date }, function (html) {
+            $('#students-table-container').html(html);
+            $('#attendance-section').show();
+        });
+    }
+
+    // 3. جمع البيانات وإرسالها للحفظ
+    function saveAttendanceData() {
+        var slotId = $('#groupSelect').val();
+        var date = $('#lessonDate').val();
+        var studentsData = [];
+
+        $('#studentsTable tbody tr').each(function () {
+            var row = $(this);
+            studentsData.push({
+                StudentId: parseInt(row.data('id')),
+                IsPresent: parseInt(row.find('.att-select').val()),
+                Homework: parseInt(row.find('.hw-select').val()),
+                Notes: row.find('.note-input').val()
+            });
+        });
+
+        var payload = {
+            SlotId: parseInt(slotId),
+            Date: date,
+            Students: studentsData
+        };
+
+        $.ajax({
+            url: '/Attendance/SaveAttendance',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+                alert(res.message);
+            },
+            error: function () {
+                alert("حدث خطأ أثناء حفظ البيانات!");
+            }
+        });
+    }
+</script>

@@ -1,0 +1,72 @@
+﻿@model List<Al_Muzayyen.Viewmodel.StudentAttendanceRowVM>
+
+<section id="attendance-section">
+    <div class="table-toolbar">
+        <h3><i class="fa-solid fa-clipboard-user"></i> كشف الطلاب (<span style="color: var(--primary-color);">@Model.Count</span>)</h3>
+
+        <div class="search-box-wrap">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-student" class="custom-input" placeholder="ابحث باسم الطالب أو الهاتف..." onkeyup="filterStudentsTable()">
+        </div>
+    </div>
+
+    <div class="color-legend">
+        <span class="legend-box-absent"></span>
+        <span>تنبيه: اللون الأحمر يوضح أن الطالب كان **غائباً في الحصة السابقة**</span>
+    </div>
+
+    <div class="table-responsive-container">
+        <table class="data-display-table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>اسم الطالب</th>
+                    <th>رقم الهاتف</th>
+                    <th>حالة الحضور</th>
+                    <th>حالة الواجب</th>
+                    <th>ملاحظة</th>
+                </tr>
+            </thead>
+            <tbody id="students-table-body">
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var student = Model[i];
+                    var absentClass = student.WasAbsentLastTime ? "was-absent-last-time" : "";
+
+                    <tr class="@absentClass" data-id="@student.StudentId" data-name="@student.StudentName" data-phone="@student.StudentPhone">
+                        <td>@(i + 1)</td>
+                        <td>
+                            @student.StudentName
+                            @if (student.WasAbsentLastTime)
+                            {
+                                <span class="absent-badge-inline">غائب سابقاً</span>
+                            }
+                        </td>
+                        <td dir="ltr" style="text-align: right;">@student.StudentPhone</td>
+                        <td>
+                            <select class="table-select att-select" asp-for="@Model[i].IsPresent" asp-items="Html.GetEnumSelectList<Al_Muzayyen.Models.AttendanceStatus>()">
+                            </select>
+                        </td>
+                        <td>
+                            <select class="table-select hw-select" asp-for="@Model[i].Homework" asp-items="Html.GetEnumSelectList<Al_Muzayyen.Models.HomeworkStatus>()">
+                            </select>
+                        </td>
+                        <td>
+                            <input type="hidden" class="note-input" id="note-input-@student.StudentId" value="@student.Notes" />
+                            <button type="button" class="note-indicator-btn @(!string.IsNullOrEmpty(student.Notes) ? "has-note" : "")" id="note-btn-@student.StudentId" onclick="openNoteModal(@student.StudentId, '@student.StudentName')">
+                                <i class="fa-regular fa-comment-dots"></i>
+                                <span id="note-text-btn-@student.StudentId">@(!string.IsNullOrEmpty(student.Notes) ? "تمت الملاحظة" : "ملاحظة")</span>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="save-action-container">
+        <button type="button" class="action-button save-btn" onclick="saveAttendanceData()">
+            <i class="fa-solid fa-floppy-disk"></i> حفظ الغياب والواجبات
+        </button>
+    </div>
+</section>

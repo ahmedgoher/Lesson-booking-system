@@ -4,8 +4,28 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Al_Muzayyen.Models
 {
-    public enum AttendanceStatus { Present, Absent, Excused }
-    public enum HomeworkStatus { Done, NotDone, NoHomework }
+    public enum AttendanceStatus
+    {
+        [Display(Name = "حاضر")]
+        Present,
+
+        [Display(Name = "غائب")]
+        Absent,
+
+        [Display(Name = "معذور / إجازة")]
+        Excused
+    }
+    public enum HomeworkStatus
+    {
+        [Display(Name = "تم / سلم الواجب")]
+        Done,
+
+        [Display(Name = "لم يسلم")]
+        NotDone,
+
+        [Display(Name = "لا يوجد واجب")]
+        NoHomework
+    }
 
     public class Attendance
     {

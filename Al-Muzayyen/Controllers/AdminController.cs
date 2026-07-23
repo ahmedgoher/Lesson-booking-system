@@ -160,13 +160,18 @@ using DocumentFormat.OpenXml.Bibliography;
         stream.Position = 0;
 
         string fileName = $"الطلاب_المسجلين_{DateTime.Now:yyyy-MM-dd}.xlsx";
-
+        
         return File(
             stream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             fileName
         );
     }
+    //public IActionResult FetchStudents()
+    //{
+
+    //    return View();
+    //}
 
     [HttpPost]
     public async Task<IActionResult> DeleteBooking(int id)
@@ -912,9 +917,7 @@ using DocumentFormat.OpenXml.Bibliography;
 
 
     //===================================================================================================
-    public IActionResult FetchStudents() { 
-        return View(); 
-    }
+   
 
 
 
