@@ -1,7 +1,11 @@
-﻿@{
+﻿@model IEnumerable<Al_Muzayyen.Viewmodel.ExamViewModel>
+
+@{
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "Exams";
 }
+
+@Html.AntiForgeryToken() @* لحماية طلبات AJAX من ثغرات CSRF *@
 
 <style>
     /* الهيدر والفلترة */
@@ -21,12 +25,12 @@
         margin-bottom: 20px;
     }
 
-        .groups-header-top h2 {
-            font-size: 1.5rem;
-            color: var(--text-main, #1f2937);
-            font-weight: 700;
-            margin: 0;
-        }
+    .groups-header-top h2 {
+        font-size: 1.5rem;
+        color: var(--text-main, #1f2937);
+        font-weight: 700;
+        margin: 0;
+    }
 
     .action-button {
         background-color: var(--primary-color, #2563eb);
@@ -44,58 +48,38 @@
         gap: 8px;
     }
 
-        .action-button:hover {
-            background-color: var(--primary-hover, #1d4ed8);
-            box-shadow: var(--shadow-glow, 0 0 10px rgba(37,99,235,0.2));
-            transform: translateY(-1px);
-        }
-
-    .groups-filter-form {
-        display: flex;
-        gap: 15px;
-        align-items: flex-end;
-        flex-wrap: wrap;
+    .action-button:hover {
+        background-color: var(--primary-hover, #1d4ed8);
+        box-shadow: var(--shadow-glow, 0 0 10px rgba(37,99,235,0.2));
+        transform: translateY(-1px);
     }
 
-    .filter-field {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        min-width: 220px;
+    .filter-field select,
+    .filter-field input,
+    .input-field-group input,
+    .input-field-group select,
+    .input-field-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--border-color, #d1d5db);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        background-color: var(--bg-alt, #f9fafb);
+        color: var(--text-main, #1f2937);
+        outline: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        box-sizing: border-box;
     }
 
-        .filter-field label {
-            font-weight: 600;
-            color: var(--text-main, #1f2937);
-            font-size: 14px;
-        }
-
-        .filter-field select,
-        .filter-field input,
-        .input-field-group input,
-        .input-field-group select,
-        .input-field-group textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid var(--border-color, #d1d5db);
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: inherit;
-            background-color: var(--bg-alt, #f9fafb);
-            color: var(--text-main, #1f2937);
-            outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            box-sizing: border-box;
-        }
-
-            .filter-field select:focus,
-            .filter-field input:focus,
-            .input-field-group input:focus,
-            .input-field-group select:focus,
-            .input-field-group textarea:focus {
-                border-color: var(--primary-color, #2563eb);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            }
+    .filter-field select:focus,
+    .filter-field input:focus,
+    .input-field-group input:focus,
+    .input-field-group select:focus,
+    .input-field-group textarea:focus {
+        border-color: var(--primary-color, #2563eb);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
 
     /* الجدول Responsive */
     .table-responsive-container {
@@ -112,20 +96,20 @@
         text-align: right;
     }
 
-        .data-display-table th,
-        .data-display-table td {
-            min-width: 150px;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border-color, #e5e7eb);
-            font-size: 14px;
-            vertical-align: middle;
-        }
+    .data-display-table th,
+    .data-display-table td {
+        min-width: 140px;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-color, #e5e7eb);
+        font-size: 14px;
+        vertical-align: middle;
+    }
 
-        .data-display-table th {
-            background-color: var(--bg-alt-2, #f3f4f6);
-            color: var(--text-main, #1f2937);
-            font-weight: 700;
-        }
+    .data-display-table th {
+        background-color: var(--bg-alt-2, #f3f4f6);
+        color: var(--text-main, #1f2937);
+        font-weight: 700;
+    }
 
     .badge {
         padding: 4px 10px;
@@ -172,12 +156,12 @@
         box-shadow: var(--shadow-md, 0 10px 15px -3px rgba(0, 0, 0, 0.1));
     }
 
-        .popup-window-content h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 1.25rem;
-            color: var(--primary-color, #2563eb);
-        }
+    .popup-window-content h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.25rem;
+        color: var(--primary-color, #2563eb);
+    }
 
     .input-field-group {
         margin-bottom: 16px;
@@ -186,11 +170,11 @@
         gap: 8px;
     }
 
-        .input-field-group label {
-            font-weight: 600;
-            color: var(--text-main, #1f2937);
-            font-size: 14px;
-        }
+    .input-field-group label {
+        font-weight: 600;
+        color: var(--text-main, #1f2937);
+        font-size: 14px;
+    }
 
     .popup-actions-flex {
         display: flex;
@@ -211,9 +195,9 @@
         transition: opacity 0.2s;
     }
 
-        .cancel-btn:hover {
-            opacity: 0.9;
-        }
+    .cancel-btn:hover {
+        opacity: 0.9;
+    }
 
     .checkbox-container {
         background: var(--bg-alt, #f9fafb);
@@ -229,14 +213,14 @@
         gap: 12px;
     }
 
-        .checkbox-grid label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            color: var(--text-main, #1f2937);
-        }
+    .checkbox-grid label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        cursor: pointer;
+        color: var(--text-main, #1f2937);
+    }
 
     .action-icon-btn {
         background: none;
@@ -248,9 +232,9 @@
         padding: 4px;
     }
 
-        .action-icon-btn:hover {
-            transform: scale(1.15);
-        }
+    .action-icon-btn:hover {
+        transform: scale(1.15);
+    }
 
     @@media (max-width: 768px) {
         .groups-header-top {
@@ -278,8 +262,6 @@
                 <i class="fas fa-plus"></i> إضافة امتحان جديد
             </button>
         </div>
-
-       
     </div>
 
     <!-- جدول عرض الامتحانات -->
@@ -298,70 +280,74 @@
                 </tr>
             </thead>
             <tbody>
-                <!--
-                    يتم تخزين كل بيانات الامتحان (الظاهرة والمخفية) هنا داخل data-attributes على مستوى السطر (tr).
-                    عند الضغط على "تعديل"، يمرر زر التعديل مرجع السطر (this) لملء البيانات في النموذج فوراً.
-                -->
-                <tr data-id="101"
-                    data-title="اختبار تجريبي"
-                    data-description="وصف الامتحان التجريبي المفصل هنا..."
-                    data-grade="1"
-                    data-date="2026-07-22"
-                    data-duration="60"
-                    data-open="2026-07-22T08:00"
-                    data-close="2026-07-22T20:00"
-                    data-total-marks="100"
-                    data-passing-marks="50"
-                    data-max-attempts="1"
-                    data-status="Active"
-                    data-random-questions="true"
-                    data-shuffle-answers="false"
-                    data-allow-review="true"
-                    data-show-result="true">
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var exam in Model)
+                    {
+                        var examJson = System.Text.Json.JsonSerializer.Serialize(exam);
+                        <tr data-exam="@examJson">
 
-                    <td>
-                        <strong>اختبار تجريبي</strong><br>
-                        <small style="color:var(--text-muted, #6b7280);">وصف الامتحان التجريبي</small>
-                    </td>
-                    <td>الصف الأول الثانوي</td>
-                    <td>2026-07-22</td>
-                    <td>60 دقيقة</td>
-                    <td>100</td>
-                    <td><span class="badge bg-success">متاح</span></td>
-                    <td>
-                        <a href="/Admin/QExams" style="text-decoration: none;">
-                            <strong style="color: var(--primary-color);">5 أسئلة</strong>
-                        </a>
-                    </td>
-                    <td>
-                        <button onclick="openModal('question-modal')" class="action-icon-btn" title="إضافة سؤال" style="color:#22c55e;">
-                            <i class="fas fa-plus-circle"></i>
-                        </button>
-                        <button onclick="editExam(this)" class="action-icon-btn" title="تعديل" style="color:var(--primary-color, #2563eb);">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-icon-btn" title="حذف" style="color:#ef4444;">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
+                            <td>
+                                <strong>@exam.Title</strong><br>
+                                <small style="color:var(--text-muted, #6b7280);">@exam.Description</small>
+                            </td>
+                            <td>@exam.GradeName</td>
+                            <td>@exam.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@exam.Duration دقيقة</td>
+                            <td>@exam.TotalMarks</td>
+                            <td>
+                                @if (exam.Status == "Active" || exam.Status == "متاح")
+                                {
+                                    <span class="badge bg-success">متاح</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">مغلق</span>
+                                }
+                            </td>
+                            <td>
+    <a href="/Admin/QExams/@exam.Id" style="text-decoration: none;">
+        <strong style="color: var(--primary-color);">@exam.QuestionsCount أسئلة</strong>
+    </a>
+</td>
+                            <td>
+                                <button onclick="openQuestionModal('@exam.Id')" class="action-icon-btn" title="إضافة سؤال" style="color:#22c55e;">
+                                    <i class="fas fa-plus-circle"></i>
+                                </button>
+                                <button onclick="editExam(this)" class="action-icon-btn" title="تعديل" style="color:var(--primary-color, #2563eb);">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteExam('@exam.Id')" class="action-icon-btn" title="حذف" style="color:#ef4444;">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 20px; color: var(--text-muted, #6b7280);">
+                            لا توجد امتحانات مضافة حالياً.
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 </section>
 
-<!-- Popup 1: إضافة / تعديل امتحان -->
+<!-- نافذة إضافة / تعديل امتحان -->
 <div id="exam-modal" class="custom-popup-overlay" style="display:none;">
     <div class="popup-window-content">
         <h3 id="modal-title-text">إضافة امتحان جديد</h3>
 
-        <form id="exam-form">
-            <!-- معرف الامتحان (مخفي) -->
+        <form id="exam-form" onsubmit="event.preventDefault(); saveExam();">
             <input type="hidden" id="exam-id" value="">
 
             <div class="input-field-group">
                 <label for="exam-title">العنوان</label>
-                <input type="text" id="exam-title" placeholder="أدخل عنوان الامتحان">
+                <input type="text" id="exam-title" placeholder="أدخل عنوان الامتحان" required>
             </div>
 
             <div class="input-field-group">
@@ -369,23 +355,28 @@
                 <textarea id="exam-description" rows="2" placeholder="أدخل وصفاً اختيارياً"></textarea>
             </div>
 
-            <div class="input-field-group">
-                <label for="exam-grade">الصف</label>
-                <select id="exam-grade">
-                    <option value="1">الصف الأول الثانوي</option>
-                    <option value="2">الصف الثاني الثانوي</option>
-                    <option value="3">الصف الثالث الثانوي</option>
-                </select>
-            </div>
+           <div class="input-field-group">
+    <label for="exam-grade">الصف الدراسي</label>
+    <select id="exam-grade" required>
+        <option value="" disabled selected>-- اختر الصف الدراسي --</option>
+        @if (ViewBag.Classes != null)
+        {
+            foreach (var grade in ViewBag.Classes)
+            {
+                <option value="@grade.Id">@grade.Name</option>
+            }
+        }
+    </select>
+</div>
 
             <div class="responsive-flex-row" style="display:flex; gap:10px;">
                 <div class="input-field-group" style="flex:1;">
                     <label for="exam-date">تاريخ الامتحان</label>
-                    <input type="date" id="exam-date">
+                    <input type="date" id="exam-date" required>
                 </div>
                 <div class="input-field-group" style="flex:1;">
                     <label for="exam-duration">المدة (بالدقائق)</label>
-                    <input type="number" id="exam-duration" value="60" min="1">
+                    <input type="number" id="exam-duration" value="60" min="1" required>
                 </div>
             </div>
 
@@ -403,15 +394,15 @@
             <div class="responsive-flex-row" style="display:flex; gap:10px;">
                 <div class="input-field-group" style="flex:1;">
                     <label for="exam-total-marks">الدرجة الكلية</label>
-                    <input type="number" id="exam-total-marks" value="100" min="1">
+                    <input type="number" id="exam-total-marks" value="100" min="1" required>
                 </div>
                 <div class="input-field-group" style="flex:1;">
                     <label for="exam-passing-marks">درجة النجاح</label>
-                    <input type="number" id="exam-passing-marks" value="50" min="1">
+                    <input type="number" id="exam-passing-marks" value="50" min="1" required>
                 </div>
                 <div class="input-field-group" style="flex:1;">
                     <label for="exam-max-attempts">المحاولات</label>
-                    <input type="number" id="exam-max-attempts" value="1" min="1">
+                    <input type="number" id="exam-max-attempts" value="1" min="1" required>
                 </div>
             </div>
 
@@ -433,27 +424,29 @@
             </div>
 
             <div class="popup-actions-flex">
-                <button type="button" class="action-button">حفظ الامتحان</button>
+                <button type="submit" class="action-button">حفظ الامتحان</button>
                 <button type="button" class="cancel-btn" onclick="closeModal('exam-modal')">إلغاء</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Popup 2: إضافة سؤال جديد -->
+<!-- نافذة إضافة سؤال -->
 <div id="question-modal" class="custom-popup-overlay" style="display:none;">
     <div class="popup-window-content">
         <h3>إضافة سؤال جديد</h3>
 
-        <form>
+        <form id="question-form" onsubmit="event.preventDefault(); saveQuestion();">
+            <input type="hidden" id="question-exam-id" value="">
+
             <div class="input-field-group">
                 <label for="question-text">نص السؤال</label>
-                <textarea id="question-text" rows="2" placeholder="أدخل نص السؤال هنا..."></textarea>
+                <textarea id="question-text" rows="2" placeholder="أدخل نص السؤال هنا..." required></textarea>
             </div>
 
             <div class="responsive-flex-row" style="display:flex; gap:10px;">
                 <div class="input-field-group" style="flex:1;">
-                    <label for="question-type" onchange="toggleQuestionOptions()">نوع السؤال</label>
+                    <label for="question-type">نوع السؤال</label>
                     <select id="question-type" onchange="toggleQuestionOptions()">
                         <option value="MCQ">اختيار من متعدد (MCQ)</option>
                         <option value="TrueFalse">صح / خطأ (True / False)</option>
@@ -461,7 +454,7 @@
                 </div>
                 <div class="input-field-group" style="flex:1;">
                     <label for="question-mark">درجة السؤال</label>
-                    <input type="number" id="question-mark" value="2" min="1">
+                    <input type="number" id="question-mark" value="2" min="1" required>
                 </div>
             </div>
 
@@ -478,20 +471,20 @@
                 </label>
                 <div id="mcq-options">
                     <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                        <input type="radio" name="correct-mcq" checked>
-                        <input type="text" placeholder="الخيار 1" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
+                        <input type="radio" name="correct-mcq" value="0" checked>
+                        <input type="text" class="mcq-option-input" placeholder="الخيار 1" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                        <input type="radio" name="correct-mcq">
-                        <input type="text" placeholder="الخيار 2" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
+                        <input type="radio" name="correct-mcq" value="1">
+                        <input type="text" class="mcq-option-input" placeholder="الخيار 2" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                        <input type="radio" name="correct-mcq">
-                        <input type="text" placeholder="الخيار 3" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
+                        <input type="radio" name="correct-mcq" value="2">
+                        <input type="text" class="mcq-option-input" placeholder="الخيار 3" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                        <input type="radio" name="correct-mcq">
-                        <input type="text" placeholder="الخيار 4" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
+                        <input type="radio" name="correct-mcq" value="3">
+                        <input type="text" class="mcq-option-input" placeholder="الخيار 4" style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#d1d5db); border-radius:6px; background:var(--bg-alt,#f9fafb); color:var(--text-main,#1f2937);">
                     </div>
                 </div>
 
@@ -505,15 +498,19 @@
             </div>
 
             <div class="popup-actions-flex">
-                <button type="button" class="action-button" style="background-color:#22c55e;">حفظ السؤال</button>
+                <button type="submit" class="action-button" style="background-color:#22c55e;">حفظ السؤال</button>
                 <button type="button" class="cancel-btn" onclick="closeModal('question-modal')">إلغاء</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- JS لتنفيذ قراءة البيانات وملء Modal التعديل -->
 <script>
+    // دالة جلب CSRF Token لحماية الطلبات
+    function getAntiforgeryToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
     function openModal(modalId) {
         document.getElementById(modalId).style.display = "flex";
     }
@@ -522,7 +519,6 @@
         document.getElementById(modalId).style.display = "none";
     }
 
-    // فتح الـ Modal لإضافة امتحان جديد وتنظيف الحقول
     function openCreateModal() {
         document.getElementById('modal-title-text').innerText = "إضافة امتحان جديد";
         document.getElementById('exam-form').reset();
@@ -530,33 +526,57 @@
         openModal('exam-modal');
     }
 
-    // قراءة البيانات الظاهرة والمخفية من السطر (tr) عند التعديل
     function editExam(buttonElement) {
         const row = buttonElement.closest('tr');
+        // قراءة البيانات بأمان كـ JSON بدون مشاكل علامات التنصيص
+        const exam = JSON.parse(row.dataset.exam);
 
-        // قراءة البيانات من data-* attributes الخاصة بالسطر
-        document.getElementById('exam-id').value = row.dataset.id || '';
-        document.getElementById('exam-title').value = row.dataset.title || '';
-        document.getElementById('exam-description').value = row.dataset.description || '';
-        document.getElementById('exam-grade').value = row.dataset.grade || '1';
-        document.getElementById('exam-date').value = row.dataset.date || '';
-        document.getElementById('exam-duration').value = row.dataset.duration || '60';
-        document.getElementById('exam-open').value = row.dataset.open || '';
-        document.getElementById('exam-close').value = row.dataset.close || '';
-        document.getElementById('exam-total-marks').value = row.dataset.totalMarks || '100';
-        document.getElementById('exam-passing-marks').value = row.dataset.passingMarks || '50';
-        document.getElementById('exam-max-attempts').value = row.dataset.maxAttempts || '1';
-        document.getElementById('exam-status').value = row.dataset.status || 'Active';
+        document.getElementById('exam-id').value = exam.Id || exam.id || '';
+        document.getElementById('exam-title').value = exam.Title || exam.title || '';
+        document.getElementById('exam-description').value = exam.Description || exam.description || '';
+        document.getElementById('exam-grade').value = exam.GradeId || exam.gradeId || '1';
+        
+        // ضبط التاريخ والوقت بالصيغ الصحيحة للمدخلات
+        if (exam.Date || exam.date) {
+            const dateObj = new Date(exam.Date || exam.date);
+            document.getElementById('exam-date').value = dateObj.toISOString().split('T')[0];
+        }
 
-        // ضبط الـ Checkboxes (bool)
-        document.getElementById('exam-random-questions').checked = row.dataset.randomQuestions === 'true';
-        document.getElementById('exam-shuffle-answers').checked = row.dataset.shuffleAnswers === 'true';
-        document.getElementById('exam-allow-review').checked = row.dataset.allowReview === 'true';
-        document.getElementById('exam-show-result').checked = row.dataset.showResult === 'true';
+        document.getElementById('exam-duration').value = exam.Duration || exam.duration || '60';
+        
+        if (exam.OpenDate || exam.openDate) {
+            const openObj = new Date(exam.OpenDate || exam.openDate);
+            document.getElementById('exam-open').value = openObj.toISOString().slice(0, 16);
+        } else {
+            document.getElementById('exam-open').value = '';
+        }
 
-        // تغيير العنوان ليكون "تعديل" وفتح النافذة
+        if (exam.CloseDate || exam.closeDate) {
+            const closeObj = new Date(exam.CloseDate || exam.closeDate);
+            document.getElementById('exam-close').value = closeObj.toISOString().slice(0, 16);
+        } else {
+            document.getElementById('exam-close').value = '';
+        }
+
+        document.getElementById('exam-total-marks').value = exam.TotalMarks || exam.totalMarks || '100';
+        document.getElementById('exam-passing-marks').value = exam.PassingMarks || exam.passingMarks || '50';
+        document.getElementById('exam-max-attempts').value = exam.MaxAttempts || exam.maxAttempts || '1';
+        document.getElementById('exam-status').value = exam.Status || exam.status || 'Active';
+
+        document.getElementById('exam-random-questions').checked = !!(exam.RandomQuestions || exam.randomQuestions);
+        document.getElementById('exam-shuffle-answers').checked = !!(exam.ShuffleAnswers || exam.shuffleAnswers);
+        document.getElementById('exam-allow-review').checked = !!(exam.AllowReview || exam.allowReview);
+        document.getElementById('exam-show-result').checked = !!(exam.ShowResult || exam.showResult);
+
         document.getElementById('modal-title-text').innerText = "تعديل الامتحان";
         openModal('exam-modal');
+    }
+
+    function openQuestionModal(examId) {
+        document.getElementById('question-form').reset();
+        document.getElementById('question-exam-id').value = examId;
+        toggleQuestionOptions();
+        openModal('question-modal');
     }
 
     function toggleQuestionOptions() {
@@ -570,6 +590,135 @@
         } else {
             mcqBox.style.display = "block";
             tfBox.style.display = "none";
+        }
+    }
+
+    // إرسال بيانات الامتحان للخادم
+    async function saveExam() {
+        const payload = {
+            id: document.getElementById('exam-id').value || null,
+            title: document.getElementById('exam-title').value,
+            description: document.getElementById('exam-description').value,
+            gradeId: parseInt(document.getElementById('exam-grade').value),
+            date: document.getElementById('exam-date').value,
+            duration: parseInt(document.getElementById('exam-duration').value),
+            openDate: document.getElementById('exam-open').value || null,
+            closeDate: document.getElementById('exam-close').value || null,
+            totalMarks: parseInt(document.getElementById('exam-total-marks').value),
+            passingMarks: parseInt(document.getElementById('exam-passing-marks').value),
+            maxAttempts: parseInt(document.getElementById('exam-max-attempts').value),
+            status: document.getElementById('exam-status').value,
+            randomQuestions: document.getElementById('exam-random-questions').checked,
+            shuffleAnswers: document.getElementById('exam-shuffle-answers').checked,
+            allowReview: document.getElementById('exam-allow-review').checked,
+            showResult: document.getElementById('exam-show-result').checked
+        };
+
+        try {
+            const response = await fetch('/Admin/Exams/Save', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiforgeryToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                closeModal('exam-modal');
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء حفظ الامتحان. يرجى التأكد من البيانات والمحاولة مجدداً.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('تعذر الاتصال بالخادم.');
+        }
+    }
+
+    // إرسال بيانات السؤال للخادم
+    // إرسال بيانات الامتحان للخادم
+async function saveExam() {
+    // قراءة الـ ID وتحويله لرقم (0 في حالة الإضافة الجديدة)
+    const examIdVal = document.getElementById('exam-id').value;
+    const gradeVal = document.getElementById('exam-grade').value;
+
+    if (!gradeVal) {
+        alert('يرجى اختيار الصف الدراسي');
+        return;
+    }
+
+    const payload = {
+        id: examIdVal ? parseInt(examIdVal) : 0,
+        title: document.getElementById('exam-title').value,
+        description: document.getElementById('exam-description').value,
+        gradeId: parseInt(gradeVal),
+        date: document.getElementById('exam-date').value || null,
+        duration: parseInt(document.getElementById('exam-duration').value) || 30,
+        openDate: document.getElementById('exam-open').value || null,
+        closeDate: document.getElementById('exam-close').value || null,
+        totalMarks: parseInt(document.getElementById('exam-total-marks').value) || 100,
+        passingMarks: parseInt(document.getElementById('exam-passing-marks').value) || 50,
+        maxAttempts: parseInt(document.getElementById('exam-max-attempts').value) || 1,
+        status: document.getElementById('exam-status').value,
+        randomQuestions: document.getElementById('exam-random-questions').checked,
+        shuffleAnswers: document.getElementById('exam-shuffle-answers').checked,
+        allowReview: document.getElementById('exam-allow-review').checked,
+        showResult: document.getElementById('exam-show-result').checked
+    };
+
+    try {
+        // 🟢 تصحيح رابط الـ URL إلى SaveExam
+        const response = await fetch('/Admin/SaveExam', { // أو '/Admin/Exams/SaveExam' حسب الـ Routing لديك
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': getAntiforgeryToken()
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            // 🟢 قراءة النتيجة كـ JSON لمعرفة هل الحفظ نجح أم تفشل الشروط
+            const result = await response.json();
+
+            if (result.success) {
+                closeModal('exam-modal');
+                alert(result.message); // إظهار رسالة النجاح
+                location.reload();
+            } else {
+                // 🔴 إظهار سبب عدم الحفظ (مثلاً: "يرجى اختيار الصف الدراسي")
+                alert('تنبيه: ' + result.message);
+            }
+        } else {
+            alert('حدث خطأ في طلب الخادم (كود: ' + response.status + ') - تأكد من صحة الرابط');
+        }
+    } catch (error) {
+        console.error(error);
+        alert('تعذر الاتصال بالخادم.');
+    }
+}
+
+    // حذف امتحان
+    async function deleteExam(examId) {
+        if (!confirm('هل أنت تأكد من رغبتك في حذف هذا الامتحان بالكامل؟')) return;
+
+        try {
+            const response = await fetch(`/Admin/Exams/Delete/${examId}`, {
+                method: 'POST', // يفضل إرسالها كـ POST مع التوكن
+                headers: {
+                    'RequestVerificationToken': getAntiforgeryToken()
+                }
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('حدث خطأ أثناء محاولة الحذف.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('تعذر الاتصال بالخادم.');
         }
     }
 </script>

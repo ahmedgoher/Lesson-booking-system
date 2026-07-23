@@ -68,7 +68,13 @@ namespace Al_Muzayyen
             builder.Services.AddScoped<IBookingService, BookingService>();
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
             builder.Services.AddScoped<IGroupRepo, GroupRepo>();
+            builder.Services.AddScoped<IClassService, ClassService>();
+            // أو AddTransient / AddSingleton حسب نوع الخدمة لديك
+            // Repositories
+            builder.Services.AddScoped<IExamRepository, ExamRepository>();
 
+            // Services
+            builder.Services.AddScoped<IExamService, ExamService>();
             builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
             builder.Services.AddScoped<CloudinaryService>();
 

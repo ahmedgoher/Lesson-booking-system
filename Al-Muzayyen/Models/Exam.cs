@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office.SpreadSheetML.Y2023.MsForms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -15,21 +14,52 @@ namespace Al_Muzayyen.Models
         [Display(Name = "عنوان الامتحان")]
         public string Title { get; set; }
 
+        [Display(Name = "وصف الامتحان")]
+        public string? Description { get; set; }
+
         [Display(Name = "مدة الامتحان بالدقائق")]
         public int DurationMinutes { get; set; } = 30;
 
         [Display(Name = "حالة الامتحان")]
         public bool IsActive { get; set; } = true;
 
-        [DataType(DataType.Date)]
-        [Display(Name = "تاريخ الامتحان")]
-        public DateTime CreatedAt { get; set; } = DateTime.Today;
-        [DataType(DataType.Date)]
+        [Display(Name = "تاريخ إنشاء الامتحان")]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         [Display(Name = "وقت بداية الامتحان")]
-        public DateTime startExamTime { get; set; } 
-        [DataType(DataType.Date)]
+        public DateTime StartExamTime { get; set; }
+
         [Display(Name = "وقت نهاية الامتحان")]
-        public DateTime endExamTime  { get; set; }
+        public DateTime EndExamTime { get; set; }
+
+        // ==========================================
+        // 🔹 الإعدادات والخصائص الإضافية (التي كانت ناقصة)
+        // ==========================================
+
+        [Display(Name = "الدرجة الكلية")]
+        public int TotalMarks { get; set; } = 100;
+
+        [Display(Name = "درجة النجاح")]
+        public int PassingMarks { get; set; } = 50;
+
+        [Display(Name = "عدد المحاولات المسموحة")]
+        public int MaxAttempts { get; set; } = 1;
+
+        [Display(Name = "ترتيب الأسئلة عشوائياً")]
+        public bool RandomQuestions { get; set; } = false;
+
+        [Display(Name = "ترتيب الاختيارات عشوائياً")]
+        public bool ShuffleAnswers { get; set; } = false;
+
+        [Display(Name = "السماح بمراجعة الإجابات")]
+        public bool AllowReview { get; set; } = true;
+
+        [Display(Name = "إظهار النتيجة فوراً")]
+        public bool ShowResult { get; set; } = true;
+
+        // ==========================================
+        // 🔹 العلاقات (Relationships)
+        // ==========================================
 
         [ForeignKey("Class")]
         public int ClassId { get; set; }

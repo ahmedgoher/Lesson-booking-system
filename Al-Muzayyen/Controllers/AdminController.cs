@@ -23,15 +23,15 @@ public class AdminController : Controller
         private readonly IBookingRepo bookingRepo;
         private readonly IGroupRepo groupRepo;
         private readonly IConfiguration _configuration;
-
+    private readonly IClassService _ClassService;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     private readonly CloudinaryService _cloudinaryService;
-
+    private readonly IExamService _examService;
     public AdminController
 
             (IGenericService<Slot_time> slotTimeService,
-
+        IClassService ClassService,
         CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
             IGenericService<Admin> adminService,
             IGenericService<Class> classService,
@@ -42,7 +42,7 @@ public class AdminController : Controller
             IGenericService<Available_slot> availableSlotService,
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo,
-            IConfiguration configuration)
+            IConfiguration configuration, IExamService examService)
         {
         _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
@@ -57,7 +57,9 @@ public class AdminController : Controller
             this.bookingRepo = bookingRepo;
             this.groupRepo = groupRepo;
             _configuration = configuration;
-        }   
+        _examService = examService;
+        _ClassService = ClassService;
+    }   
         public IActionResult Index()
         {
             var model = new IndexVMAdmin
@@ -996,18 +998,70 @@ public class AdminController : Controller
 
 
     //===================================================================================================
-   
 
 
 
 
-    public IActionResult Exams()
+
+    // 1. عرض صفحة الامتحانات وجلب الصفوف الدراسية ديناميكياً
+    public async Task<IActionResult> Exams()
     {
-        return View();
+        // جلب قائمة الامتحانات
+        var examsList = await _examService.GetAllExamsViewModelsAsync();
+
+        // جلب الصفوف من _classService المحقونة لديك (IGenericService<Class>)
+        ViewBag.Classes = await _ClassService.GetAllClassesAsync();
+
+        return View(examsList);
     }
 
+    // 2. حفظ الامتحان (إضافة أو تعديل)
+    [HttpPost]
+    public async Task<IActionResult> SaveExam([FromBody] ExamViewModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Title))
+        {
+            return Json(new { success = false, message = "يرجى إدخال عنوان الامتحان" });
+        }
 
+        if (model.GradeId <= 0)
+        {
+            return Json(new { success = false, message = "يرجى اختيار الصف الدراسي" });
+        }
 
+        var examEntity = new Exam
+        {
+            Id = model.Id,
+            Title = model.Title,
+            Description = model.Description, // 🟢 إضافة الوصف
+            DurationMinutes = model.Duration > 0 ? model.Duration : 30,
+            IsActive = model.Status == "Active",
+            CreatedAt = model.Date != default ? model.Date : DateTime.Today,
+            StartExamTime = model.OpenDate ?? DateTime.Now,
+            EndExamTime = model.CloseDate ?? DateTime.Now.AddHours(2),
+            ClassId = model.GradeId,
+
+            // 🟢 ربط وحفظ كافة الخصائص والإعدادات الجديدة
+            TotalMarks = model.TotalMarks,
+            PassingMarks = model.PassingMarks,
+            MaxAttempts = model.MaxAttempts > 0 ? model.MaxAttempts : 1,
+            RandomQuestions = model.RandomQuestions,
+            ShuffleAnswers = model.ShuffleAnswers,
+            AllowReview = model.AllowReview,
+            ShowResult = model.ShowResult
+        };
+
+        if (model.Id > 0)
+        {
+            await _examService.UpdateExamAsync(examEntity);
+            return Json(new { success = true, message = "تم تعديل الامتحان بنجاح!" });
+        }
+        else
+        {
+            await _examService.CreateExamAsync(examEntity);
+            return Json(new { success = true, message = "تم إضافة الامتحان بنجاح!" });
+        }
+    }
     public IActionResult QExams()
     {
         return View();
