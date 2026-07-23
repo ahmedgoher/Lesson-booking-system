@@ -3,4 +3,85 @@
     ViewData["Title"] = "Attendance";
 }
 
-Attendance
+
+<div class="attendance-wrapper">
+    <div class="section-header-block">
+        <h2>سجل الحضور والغياب</h2>
+    </div>
+
+    <div class="filter-card">
+        <h3 class="filter-title"><i class="fas fa-filter"></i> تصفية السجل</h3>
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="attendance-month">الشهر:</label>
+                <select id="attendance-month" class="custom-select">
+                    <option value="1">يناير</option>
+                    <option value="2">فبراير</option>
+                    <option value="3">مارس</option>
+                    <option value="4">أبريل</option>
+                    <option value="5">مايو</option>
+                    <option value="6">يونيو</option>
+                    <option value="7">يوليو</option>
+                    <option value="8">أغسطس</option>
+                    <option value="9">سبتمبر</option>
+                    <option value="10">أكتوبر</option>
+                    <option value="11">نوفمبر</option>
+                    <option value="12">ديسمبر</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="attendance-year">السنة:</label>
+                <select id="attendance-year" class="custom-select">
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="attendance-status">الحالة:</label>
+                <select id="attendance-status" class="custom-select">
+                    <option value="all">الكل</option>
+                    <option value="present">حاضر</option>
+                    <option value="absent">غائب</option>
+                </select>
+            </div>
+        </div>
+        <button class="action-button fetch-btn">عرض السجل</button>
+    </div>
+
+    <div class="table-responsive-container">
+        <table class="data-display-table">
+            <thead>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                    <th>الملاحظات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="was-absent-last-time">
+                    <td>2026-07-22</td>
+                    <td>غائب <span class="absent-badge-inline">بعذر</span></td>
+                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
+                </tr>
+                <tr>
+                    <td>2026-07-21</td>
+                    <td>حاضر</td>
+                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
+                </tr>
+                <tr>
+                    <td>2026-07-20</td>
+                    <td>حاضر</td>
+                    <td><button class="note-indicator-btn has-note">عرض الملاحظة</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+    <script>
+        // أي سكريبتات خاصة بصفحة الحضور والغياب هنا
+        console.log("صفحة سجل الحضور والغياب جاهزة!");
+    </script>
+
