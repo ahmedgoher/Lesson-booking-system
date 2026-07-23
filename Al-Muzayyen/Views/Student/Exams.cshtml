@@ -1,9 +1,9 @@
-﻿@{
+﻿@model IEnumerable<Al_Muzayyen.ViewModels.StudentExamViewModel>
+
+@{
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "Exams";
 }
-
-
 
 <div class="exams-content">
     <div class="section-header-block">
@@ -21,32 +21,64 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>امتحان منتصف الفصل - الرياضيات</td>
-                    <td>2026-08-10</td>
-                    <td>لم يتم</td>
-                    <td><button class="action-icon-btn"><i class="fas fa-play"></i></button></td>
-                </tr>
-                <tr>
-                    <td>اختبار قصير - الكيمياء</td>
-                    <td>2026-07-25</td>
-                    <td>85/100</td>
-                    <td><button class="action-icon-btn"><i class="fas fa-eye"></i></button></td>
-                </tr>
-                <tr>
-                    <td>امتحان نهائي - الفيزياء</td>
-                    <td>2026-06-30</td>
-                    <td>92/100</td>
-                    <td><button class="action-icon-btn"><i class="fas fa-eye"></i></button></td>
-                </tr>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var exam in Model)
+                    {
+                        <tr>
+                            <td>@exam.ExamTitle</td>
+                            <td>@exam.Date.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @if (exam.IsCompleted)
+                                {
+                                    <span>@exam.Score / @exam.TotalMarks</span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--text-muted, #777);">لم يتم</span>
+                                }
+                            </td>
+                            <td>
+                                @if (exam.IsCompleted)
+                                {
+                                    <!-- 👁️ تم الامتحان: الانتقال لصفحة مراجعة الاجابات والنتيجة -->
+                                    <a asp-controller="Student"
+                                       asp-action="ReviewExam"
+                                       asp-route-id="@exam.ExamId"
+                                       class="action-icon-btn"
+                                       title="مراجعة الامتحان">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <!-- ▶️ لم يتم: الانتقال لصفحة خوض الامتحان -->
+                                    <a asp-controller="Student"
+                                       asp-action="TakeExam"
+                                       asp-route-id="@exam.ExamId"
+                                       class="action-icon-btn"
+                                       title="بدء الامتحان"
+                                       style="color: var(--success-color, #28a745);">
+                                        <i class="fas fa-play"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: var(--text-muted);">
+                            لا توجد امتحانات متاحة لصفك الدراسي حالياً.
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
 </div>
 
-
-    <script>
-        // أي سكريبتات خاصة بصفحة الامتحانات هنا
-        console.log("صفحة الامتحانات جاهزة!");
-    </script>
-
+<script>
+    console.log("صفحة الامتحانات جاهزة!");
+</script>

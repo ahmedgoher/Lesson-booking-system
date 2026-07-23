@@ -67,5 +67,6 @@ namespace Al_Muzayyen.Models
 
         public List<Question> Questions { get; set; } = new List<Question>();
         public List<StudentExam> StudentExams { get; set; } = new List<StudentExam>();
+        public List<ExamGroup> ExamGroups { get; set; } = new List<ExamGroup>();
     }
 }
