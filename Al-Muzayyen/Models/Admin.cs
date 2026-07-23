@@ -19,6 +19,11 @@ namespace Al_Muzayyen.Models
         [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "رقم الهاتف غير صحيح، يجب أن يتكون من 11 رقم مصري")]
         [Display(Name = "رقم التواصل")]
         public string? PhoneNumber { get; set; }
+        [Required(ErrorMessage = "برجاء إدخال كلمة المرور")]
+        [MinLength(6, ErrorMessage = "كلمة المرور يجب ألا تقل عن 6 أحرف/أرقام")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
+
 
         // --- الربط مع حساب الـ Identity ---
         [ForeignKey("User")]

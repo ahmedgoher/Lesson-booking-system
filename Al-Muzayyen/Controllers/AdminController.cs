@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using System.Security.Claims;
 
-[Authorize(AuthenticationSchemes = "AdminAuth")]
-    public class AdminController : Controller
+[Authorize(Roles = "Admin")]
+public class AdminController : Controller
     {
         private readonly IGenericService<Class> _classService;
         private readonly IGenericService<Admin> _AdminService;
@@ -640,51 +641,129 @@ using DocumentFormat.OpenXml.Bibliography;
             return RedirectToAction(nameof(Videos));
         }
         // 1. عرض صفحة تعديل الحساب
-        public IActionResult ChangeProfile()
+        //public IActionResult ChangeProfile()
+        //{
+        //    // قراءة البيانات الحالية وعرضها في الصفحة
+        //    ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
+        //    return View();
+        //}
+
+    // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
+    //[HttpPost]
+    //public IActionResult ChangeProfile(string newUsername, string newPassword)
+    //{
+    //    if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
+    //    {
+    //        TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
+    //        return View();
+    //    }
+
+    //    try
+    //    {
+    //        // مسار ملف appsettings.json الحقيقي على السيرفر
+    //        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+    //        var json = System.IO.File.ReadAllText(filePath);
+
+    //        // تعديل القيم ديناميكياً داخل نص الـ JSON
+    //        dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+    //        jsonObj["AdminSettings"]["Username"] = newUsername;
+    //        jsonObj["AdminSettings"]["Password"] = newPassword;
+
+    //        string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
+    //        System.IO.File.WriteAllText(filePath, output);
+
+    //        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
+
+    //        // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
+    //        return RedirectToAction("Logout", "Account");
+    //    }
+    //    catch (Exception)
+    //    {
+    //        TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
+    //        return View();
+    //    }
+    //}
+
+
+
+
+    // 🟢 1. عرض صفحة تعديل البيانات (GET)
+    [HttpGet]
+    public IActionResult ChangeProfile()
+    {
+        // جلب ID الآدمن الحالي من الكوكيز
+        var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Admin admin = null;
+        if (int.TryParse(adminIdClaim, out int adminId))
         {
-            // قراءة البيانات الحالية وعرضها في الصفحة
-            ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
-            return View();
+            admin = _AdminService.GetAll().FirstOrDefault(a => a.Id == adminId);
         }
 
-        // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
-        [HttpPost]
-        public IActionResult ChangeProfile(string newUsername, string newPassword)
+        // في حال عدم العثور عليه بـ ID الكوكيز، نأخذ أول أدمن متاح
+        if (admin == null)
         {
-            if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
-            {
-                TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
-                return View();
-            }
-
-            try
-            {
-                // مسار ملف appsettings.json الحقيقي على السيرفر
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-                var json = System.IO.File.ReadAllText(filePath);
-
-                // تعديل القيم ديناميكياً داخل نص الـ JSON
-                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-                jsonObj["AdminSettings"]["Username"] = newUsername;
-                jsonObj["AdminSettings"]["Password"] = newPassword;
-
-                string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-                System.IO.File.WriteAllText(filePath, output);
-
-                TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
-
-                // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
-                return RedirectToAction("Logout", "Account");
-            }
-            catch (Exception)
-            {
-                TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
-                return View();
-            }
+            admin = _AdminService.GetAll().FirstOrDefault();
         }
 
+        if (admin == null)
+        {
+            return RedirectToAction("login2", "Account");
+        }
 
+        // تمرير البيانات الحالية للـ View
+        ViewBag.CurrentUsername = admin.Name;
+        ViewBag.CurrentPhone = admin.PhoneNumber;
 
+        return View();
+    }
+
+    // 🟢 2. حفظ البيانات الجديدة في قاعدة البيانات (POST)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ChangeProfile(string newUsername, string newPhone, string newPassword)
+    {
+        var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Admin admin = null;
+        if (int.TryParse(adminIdClaim, out int adminId))
+        {
+            admin = _AdminService.GetAll().FirstOrDefault(a => a.Id == adminId);
+        }
+
+        if (admin == null)
+        {
+            admin = _AdminService.GetAll().FirstOrDefault();
+        }
+
+        if (admin == null)
+        {
+            TempData["Error"] = "لم يتم العثور على حساب الآدمن!";
+            return RedirectToAction(nameof(ChangeProfile));
+        }
+
+        // التحقق من أن الحقول ليست فارغة
+        if (string.IsNullOrWhiteSpace(newUsername) || string.IsNullOrWhiteSpace(newPassword))
+        {
+            TempData["Error"] = "برجاء ملء جميع الحقول المطلوبة!";
+            return RedirectToAction(nameof(ChangeProfile));
+        }
+
+        // تحديث البيانات
+        admin.Name = newUsername;
+        admin.Password = newPassword;
+
+        if (!string.IsNullOrWhiteSpace(newPhone))
+        {
+            admin.PhoneNumber = newPhone;
+        }
+
+        // حفظ التعديلات باستخدام _AdminService
+        _AdminService.Update(admin);
+
+        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح!";
+        return RedirectToAction(nameof(ChangeProfile));
+    }
 
 
 

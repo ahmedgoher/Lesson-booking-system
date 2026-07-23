@@ -3,29 +3,37 @@
     ViewData["Title"] = "تعديل حساب الآدمن";
 }
 
-<section style="padding: 30px; max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid rgba(212, 175, 55, 0.15); margin-top: 5px;">
-    <h2 style="color: #2b2b2b; text-align: center; margin-bottom: 25px;">تعديل بيانات الحساب </h2>
+<section style="padding: 30px; max-width: 500px; margin: 0 auto; background: #fff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid rgba(212, 175, 55, 0.15); margin-top: 20px;">
+    <h2 style="color: #2b2b2b; text-align: center; margin-bottom: 25px;">تعديل بيانات الحساب</h2>
 
     <form asp-action="ChangeProfile" asp-controller="Admin" method="post">
 
         @if (TempData["Error"] != null)
         {
-            <div style="color: red; background: #f8d7da; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
+            <div style="color: #721c24; background: #f8d7da; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
                 @TempData["Error"]
             </div>
         }
         @if (TempData["Success"] != null)
         {
-            <div style="color: green; background: #d4edda; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
+            <div style="color: #155724; background: #d4edda; padding: 10px; border-radius: 6px; text-align: center; margin-bottom: 15px;">
                 @TempData["Success"]
             </div>
         }
 
+        <!-- الاسم -->
         <div style="margin-bottom: 20px;">
-            <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a4a4a;">اسم المستخدم الجديد</label>
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a4a4a;">اسم الآدمن</label>
             <input type="text" name="newUsername" value="@ViewBag.CurrentUsername" required style="width:100%; padding:12px; border:1.5px solid #e0dbd5; border-radius:6px; box-sizing:border-box;">
         </div>
 
+        <!-- رقم الهاتف -->
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a4a4a;">رقم الهاتف (اسم المستخدم للدخول)</label>
+            <input type="text" name="newPhone" value="@ViewBag.CurrentPhone" required style="width:100%; padding:12px; border:1.5px solid #e0dbd5; border-radius:6px; box-sizing:border-box;">
+        </div>
+
+        <!-- كلمة المرور -->
         <div style="margin-bottom: 25px;">
             <label style="display:block; margin-bottom:8px; font-weight:600; color:#4a4a4a;">كلمة المرور الجديدة</label>
             <input type="password" name="newPassword" placeholder="اكتب كلمة المرور الجديدة" required style="width:100%; padding:12px; border:1.5px solid #e0dbd5; border-radius:6px; box-sizing:border-box;">

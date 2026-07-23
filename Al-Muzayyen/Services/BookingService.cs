@@ -2,6 +2,7 @@
 using Al_Muzayyen.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq; // 👈 إضافة System.Linq لاستخدام Any
 using System.Threading.Tasks;
 
 namespace Al_Muzayyen.Services
@@ -19,14 +20,22 @@ namespace Al_Muzayyen.Services
         public async Task<IEnumerable<Student>> GetAllBookingsAsync()
         {
             return await _bookingRepo.GetAllAsync();
-            // ملحوظة: لو حابب تعمل Include للتفاصيل، يفضل كتابة كود مخصص في الـ Repo
-            // لكن كبداية GetAllAsync تفي بالغرض جداً.
         }
 
         public async Task<Student?> GetBookingByIdAsync(int id) => await _bookingRepo.GetByIdAsync(id);
 
         public async Task<bool> CreateBookingAsync(Student booking)
         {
+            // 🟢 1. التحقق من عدم وجود رقم الهاتف مسبقاً
+            var allStudents = await _bookingRepo.GetAllAsync();
+            bool phoneExists = allStudents.Any(s => s.StdPhone == booking.StdPhone);
+
+            if (phoneExists)
+            {
+                return false; // إرجاع false ليقوم الـ Controller بإظهار رسالة الخطأ المناسبة
+            }
+
+            // 🟢 2. إضافة الطالب في حال كان الرقم غير مكرر
             await _bookingRepo.AddAsync(booking);
             return await _bookingRepo.SaveChangesAsync();
         }

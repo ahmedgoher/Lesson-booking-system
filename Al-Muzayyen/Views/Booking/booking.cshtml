@@ -58,7 +58,9 @@
                 </div>
             }
 
-            <form action="/Booking/booking" method="post" id="student-booking-form">
+            <!-- 🟢 تم التعديل هنا: استخدام asp-controller و asp-action وإضافة @Html.AntiForgeryToken() -->
+            <form asp-controller="Booking" asp-action="booking" method="post" id="student-booking-form">
+                @Html.AntiForgeryToken()
 
                 <div class="form-group">
                     <label>اسم الطالب بالكامل</label>
@@ -148,65 +150,67 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-    const gradeSelect = document.getElementById('select-grade');
-    const locationSelect = document.getElementById('select-location');
-    const groupSelect = document.getElementById('select-group');
+        const gradeSelect = document.getElementById('select-grade');
+        const locationSelect = document.getElementById('select-location');
+        const groupSelect = document.getElementById('select-group');
 
-    async function updateGroups() {
-    const gradeId = gradeSelect.value;
-    const locationId = locationSelect.value;
+        async function updateGroups() {
+            const gradeId = gradeSelect.value;
+            const locationId = locationSelect.value;
 
-    if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
-    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
-    groupSelect.disabled = true;
-    return;
-    }
+            if (!gradeId || gradeId === "0" || !locationId || locationId === "0") {
+                groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+                groupSelect.disabled = true;
+                return;
+            }
 
-    groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
-    groupSelect.disabled = true;
+            groupSelect.innerHTML = '<option value="0">جاري تحميل المجموعات...</option>';
+            groupSelect.disabled = true;
 
-    try {
-    const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
+            try {
+                const response = await fetch(`/Booking/GetAvailableSlots?classId=${gradeId}&placeId=${locationId}`);
 
-    if (response.ok) {
-    const slots = await response.json();
-    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
+                if (response.ok) {
+                    const slots = await response.json();
+                    groupSelect.innerHTML = '<option value="0">اختر المجموعة</option>';
 
-    if (slots.length > 0) {
-    slots.forEach(slot => {
-    const opt = document.createElement('option');
-    opt.value = slot.id;
-    opt.textContent = slot.name;
-    if ("@Model?.SlotId" == slot.id) opt.selected = true;
-    groupSelect.appendChild(opt);
-    });
-    groupSelect.disabled = false;
-    } else {
-    groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
-    }
+                    if (slots.length > 0) {
+                        slots.forEach(slot => {
+                            const opt = document.createElement('option');
+                            opt.value = slot.id;
+                            opt.textContent = slot.name;
+                            if ("@Model?.SlotId" == slot.id) opt.selected = true;
+                            groupSelect.appendChild(opt);
+                        });
+                        groupSelect.disabled = false;
+                    } else {
+                        groupSelect.innerHTML = '<option value="0">لا توجد مجموعات متاحة حالياً لهذا الصف في هذا المكان</option>';
+                    }
 
-    $("form").validate().element("#select-group");
-    }
-    } catch (error) {
-    console.error("حدث خطأ أثناء جلب المجموعات:", error);
-    groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
-    }
-    }
+                    if ($("form").data("validator")) {
+                        $("form").validate().element("#select-group");
+                    }
+                }
+            } catch (error) {
+                console.error("حدث خطأ أثناء جلب المجموعات:", error);
+                groupSelect.innerHTML = '<option value="0">حدث خطأ أثناء تحميل البيانات</option>';
+            }
+        }
 
-    gradeSelect.addEventListener('change', updateGroups);
-    locationSelect.addEventListener('change', updateGroups);
+        gradeSelect.addEventListener('change', updateGroups);
+        locationSelect.addEventListener('change', updateGroups);
 
-    if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
-    updateGroups();
-    }
+        if (gradeSelect.value && gradeSelect.value !== "0" && locationSelect.value && locationSelect.value !== "0") {
+            updateGroups();
+        }
     });
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-    var phone = "@ViewBag.number";
-    document.getElementById("whatsappBtn").href =
-    "https://wa.me/20" + phone +
-    "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز وتسجيل الحساب");
+    document.addEventListener("DOMContentLoaded", function() {
+        var phone = "@ViewBag.number";
+        document.getElementById("whatsappBtn").href =
+            "https://wa.me/20" + phone +
+            "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز وتسجيل الحساب");
     });
 </script>

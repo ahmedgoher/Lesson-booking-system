@@ -24,6 +24,12 @@ namespace Al_Muzayyen.Models
         [DataType(DataType.Date)]
         [Display(Name = "تاريخ الامتحان")]
         public DateTime CreatedAt { get; set; } = DateTime.Today;
+        [DataType(DataType.Date)]
+        [Display(Name = "وقت بداية الامتحان")]
+        public DateTime startExamTime { get; set; } 
+        [DataType(DataType.Date)]
+        [Display(Name = "وقت نهاية الامتحان")]
+        public DateTime endExamTime  { get; set; }
 
         [ForeignKey("Class")]
         public int ClassId { get; set; }
