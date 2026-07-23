@@ -144,6 +144,7 @@ namespace Al_Muzayyen.Controllers
 
             // التحقق من عدم تكرار رقم الهاتف مع طالب آخر
             bool phoneExists = await _context.Students.AnyAsync(s => s.StdPhone == model.StdPhone && s.Id != studentId);
+
             if (phoneExists)
             {
                 return Json(new { success = false, message = "رقم الهاتف مستخدم بالفعل لطالب آخر!" });
@@ -157,6 +158,37 @@ namespace Al_Muzayyen.Controllers
 
             return Json(new { success = true, message = "تم حفظ البيانات الشخصية بنجاح!" });
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePassword([FromBody] ChangePasswordVM model)
+        {
+            var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentIdClaim) || !int.TryParse(studentIdClaim, out int studentId))
+            {
+                return Json(new { success = false, message = "جلسة العمل انتهت، يرجى تسجيل الدخول مجدداً." });
+            }
+
+            var student = await _context.Students.FindAsync(studentId);
+            if (student == null) return Json(new { success = false, message = "الطالب غير موجود" });
+
+            // التأكد من صحة كلمة المرور الحالية
+            if (student.Password != model.CurrentPassword)
+            {
+                return Json(new { success = false, message = "كلمة المرور الحالية غير صحيحة!" });
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return Json(new { success = false, message = "كلمة المرور الجديدة وتأكيدها غير متطابقين!" });
+            }
+
+            // تحديث كلمة المرور
+            student.Password = model.NewPassword;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "تم تغيير كلمة المرور بنجاح!" });
+        }
+
         public IActionResult Account()
         {
             return View();
