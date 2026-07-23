@@ -74,6 +74,7 @@
             <tbody>
                 @foreach(var group in Model)
                 {
+                    
                     <tr data-id="@group.Id">
                         <td>@group.Group_Name</td>
                         <td>@group.Place?.Name</td>
@@ -83,13 +84,18 @@
                         </td>
                         <td>
                             <button type="button" onclick="openEditModal(@group.Id)" class="action-icon-btn" style="color:blue; background:none; border:none; cursor:pointer;"><i class="fas fa-edit"></i></button>
-                            
+                            <!-- زر إدارة المجموعة (تمت إضافته هنا) -->
+                            <a asp-action="GroupManagement" Asp-controller="Admin" class="action-icon-btn" style="color:green; background:none; border:none; cursor:pointer; text-decoration: none;" title="إدارة المجموعة">
+                                <i class="fas fa-users-cog"></i>
+                            </a>
                             <form asp-action="Delete" asp-route-id="@group.Id" method="post" onsubmit="return confirm('متأكد؟')" style="display:inline;">
                                 <button type="submit" class="action-icon-btn" style="color:red; background:none; border:none; cursor:pointer;"><i class="fas fa-trash"></i></button>
                             </form>
 
                         </td>
                     </tr>
+
+                     
                 }
             </tbody>
         </table>

@@ -1225,5 +1225,35 @@ public class AdminController : Controller
     }
 
 
+
+
+
+
+
+    public IActionResult GroupManagement()
+    {
+        return View();
+    }
+
+
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//================================================
