@@ -1,0 +1,190 @@
+﻿@model Al_Muzayyen.Viewmodel.AttendenceVM
+
+@{
+    ViewData["Title"] = "تسجيل الغياب والواجبات";
+    Layout = "~/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="attendance-wrapper">
+
+    <!-- الفلاتر العلوية -->
+    <div class="filter-card">
+        <h3 class="filter-title"><i class="fa-solid fa-filter"></i> اختيار الحصة والمجموعة</h3>
+        <div class="filter-grid">
+            <div class="form-group">
+                <label for="lessonDate">تاريخ الحصة:</label>
+                <input id="lessonDate" type="date" class="custom-input" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label for="gradeSelect">الصف الدراسي:</label>
+                <select id="gradeSelect" class="custom-select" asp-items="ViewBag.Places">
+                    <option value="">اختر الصف...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="centerSelect">المكان / السنتر:</label>
+                <select id="centerSelect" class="custom-select" asp-items="ViewBag.Places">
+                    <option value="">اختر المكان...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="groupSelect">المجموعة:</label>
+                <select id="groupSelect" class="custom-select">
+                    <option value="">اختر المجموعة...</option>
+                </select>
+            </div>
+        </div>
+        <button type="button" class="action-button fetch-btn" onclick="fetchStudentsData()">
+            <i class="fa-solid fa-users"></i> عرض الطلاب
+        </button>
+    </div>
+
+    <!-- حاوية عرض الجدول الديناميكي -->
+    <div id="students-table-container">
+        <!-- يتم تحميل الجدول هنا عبر AJAX -->
+    </div>
+
+</div>
+
+<!-- النافذة المنبثقة للملاحظات -->
+<div class="custom-popup-overlay" id="noteModal" style="display: none;">
+    <div class="popup-window-content">
+        <h3><i class="fa-regular fa-note-sticky" style="color: var(--primary-color);"></i> إضافة ملاحظة للطالب</h3>
+        <p id="modal-student-name" style="color: var(--primary-color); font-weight: bold; margin-top: 5px;"></p>
+
+        <div style="margin-top: 15px;">
+            <textarea id="student-note-textarea" placeholder="اكتب الملاحظة الخاصة بالطالب هنا..."></textarea>
+        </div>
+
+        <div class="popup-actions-flex">
+            <button type="button" onclick="saveStudentNote()">حفظ</button>
+            <button type="button" onclick="closeNoteModal()">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let activeStudentForNote = null;
+
+    // 1. تحميل المجموعات المتاحة عند تغيير الصف أو المكان
+    $('#gradeSelect, #centerSelect').change(function () {
+        var classId = $('#gradeSelect').val();
+        var placeId = $('#centerSelect').val();
+        var groupSelect = $('#groupSelect');
+
+        groupSelect.empty().append('<option value="">اختر المجموعة...</option>');
+
+        if (classId && placeId) {
+            $.getJSON('/Attendence/GetSlots', { classId: classId, placeId: placeId }, function (data) {
+                $.each(data, function (i, item) {
+                    groupSelect.append($('<option>', { value: item.id, text: item.name }));
+                });
+            });
+        }
+    });
+
+    // 2. عرض كشف الطلاب عبر Partial View
+    function fetchStudentsData() {
+        var slotId = $('#groupSelect').val();
+        var date = $('#lessonDate').val();
+
+        if (!slotId) {
+            alert("يرجى اختيار المجموعة أولاً");
+            return;
+        }
+
+        $.get('/Attendence/FetchStudents', { slotId: slotId, date: date }, function (html) {
+            $('#students-table-container').html(html);
+        });
+    }
+
+    // 3. فلترة الجدول بالاسم أو رقم الهاتف
+    function filterStudentsTable() {
+        const query = document.getElementById('search-student').value.toLowerCase();
+        const rows = document.querySelectorAll('#students-table-body tr');
+
+        rows.forEach(row => {
+            const name = (row.getAttribute('data-name') || '').toLowerCase();
+            const phone = row.getAttribute('data-phone') || '';
+
+            if (name.includes(query) || phone.includes(query)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    // 4. إدارة الملاحظات
+    function openNoteModal(studentId, studentName) {
+        activeStudentForNote = studentId;
+        document.getElementById('modal-student-name').innerText = studentName;
+
+        const existingNote = document.getElementById(`note-input-${studentId}`).value;
+        document.getElementById('student-note-textarea').value = existingNote;
+
+        document.getElementById('noteModal').style.display = 'flex';
+    }
+
+    function closeNoteModal() {
+        document.getElementById('noteModal').style.display = 'none';
+        activeStudentForNote = null;
+    }
+
+    function saveStudentNote() {
+        if (activeStudentForNote) {
+            const text = document.getElementById('student-note-textarea').value.trim();
+            const hiddenInput = document.getElementById(`note-input-${activeStudentForNote}`);
+            const noteBtn = document.getElementById(`note-btn-${activeStudentForNote}`);
+            const noteBtnText = document.getElementById(`note-text-btn-${activeStudentForNote}`);
+
+            hiddenInput.value = text;
+
+            if (text !== "") {
+                noteBtn.classList.add('has-note');
+                noteBtnText.innerText = "تمت الملاحظة";
+            } else {
+                noteBtn.classList.remove('has-note');
+                noteBtnText.innerText = "ملاحظة";
+            }
+        }
+        closeNoteModal();
+    }
+
+    // 5. حفظ البيانات وإرسالها إلى الـ Controller
+    function saveAttendanceData() {
+        var slotId = $('#groupSelect').val();
+        var date = $('#lessonDate').val();
+        var studentsData = [];
+
+        $('#studentsTable tbody tr').each(function () {
+            var row = $(this);
+            studentsData.push({
+                StudentId: parseInt(row.data('id')),
+                IsPresent: parseInt(row.find('.att-select').val()),
+                Homework: parseInt(row.find('.hw-select').val()),
+                Notes: row.find(`.note-input`).val()
+            });
+        });
+
+        var payload = {
+            SlotId: parseInt(slotId),
+            Date: date,
+            Students: studentsData
+        };
+
+        $.ajax({
+            url: '/Attendence/SaveAttendance',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+                alert(res.message);
+            },
+            error: function () {
+                alert("حدث خطأ أثناء حفظ البيانات!");
+            }
+        });
+    }
+</script>
