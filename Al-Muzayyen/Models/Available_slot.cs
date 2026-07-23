@@ -47,6 +47,6 @@ namespace Al_Muzayyen.Models
         [DataType(DataType.Date)]
         [Display(Name = "تاريخ البدء")]
         public DateTime StartDate { get; set; } // تعديل الحرف الأول لكابيتال
-
+        public List<ExamGroup> ExamGroups { get; set; } = new List<ExamGroup>();
     }
 }
