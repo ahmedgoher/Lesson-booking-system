@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<Al_Muzayyen.Viewmodel.QuestionListVM>
+@{
     Layout = "~/Views/Shared/_layoutadmin.cshtml";
     ViewData["Title"] = "أسئلة الامتحان";
 }
@@ -421,124 +422,235 @@
 
 <section id="questions-management-section">
     <!-- الهيدر العلوي -->
-    <div class="questions-header">
-        <div class="questions-header-info">
-            <h2>أسئلة الامتحان: اختبار تجريبي شريف</h2>
-            <p>إجمالي الأسئلة: 2 | المجموع: 5 درجات</p>
-        </div>
-        <button type="button" onclick="openCreateQuestionModal()" class="action-button">
-            <i class="fas fa-plus"></i> إضافة سؤال جديد
-        </button>
+  <div class="questions-header">
+    <div class="questions-header-info">
+        <h2>أسئلة الامتحان: @ViewBag.ExamName</h2>
+
+        <p>
+            إجمالي الأسئلة:
+            <strong>@ViewBag.TotalQuestions</strong>
+            |
+            المجموع:
+            <strong>@ViewBag.TotalMarks</strong> درجة
+        </p>
     </div>
 
-    <!-- قائمة عرض الأسئلة -->
-    <div class="questions-list">
+    <button type="button"
+            onclick="openCreateQuestionModal()"
+            class="action-button">
+        <i class="fas fa-plus"></i>
+        إضافة سؤال جديد
+    </button>
+</div>
 
-        <!-- سؤال 1: اختيار من متعدد مع صورة -->
-        <div class="question-card"
-             data-id="1"
-             data-text="ما اسم الشكل المعروض في الصورة أدناه؟"
-             data-type="MCQ"
-             data-score="2"
-             data-image="~/images/image.png"
-             data-opt1="مكعب"
-             data-opt2="متوازي مستطيلات"
-             data-opt3="هرم رباعي"
-             data-opt4="أسطوانة"
-             data-correct="2">
+<div class="questions-list">
 
-            <div class="question-card-header">
-                <div class="question-title-group">
-                    <span class="question-badge">سؤال 1</span>
-                    <span class="question-score-badge"><i class="fas fa-star"></i> 2 درجات</span>
-                    <span class="question-score-badge"><i class="fas fa-list-ul"></i> اختيار من متعدد</span>
-                </div>
-                <div>
-                    <button onclick="editQuestion(this)" class="action-icon-btn" title="تعديل السؤال" style="color: var(--primary-color);">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-icon-btn" title="حذف السؤال" style="color: var(--absent-color);">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+@{
+    int questionNumber = 1;
+}
+
+@foreach (var question in Model)
+{
+    var optionA = question.Options.ElementAtOrDefault(0)?.OptionText ?? "";
+    var optionB = question.Options.ElementAtOrDefault(1)?.OptionText ?? "";
+    var optionC = question.Options.ElementAtOrDefault(2)?.OptionText ?? "";
+    var optionD = question.Options.ElementAtOrDefault(3)?.OptionText ?? "";
+
+    var correctIndex = question.Options.FindIndex(x => x.IsCorrect);
+
+    <div class="question-card"
+         data-id="@question.Id"
+         data-text="@question.QuestionText"
+         data-type="@question.Type"
+         data-score="@question.Mark"
+         data-image="@question.ImageUrl"
+         data-opt1="@optionA"
+         data-opt2="@optionB"
+         data-opt3="@optionC"
+         data-opt4="@optionD"
+         data-correct="@(correctIndex + 1)">
+
+        <div class="question-card-header">
+            <div class="question-title-group">
+
+                <span class="question-badge">
+                    سؤال @questionNumber
+                </span>
+
+                <span class="question-score-badge">
+                    <i class="fas fa-star"></i>
+                    @question.Mark درجة
+                </span>
+
+                <span class="question-score-badge">
+
+                    @if (question.Type == Al_Muzayyen.Models.QuestionType.MCQ)
+                    {
+                        <i class="fas fa-list-ul"></i>
+                        <span>اختيار من متعدد</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-check-double"></i>
+                        <span>صح / خطأ</span>
+                    }
+
+                </span>
+
             </div>
 
-            <div class="question-text">ما اسم الشكل المعروض في الصورة أدناه؟</div>
+            <div>
+                <button onclick="editQuestion(this)"
+                        class="action-icon-btn"
+                        title="تعديل السؤال"
+                        style="color: var(--primary-color);">
+                    <i class="fas fa-edit"></i>
+                </button>
 
-            <!-- مكان المعاينة والتحكم في صورة السؤال -->
+                        <button onclick="deleteQuestion(@question.Id)"
+                                class="action-icon-btn"
+                                title="حذف السؤال"
+                                style="color: var(--absent-color);">
+                            <i class="fas fa-trash"></i>
+                        </button>
+            </div>
+        </div>
+
+        <div class="question-text">
+            @question.QuestionText
+        </div>
+
+        @if (!string.IsNullOrEmpty(question.ImageUrl))
+        {
             <div class="question-image-wrapper">
-                <img src="~/images/image.png" alt="صورة السؤال">
+
+                <img src="@question.ImageUrl" alt="صورة السؤال" />
+
                 <div class="image-actions-overlay">
-                    <button type="button" class="img-action-btn" onclick="triggerImageChange(1)" title="تغيير الصورة">
+
+                    <button type="button"
+                            class="img-action-btn"
+                            onclick="triggerImageChange(@question.Id)"
+                            title="تغيير الصورة">
                         <i class="fas fa-camera"></i>
                     </button>
-                    <button type="button" class="img-action-btn" title="حذف الصورة" style="color: var(--absent-color);">
+
+                    <button type="button"
+                            class="img-action-btn"
+                            title="حذف الصورة"
+                            style="color: var(--absent-color);">
                         <i class="fas fa-times"></i>
                     </button>
+
                 </div>
+
             </div>
+        }
 
-            <!-- خيارات الإجابة -->
-            <div class="options-grid">
-                <div class="option-item">
-                    <span class="option-icon"><i class="far fa-circle"></i></span> أ) مكعب
-                </div>
-                <div class="option-item correct-answer">
-                    <span class="option-icon"><i class="fas fa-check-circle"></i></span> ب) متوازي مستطيلات (الإجابة الصحيحة)
-                </div>
-                <div class="option-item">
-                    <span class="option-icon"><i class="far fa-circle"></i></span> ج) هرم رباعي
-                </div>
-                <div class="option-item">
-                    <span class="option-icon"><i class="far fa-circle"></i></span> د) أسطوانة
-                </div>
-            </div>
-        </div>
+        <div class="options-grid">
 
-        <!-- سؤال 2: صح وخطأ (بدون صورة) -->
-        <div class="question-card"
-             data-id="2"
-             data-text="تعتبر يد الرافعات من أجهزة الدرجة الأولى."
-             data-type="TrueFalse"
-             data-score="3"
-             data-image=""
-             data-tf-correct="false">
+            @if (question.Type == Al_Muzayyen.Models.QuestionType.MCQ)
+            {
+                var letters = new[] { "أ", "ب", "ج", "د" };
 
-            <div class="question-card-header">
-                <div class="question-title-group">
-                    <span class="question-badge">سؤال 2</span>
-                    <span class="question-score-badge"><i class="fas fa-star"></i> 3 درجات</span>
-                    <span class="question-score-badge"><i class="fas fa-check-double"></i> صح / خطأ</span>
-                </div>
-                <div>
-                    <button onclick="editQuestion(this)" class="action-icon-btn" title="تعديل السؤال" style="color: var(--primary-color);">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-icon-btn" title="حذف السؤال" style="color: var(--absent-color);">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
+                @for (int i = 0; i < question.Options.Count; i++)
+                {
+                    var option = question.Options[i];
 
-            <div class="question-text">تعتبر يد الرافعات من أجهزة الدرجة الأولى.</div>
+                    <div class="option-item @(option.IsCorrect ? "correct-answer" : "")">
 
-            <!-- خيارات صح وخطأ -->
-            <div class="options-grid">
-                <div class="option-item">
-                    <span class="option-icon"><i class="far fa-circle"></i></span> صح (True)
+                        @if (option.IsCorrect)
+                        {
+                            <span class="option-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="option-icon">
+                                <i class="far fa-circle"></i>
+                            </span>
+                        }
+
+                        @letters[i]) @option.OptionText
+
+                        @if (option.IsCorrect)
+                        {
+                            <span>(الإجابة الصحيحة)</span>
+                        }
+
+                    </div>
+                }
+            }
+            else
+            {
+                var trueOption = question.Options.FirstOrDefault(x => x.OptionText == "True");
+                var falseOption = question.Options.FirstOrDefault(x => x.OptionText == "False");
+
+                <div class="option-item @(trueOption?.IsCorrect == true ? "correct-answer" : "")">
+
+                    @if (trueOption?.IsCorrect == true)
+                    {
+                        <span class="option-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="option-icon">
+                            <i class="far fa-circle"></i>
+                        </span>
+                    }
+
+                    صح
+
+                    @if (trueOption?.IsCorrect == true)
+                    {
+                        <span>(الإجابة الصحيحة)</span>
+                    }
+
                 </div>
-                <div class="option-item correct-answer">
-                    <span class="option-icon"><i class="fas fa-check-circle"></i></span> خطأ (False) - (الإجابة الصحيحة)
+
+                <div class="option-item @(falseOption?.IsCorrect == true ? "correct-answer" : "")">
+
+                    @if (falseOption?.IsCorrect == true)
+                    {
+                        <span class="option-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="option-icon">
+                            <i class="far fa-circle"></i>
+                        </span>
+                    }
+
+                    خطأ
+
+                    @if (falseOption?.IsCorrect == true)
+                    {
+                        <span>(الإجابة الصحيحة)</span>
+                    }
+
                 </div>
-            </div>
+            }
+
         </div>
 
     </div>
+
+    questionNumber++;
+}
+
+</div>
 </section>
 
-<!-- مدخل ملفات مخفي لتغيير الصورة بسرعة -->
-<input type="file" id="quick-image-input" accept="image/*" style="display:none;" onchange="handleImageSelected(this)">
-
+<input type="file"
+       id="quick-image-input"
+       accept="image/*"
+       style="display:none;"
+       onchange="handleImageSelected(this)">
 <!-- Popup Modal: إضافة أو تعديل سؤال -->
 <div id="question-modal" class="custom-popup-overlay" style="display:none;">
     <div class="popup-window-content">
@@ -552,7 +664,7 @@
 
         <form id="question-form">
             <input type="hidden" id="question-id" value="">
-
+            <input type="hidden" id="question-exam-id" value="@ViewBag.ExamId">
             <div class="input-field-group">
                 <label for="question-text-input">نص السؤال</label>
                 <textarea id="question-text-input" rows="3" placeholder="أدخل نص السؤال هنا..."></textarea>
@@ -626,7 +738,12 @@
 
             <!-- أزرار الحفظ والإلغاء -->
             <div class="popup-actions-flex">
-                <button type="button" class="action-button">حفظ السؤال</button>
+                <button type="button"
+        id="save-question-btn"
+        class="action-button"
+        onclick="saveQuestion()">
+    حفظ السؤال
+</button>
                 <button type="button" class="cancel-btn" onclick="closeModal('question-modal')">إلغاء</button>
             </div>
         </form>
@@ -645,45 +762,288 @@
         document.getElementById(modalId).style.display = "none";
     }
 
-    // فتح النافذة لإضافة سؤال جديد
-    function openCreateQuestionModal() {
-        document.getElementById('modal-title').innerText = "إضافة سؤال جديد";
-        document.getElementById('question-form').reset();
-        document.getElementById('question-id').value = "";
-        toggleQuestionTypeUI();
-        openModal('question-modal');
+    // helper للحصول على Anti-Forgery Token إن وجد
+    function getAntiforgeryToken() {
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenInput ? tokenInput.value : '';
     }
 
-    // قراءة وتعبئة بيانات السؤال عند ضغط "تعديل"
-    function editQuestion(buttonBtn) {
-        const card = buttonBtn.closest('.question-card');
+    //==============================
+    // فتح نافذة إضافة سؤال جديد
+    //==============================
+    function openCreateQuestionModal() {
+        document.getElementById("modal-title").innerText = "إضافة سؤال جديد";
+        document.getElementById("question-form").reset();
+        document.getElementById("question-id").value = ""; // تفريغ الـ ID ليصبح سؤال جديد
+        document.getElementById("question-type-select").value = "MCQ";
+        document.getElementById("mcq-r1").checked = true;
+        document.getElementById("tf-r-true").checked = true;
 
-        document.getElementById('modal-title').innerText = "تعديل السؤال";
-        document.getElementById('question-id').value = card.dataset.id || '';
-        document.getElementById('question-text-input').value = card.dataset.text || '';
-        document.getElementById('question-score-input').value = card.dataset.score || '1';
+        toggleQuestionTypeUI();
+        openModal("question-modal");
+    }
 
-        const qType = card.dataset.type || 'MCQ';
-        document.getElementById('question-type-select').value = qType;
+    //==============================
+    // فتح نافذة تعديل سؤال
+    //==============================
+    function editQuestion(btn) {
+        const card = btn.closest(".question-card");
 
-        if (qType === 'MCQ') {
-            document.getElementById('mcq-opt-1').value = card.dataset.opt1 || '';
-            document.getElementById('mcq-opt-2').value = card.dataset.opt2 || '';
-            document.getElementById('mcq-opt-3').value = card.dataset.opt3 || '';
-            document.getElementById('mcq-opt-4').value = card.dataset.opt4 || '';
+        document.getElementById("modal-title").innerText = "تعديل السؤال";
 
-            const correctOpt = card.dataset.correct || '1';
-            const radioToSelect = document.getElementById('mcq-r' + correctOpt);
-            if (radioToSelect) radioToSelect.checked = true;
+        // تعبئة الـ ID ليعرف السيرفر أن العملية "تعديل"
+        document.getElementById("question-id").value = card.dataset.id;
+        document.getElementById("question-text-input").value = card.dataset.text;
+        document.getElementById("question-score-input").value = card.dataset.score;
+        document.getElementById("question-type-select").value = card.dataset.type;
+
+        toggleQuestionTypeUI();
+
+        if (card.dataset.type === "MCQ") {
+            document.getElementById("mcq-opt-1").value = card.dataset.opt1 || "";
+            document.getElementById("mcq-opt-2").value = card.dataset.opt2 || "";
+            document.getElementById("mcq-opt-3").value = card.dataset.opt3 || "";
+            document.getElementById("mcq-opt-4").value = card.dataset.opt4 || "";
+
+            if (card.dataset.correct) {
+                const radio = document.getElementById("mcq-r" + card.dataset.correct);
+                if (radio) radio.checked = true;
+            }
         } else {
-            const isTrue = card.dataset.tfCorrect === 'true';
-            document.getElementById('tf-r-true').checked = isTrue;
-            document.getElementById('tf-r-false').checked = !isTrue;
+            // تحديد الإجابة الصحيحة في حالة الصح والخطأ
+            if (card.dataset.correct === "1") {
+                document.getElementById("tf-r-true").checked = true;
+            } else {
+                document.getElementById("tf-r-false").checked = true;
+            }
         }
 
-        toggleQuestionTypeUI();
-        openModal('question-modal');
+        openModal("question-modal");
     }
+
+    //==============================
+    // تغيير واجهة خيارات السؤال
+    //==============================
+    function toggleQuestionTypeUI() {
+        const type = document.getElementById("question-type-select").value;
+
+        if (type === "MCQ") {
+            document.getElementById("mcq-options-container").style.display = "block";
+            document.getElementById("tf-options-container").style.display = "none";
+        } else {
+            document.getElementById("mcq-options-container").style.display = "none";
+            document.getElementById("tf-options-container").style.display = "block";
+        }
+    }
+
+    //==============================
+    // تغيير صورة السؤال السريع
+    //==============================
+    async function deleteQuestion(questionId) {
+        if (!confirm("هل أنت تأكد من رغبتك في حذف هذا السؤال؟")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/Admin/DeleteQuestion?id=${questionId}`, {
+                method: "POST",
+                headers: {
+                    "RequestVerificationToken": getAntiforgeryToken()
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message);
+                location.reload(); // إعادة تحميل الصفحة لتحديث القائمة
+            } else {
+                alert(result.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("حدث خطأ أثناء الاتصال بالسيرفر");
+        }
+    }
+    function triggerImageChange(id) {
+        currentEditingQuestionId = id;
+        document.getElementById("quick-image-input").click();
+    }
+
+    function handleImageSelected(input) {
+        if (input.files && input.files.length > 0) {
+            alert("تم اختيار صورة جديدة للسؤال رقم: " + currentEditingQuestionId);
+        }
+    }
+
+    //==============================
+    // حفظ / تعديل السؤال
+    //==============================
+    async function saveQuestion() {
+        const saveBtn = document.getElementById("save-question-btn");
+
+        const questionText = document.getElementById("question-text-input").value.trim();
+        if (questionText === "") {
+            alert("يرجى كتابة نص السؤال");
+            return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = "جارى الحفظ...";
+
+        try {
+            const type = document.getElementById("question-type-select").value;
+            let correctAnswer = "";
+
+            if (type === "MCQ") {
+                const selected = document.querySelector("input[name='mcq-correct-group']:checked");
+                if (!selected) {
+                    alert("اختر الإجابة الصحيحة");
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = "حفظ السؤال";
+                    return;
+                }
+
+                switch (selected.value) {
+                    case "1": correctAnswer = "A"; break;
+                    case "2": correctAnswer = "B"; break;
+                    case "3": correctAnswer = "C"; break;
+                    case "4": correctAnswer = "D"; break;
+                }
+            } else {
+                const selectedTF = document.querySelector("input[name='tf-correct-group']:checked");
+                correctAnswer = selectedTF ? selectedTF.value : "true";
+            }
+
+            const formData = new FormData();
+
+            // 👈 هذا هو السطر المفتاح لحل مشكلة التعديل
+            formData.append("Id", document.getElementById("question-id").value);
+
+            formData.append("ExamId", document.getElementById("question-exam-id").value);
+            formData.append("QuestionText", questionText);
+            formData.append("Mark", document.getElementById("question-score-input").value);
+            formData.append("Type", type);
+
+            if (type === "MCQ") {
+                formData.append("OptionA", document.getElementById("mcq-opt-1").value);
+                formData.append("OptionB", document.getElementById("mcq-opt-2").value);
+                formData.append("OptionC", document.getElementById("mcq-opt-3").value);
+                formData.append("OptionD", document.getElementById("mcq-opt-4").value);
+            }
+
+            formData.append("CorrectAnswer", correctAnswer);
+
+            const image = document.getElementById("question-image-input").files[0];
+            if (image) {
+                formData.append("image", image);
+            }
+
+            const headers = {};
+            const token = getAntiforgeryToken();
+            if (token) {
+                headers["RequestVerificationToken"] = token;
+            }
+
+            const response = await fetch("/Admin/SaveQuestion", {
+                method: "POST",
+                headers: headers,
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message || "تم الحفظ بنجاح");
+                closeModal("question-modal");
+                document.getElementById("question-form").reset();
+                location.reload();
+            } else {
+                alert(result.message || "حدث خطأ أثناء الحفظ");
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("حدث خطأ أثناء الاتصال بالسيرفر");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = "حفظ السؤال";
+        }
+    }
+</script>
+@* <script>
+    let currentEditingQuestionId = null;
+
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = "flex";
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    // فتح النافذة لإضافة سؤال جديد
+    function openCreateQuestionModal() {
+
+    document.getElementById("modal-title").innerText = "إضافة سؤال جديد";
+
+    document.getElementById("question-form").reset();
+
+    document.getElementById("question-id").value = "";
+
+    document.getElementById("question-type-select").value = "MCQ";
+
+    document.getElementById("mcq-r1").checked = true;
+
+    document.getElementById("tf-r-true").checked = true;
+
+    toggleQuestionTypeUI();
+
+    openModal("question-modal");
+}
+    // قراءة وتعبئة بيانات السؤال عند ضغط "تعديل"
+    function editQuestion(btn) {
+
+    const card = btn.closest(".question-card");
+
+    document.getElementById("modal-title").innerText = "تعديل السؤال";
+
+    document.getElementById("question-id").value = card.dataset.id;
+
+    document.getElementById("question-text-input").value = card.dataset.text;
+
+    document.getElementById("question-score-input").value = card.dataset.score;
+
+    document.getElementById("question-type-select").value = card.dataset.type;
+
+    toggleQuestionTypeUI();
+
+    if (card.dataset.type == "MCQ") {
+
+        document.getElementById("mcq-opt-1").value = card.dataset.opt1;
+
+        document.getElementById("mcq-opt-2").value = card.dataset.opt2;
+
+        document.getElementById("mcq-opt-3").value = card.dataset.opt3;
+
+        document.getElementById("mcq-opt-4").value = card.dataset.opt4;
+
+        document.getElementById("mcq-r" + card.dataset.correct).checked = true;
+    }
+    else {
+
+        if (card.dataset.correct == "1") {
+
+            document.getElementById("tf-r-true").checked = true;
+        }
+        else {
+
+            document.getElementById("tf-r-false").checked = true;
+        }
+    }
+
+    openModal("question-modal");
+}
 
     // التبديل بين واجهة MCQ و TrueFalse
     function toggleQuestionTypeUI() {
@@ -711,4 +1071,400 @@
             alert('تم اختيار صورة جديدة بنجاح للسؤال رقم: ' + currentEditingQuestionId);
         }
     }
-</script>
+    async function saveQuestion() {
+
+    const saveBtn = document.getElementById("save-question-btn");
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = "جارى الحفظ...";
+
+    const type = document.getElementById("question-type-select").value;
+
+    let correctAnswer = "";
+
+    if (type === "MCQ") {
+
+        const selected =
+            document.querySelector("input[name='mcq-correct-group']:checked");
+
+        switch (selected.value) {
+
+            case "1":
+                correctAnswer = "A";
+                break;
+
+            case "2":
+                correctAnswer = "B";
+                break;
+
+            case "3":
+                correctAnswer = "C";
+                break;
+
+            case "4":
+                correctAnswer = "D";
+                break;
+        }
+    }
+    else {
+
+        correctAnswer =
+            document.querySelector("input[name='tf-correct-group']:checked").value;
+    }
+
+    const formData = new FormData();
+
+    formData.append("ExamId", document.getElementById("question-exam-id").value);
+
+    formData.append("QuestionText",
+        document.getElementById("question-text-input").value);
+
+    formData.append("Mark",
+        document.getElementById("question-score-input").value);
+
+    formData.append("Type", type);
+
+    formData.append("OptionA",
+        document.getElementById("mcq-opt-1").value);
+
+    formData.append("OptionB",
+        document.getElementById("mcq-opt-2").value);
+
+    formData.append("OptionC",
+        document.getElementById("mcq-opt-3").value);
+
+    formData.append("OptionD",
+        document.getElementById("mcq-opt-4").value);
+
+    formData.append("CorrectAnswer", correctAnswer);
+
+    const image =
+        document.getElementById("question-image-input").files[0];
+
+    if (image) {
+
+        formData.append("image", image);
+
+    }
+
+    const questionText =
+        document.getElementById("question-text-input").value.trim();
+
+    if (questionText === "") {
+
+        alert("اكتب السؤال");
+
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = "حفظ السؤال";
+        return;
+    }
+
+    try {
+
+        const response = await fetch("/Admin/SaveQuestion", {
+
+            method: "POST",
+
+            headers: {
+                RequestVerificationToken: getAntiforgeryToken()
+            },
+
+            body: formData
+
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            alert(result.message);
+
+            closeModal("question-modal");
+
+            document.getElementById("question-form").reset();
+
+            toggleQuestionTypeUI();
+
+            location.reload();
+
+        }
+        else {
+
+            alert(result.message);
+
+        }
+
+    }
+    catch (e) {
+
+        console.error(e);
+
+        alert("حدث خطأ أثناء الاتصال بالسيرفر");
+
+    }
+    finally {
+
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = "حفظ السؤال";
+
+    }
+
+}
+</script> *@
+@* <script>
+
+let currentEditingQuestionId = null;
+
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = "flex";
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+//==============================
+// فتح نافذة إضافة سؤال
+//==============================
+function openCreateQuestionModal() {
+
+    document.getElementById("modal-title").innerText = "إضافة سؤال جديد";
+
+    document.getElementById("question-form").reset();
+
+    document.getElementById("question-id").value = "";
+
+    document.getElementById("question-type-select").value = "MCQ";
+
+    document.getElementById("mcq-r1").checked = true;
+
+    document.getElementById("tf-r-true").checked = true;
+
+    toggleQuestionTypeUI();
+
+    openModal("question-modal");
+}
+
+//==============================
+// تعديل سؤال
+//==============================
+function editQuestion(btn) {
+
+    const card = btn.closest(".question-card");
+
+    document.getElementById("modal-title").innerText = "تعديل السؤال";
+
+    document.getElementById("question-id").value = card.dataset.id;
+
+    document.getElementById("question-text-input").value = card.dataset.text;
+
+    document.getElementById("question-score-input").value = card.dataset.score;
+
+    document.getElementById("question-type-select").value = card.dataset.type;
+
+    toggleQuestionTypeUI();
+
+    if (card.dataset.type === "MCQ") {
+
+        document.getElementById("mcq-opt-1").value = card.dataset.opt1;
+        document.getElementById("mcq-opt-2").value = card.dataset.opt2;
+        document.getElementById("mcq-opt-3").value = card.dataset.opt3;
+        document.getElementById("mcq-opt-4").value = card.dataset.opt4;
+
+        document.getElementById("mcq-r" + card.dataset.correct).checked = true;
+    }
+
+    openModal("question-modal");
+}
+
+//==============================
+// تغيير واجهة السؤال
+//==============================
+function toggleQuestionTypeUI() {
+
+    const type = document.getElementById("question-type-select").value;
+
+    if (type === "MCQ") {
+
+        document.getElementById("mcq-options-container").style.display = "block";
+        document.getElementById("tf-options-container").style.display = "none";
+
+    } else {
+
+        document.getElementById("mcq-options-container").style.display = "none";
+        document.getElementById("tf-options-container").style.display = "block";
+
+    }
+
+}
+
+//==============================
+// تغيير صورة السؤال
+//==============================
+function triggerImageChange(id) {
+
+    currentEditingQuestionId = id;
+
+    document.getElementById("quick-image-input").click();
+
+}
+
+function handleImageSelected(input) {
+
+    if (input.files.length > 0) {
+
+        alert("تم اختيار صورة جديدة.");
+
+    }
+
+}
+
+//==============================
+// حفظ السؤال
+//==============================
+async function saveQuestion() {
+
+    const saveBtn = document.getElementById("save-question-btn");
+
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = "جارى الحفظ...";
+
+    try {
+
+        const questionText =
+            document.getElementById("question-text-input").value.trim();
+
+        if (questionText === "") {
+
+            alert("اكتب السؤال");
+            return;
+        }
+
+        const type =
+            document.getElementById("question-type-select").value;
+
+        let correctAnswer = "";
+
+        if (type === "MCQ") {
+
+            const selected =
+                document.querySelector("input[name='mcq-correct-group']:checked");
+
+            if (!selected) {
+
+                alert("اختر الإجابة الصحيحة");
+
+                return;
+            }
+
+            switch (selected.value) {
+
+                case "1":
+                    correctAnswer = "A";
+                    break;
+
+                case "2":
+                    correctAnswer = "B";
+                    break;
+
+                case "3":
+                    correctAnswer = "C";
+                    break;
+
+                case "4":
+                    correctAnswer = "D";
+                    break;
+            }
+
+        }
+        else {
+
+            correctAnswer =
+                document.querySelector("input[name='tf-correct-group']:checked").value;
+
+        }
+
+        const formData = new FormData();
+
+        formData.append("ExamId",
+            document.getElementById("question-exam-id").value);
+
+        formData.append("QuestionText",
+            questionText);
+
+        formData.append("Mark",
+            document.getElementById("question-score-input").value);
+
+        formData.append("Type",
+            type);
+
+        formData.append("OptionA",
+            document.getElementById("mcq-opt-1").value);
+
+        formData.append("OptionB",
+            document.getElementById("mcq-opt-2").value);
+
+        formData.append("OptionC",
+            document.getElementById("mcq-opt-3").value);
+
+        formData.append("OptionD",
+            document.getElementById("mcq-opt-4").value);
+
+        formData.append("CorrectAnswer",
+            correctAnswer);
+
+        const image =
+            document.getElementById("question-image-input").files[0];
+
+        if (image) {
+
+            formData.append("image", image);
+
+        }
+
+        const response = await fetch("/Admin/SaveQuestion", {
+
+            method: "POST",
+
+            body: formData
+
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            alert(result.message);
+
+            closeModal("question-modal");
+
+            document.getElementById("question-form").reset();
+
+            location.reload();
+
+        }
+        else {
+
+            alert(result.message);
+
+        }
+
+    }
+    catch (err) {
+
+        console.error(err);
+
+        alert("حدث خطأ أثناء الحفظ");
+
+    }
+    finally {
+
+        saveBtn.disabled = false;
+
+        saveBtn.innerHTML = "حفظ السؤال";
+
+    }
+
+}
+
+</script> *@

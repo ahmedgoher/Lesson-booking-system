@@ -8,7 +8,9 @@ namespace Al_Muzayyen.Services
         Task<IEnumerable<Exam>> GetAllExamsAsync();
         Task<Exam?> GetExamByIdAsync(int id);
         Task CreateExamAsync(Exam exam);
-        Task UpdateExamAsync(Exam exam);
+        //Task UpdateExamAsync(Exam exam);
+        Task<bool> UpdateExamAsync(ExamViewModel model);
+
         Task DeleteExamAsync(int id);
         Task<IEnumerable<ExamViewModel>> GetAllExamsViewModelsAsync();
     }

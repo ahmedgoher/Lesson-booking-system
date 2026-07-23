@@ -42,6 +42,12 @@ namespace Al_Muzayyen.Models
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
             }
+            modelBuilder.Entity<QuestionOption>()
+    .HasOne(o => o.Question)
+    .WithMany(q => q.Options)
+    .HasForeignKey(o => o.QuestionId)
+    .OnDelete(DeleteBehavior.Cascade); // 👈 حذف الخيارات تلقائياً عند حذف السؤال
         }
+
     }
 }

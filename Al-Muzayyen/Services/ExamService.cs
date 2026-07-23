@@ -28,12 +28,45 @@ namespace Al_Muzayyen.Services
             await _examRepository.AddAsync(exam);
             await _examRepository.SaveAsync();
         }
-
-        public async Task UpdateExamAsync(Exam exam)
+        public async Task<bool> UpdateExamAsync(ExamViewModel model)
         {
-            _examRepository.Update(exam);
+            var exam = await _examRepository.GetByIdAsync(model.Id);
+
+            if (exam == null)
+                return false;
+
+            exam.Title = model.Title;
+            exam.Description = model.Description;
+            exam.ClassId = model.GradeId;
+
+            exam.DurationMinutes = model.Duration;
+            exam.IsActive = model.Status == "Active";
+
+            exam.StartExamTime = model.OpenDate ?? exam.StartExamTime;
+            exam.EndExamTime = model.CloseDate ?? exam.EndExamTime;
+
+            exam.TotalMarks = model.TotalMarks;
+            exam.PassingMarks = model.PassingMarks;
+            exam.MaxAttempts = model.MaxAttempts;
+
+            exam.RandomQuestions = model.RandomQuestions;
+            exam.ShuffleAnswers = model.ShuffleAnswers;
+            exam.AllowReview = model.AllowReview;
+            exam.ShowResult = model.ShowResult;
+
+            // لو المستخدم غير التاريخ
+            if (model.Date != default)
+                exam.CreatedAt = model.Date;
+
             await _examRepository.SaveAsync();
+
+            return true;
         }
+        //public async Task UpdateExamAsync(Exam exam)
+        //{
+        //    _examRepository.Update(exam);
+        //    await _examRepository.SaveAsync();
+        //}
 
         public async Task DeleteExamAsync(int id)
         {
