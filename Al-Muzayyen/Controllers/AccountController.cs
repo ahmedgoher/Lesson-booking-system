@@ -103,8 +103,7 @@ namespace Al_Muzayyen.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpGet, HttpPost]
         public async Task<IActionResult> Logout()
         {
             // مسح كوكيز التوثيق الموحدة
