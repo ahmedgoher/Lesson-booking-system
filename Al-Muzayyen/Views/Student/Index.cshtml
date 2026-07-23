@@ -1,7 +1,550 @@
 ﻿@{
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
-    ViewData["Title"] = "Dashbord";
+    ViewData["Title"] = "لوحة التحكم";
+}
+<style>
+/* =========================================================
+   7. تنسيقات لوحة تحكم الطالب (Student Dashboard Styling)
+   ========================================================= */
+
+.dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 
+/* بطاقة تعريف الطالب */
+.student-profile-banner {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    flex-wrap: wrap;
+    gap: 20px;
+}
 
-index
+.student-info-main {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.student-avatar-badge {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--bg-alt-2);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    border: 2px solid var(--primary-color);
+    flex-shrink: 0;
+}
+
+.student-name {
+    font-size: 1.4rem;
+    color: var(--text-color);
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.student-meta-tags {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background-color: var(--bg-alt);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.academic-level-badge {
+    padding: 12px 16px;
+    border-radius: 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background-color: var(--bg-alt);
+    border: 1px solid var(--border-color);
+}
+
+.level-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.level-value {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 1.05rem;
+}
+
+/* رؤوس الأقسام */
+.section-header-block h2 {
+    font-size: 1.15rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header-block h2 i {
+    color: var(--primary-color);
+}
+
+/* شبكة الإحصائيات */
+.dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.metric-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.bg-primary-light { background-color: rgba(197, 160, 89, 0.15); color: var(--primary-color); }
+.bg-warning-light { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.bg-success-light { background-color: rgba(34, 197, 94, 0.15); color: #22c55e; }
+.bg-info-light { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+.metric-info h3 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.metric-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-color);
+    margin: 2px 0;
+}
+
+.metric-subtext {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* بطاقات التنبيهات */
+.alerts-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.alert-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-right: 4px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+}
+
+.alert-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-top: 2px;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.alert-header h4 {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.alert-badge.new {
+    background-color: var(--primary-color);
+    color: var(--bg-dark);
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.alert-content p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.alert-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+}
+
+/* الشبكة الثانوية والألواح Side Panels */
+.dashboard-secondary-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.dashboard-panel {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-header h3 {
+    font-size: 1rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-link {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.recent-items-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recent-items-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: var(--bg-alt);
+}
+
+.item-icon {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h4 {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.item-details span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.btn-icon {
+    color: var(--text-muted);
+    padding: 6px;
+    transition: color 0.2s ease;
+}
+
+.btn-icon:hover {
+    color: var(--primary-color);
+}
+
+.next-class-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--bg-alt);
+    padding: 16px;
+    border-radius: 8px;
+    border-right: 3px solid var(--primary-color);
+}
+
+.class-time-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--card-bg);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.class-time-badge .day {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+}
+
+.class-time-badge .time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.class-info h4 {
+    font-size: 0.95rem;
+    color: var(--text-color);
+}
+
+.class-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* =========================================================
+   التجاوب مع الشاشات المتوسطة والصغيرة (Media Queries)
+   ========================================================= */
+
+@@media (max-width: 992px) {
+    .dashboard-secondary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@@media (max-width: 768px) {
+    .student-profile-banner {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .student-info-main {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+        width: 100%;
+    }
+
+    .student-meta-tags {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .meta-tag {
+        width: fit-content;
+    }
+
+    .academic-level-badge {
+        width: 100%;
+        align-items: center;
+    }
+}
+</style>
+
+<div class="dashboard-content">
+
+    <!-- بطاقة التعريف بالطالب -->
+    <div class="student-profile-banner">
+        <div class="student-info-main">
+            <div class="student-avatar-badge">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="student-details">
+                <h2 class="student-name">أحمد محمد علي</h2>
+                <div class="student-meta-tags">
+                    <span class="meta-tag"><i class="fa-solid fa-layer-group"></i> الصف الثالث الثانوي</span>
+                    <span class="meta-tag"><i class="fa-solid fa-users"></i> مجموعة (A) - السبت والأربعاء</span>
+                </div>
+            </div>
+        </div>
+        <div class="academic-level-badge level-good">
+            <span class="level-label">المستوى الأكاديمي</span>
+            <span class="level-value">جيد جداً <i class="fa-solid fa-award"></i></span>
+        </div>
+    </div>
+
+    <!-- قسم التنبيهات والامتحانات الجديدة -->
+    <div class="section-header-block">
+        <h2><i class="fa-solid fa-bell"></i> التنبيهات والمهام القادمة</h2>
+    </div>
+    
+    <div class="alerts-container">
+        <!-- تنبيه امتحان جديد -->
+        <div class="alert-card alert-exam">
+            <div class="alert-icon">
+                <i class="fa-solid fa-file-pen"></i>
+            </div>
+            <div class="alert-content">
+                <div class="alert-header">
+                    <h4>امتحان شامل - فيزياء (الكهربية)</h4>
+                    <span class="alert-badge new">جديد</span>
+                </div>
+                <p>تم إضافة امتحان جديد بواسطة أ. محمود. يرجى إكماله قبل الموعد المحدد.</p>
+                <div class="alert-footer">
+                    <span><i class="fa-regular fa-clock"></i> ينتهي في: 25 يوليو 2026</span>
+                    <a href="#" class="action-button btn-sm">بدء الامتحان الآن</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- الإحصائيات الأكاديمية -->
+    <div class="section-header-block">
+        <h2><i class="fa-solid fa-chart-pie"></i> الإحصائيات الأكاديمية</h2>
+    </div>
+
+    <div class="dashboard-stats-grid">
+        <div class="metric-card">
+            <div class="metric-icon bg-primary-light">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="metric-info">
+                <h3>نسبة الحضور</h3>
+                <p class="metric-value">92%</p>
+                <span class="metric-subtext">حضور 23 من أصل 25 محاضرة</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-warning-light">
+                <i class="fa-solid fa-user-xmark"></i>
+            </div>
+            <div class="metric-info">
+                <h3>عدد مرات الغياب</h3>
+                <p class="metric-value">2</p>
+                <span class="metric-subtext">أيام: 5 يونيو، 12 يوليو</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-success-light">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div class="metric-info">
+                <h3>الامتحانات المكتملة</h3>
+                <p class="metric-value">8 / 10</p>
+                <span class="metric-subtext">نسبة الإنجاز: 80%</span>
+            </div>
+        </div>
+
+        <div class="metric-card">
+            <div class="metric-icon bg-info-light">
+                <i class="fa-solid fa-star"></i>
+            </div>
+            <div class="metric-info">
+                <h3>متوسط درجات الامتحانات</h3>
+                <p class="metric-value">88%</p>
+                <span class="metric-subtext">أعلى درجة: 98% (كيمياء)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- إضافات مقترحة: الوصول السريع والجديد -->
+    <div class="dashboard-secondary-grid">
+        <!-- المحاضرات والملازم المضافة حديثاً -->
+        <div class="dashboard-panel">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-book-open"></i> أحدث الملازم والمحاضرات</h3>
+                <a href="#" class="panel-link">عرض الكل</a>
+            </div>
+            <ul class="recent-items-list">
+                <li>
+                    <div class="item-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                    <div class="item-details">
+                        <h4>ملزمة الفصل الثالث - الجبر</h4>
+                        <span>تاريخ الإضافة: 22 يوليو 2026</span>
+                    </div>
+                    <a href="#" class="btn-icon"><i class="fa-solid fa-download"></i></a>
+                </li>
+                <li>
+                    <div class="item-icon"><i class="fa-solid fa-circle-play"></i></div>
+                    <div class="item-details">
+                        <h4>شرح محاضرة العضوية 4</h4>
+                        <span>تاريخ الإضافة: 20 يوليو 2026</span>
+                    </div>
+                    <a href="#" class="btn-icon"><i class="fa-solid fa-play"></i></a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- جدول الحصص الأسبوعي السريع -->
+        <div class="dashboard-panel">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-calendar-day"></i> المحاضرة القادمة</h3>
+            </div>
+            <div class="next-class-box">
+                <div class="class-time-badge">
+                    <span class="day">السبت</span>
+                    <span class="time">04:00 م</span>
+                </div>
+                <div class="class-info">
+                    <h4>فيزياء - الفصل الرابع</h4>
+                    <p>القاعة الرئيسية - السنتر التعليمي</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

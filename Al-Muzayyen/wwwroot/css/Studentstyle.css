@@ -1,66 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap');
+﻿@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap");
 
-/* إعدادات المتصفح الأساسية */
-/*[data-theme="light"] {
-    --primary-color: #d4af37;
-    --primary-hover: #e5c158;
-    --primary-glow: rgba(212, 175, 55, 0.45);
-    --secondary-color: #0f172a;
-    --bg-main: #0b0f19;
-    --bg-alt: #0e1524;
-    --bg-alt-2: #101a2c;
-    --bg-dark: #030712;
-    --card-bg: #141d30;
-    --text-color: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #263349;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 25px var(--primary-glow);
-    --absent-row-bg: rgba(239, 68, 68, 0.12);
-    --absent-row-border: #ef4444;*/
-    /* متغيرات كانت مستخدمة بالكود (var(...)) لكن غير معرّفة، تمت إضافتها هنا حتى لا تنكسر أي عناصر */
-    /*--white: #ffffff;
-    --bg-light: var(--bg-main);
-    --bg-color: var(--bg-alt);
-    --text-main: var(--text-color);
-    --sidebar-width: 260px;
-    --absent-color: #ef4444;
-    --badge-text-color: #ffffff;
-    --overlay-bg: rgba(0, 0, 0, 0.6);
-}*/
-
-/* الوضع الفاتح (اختياري عبر الزر) */
+/* الوضع الفاتح (Light Mode) - الوضع الافتراضي والوحيد */
 :root {
     --primary-color: #c5a059;
     --primary-hover: #b08d4a;
-    --primary-glow: rgba(197, 160, 89, 0.35);
+    --primary-glow: rgba(197, 160, 89, 0.2);
     --secondary-color: #1e293b;
-    --bg-main: #ffffff;
-    --bg-alt: #f8fafc;
+    --bg-main: #f8fafc;
+    --bg-alt: #ffffff;
     --bg-alt-2: #f1f5f9;
     --bg-dark: #0f172a;
     --card-bg: #ffffff;
     --text-color: #1e293b;
     --text-muted: #64748b;
+    --text-on-primary: #ffffff;
     --border-color: #e2e8f0;
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.08);
     --shadow-glow: 0 0 20px var(--primary-glow);
-    --absent-row-bg: rgba(239, 68, 68, 0.08);
-    --absent-row-border: #f87171;
-    /* متغيرات كانت مستخدمة بالكود (var(...)) لكن غير معرّفة، تمت إضافتها هنا حتى لا تنكسر أي عناصر */
-    --white: #ffffff;
-    --bg-light: var(--bg-main);
-    --bg-color: var(--bg-alt);
-    --text-main: var(--text-color);
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
     --sidebar-width: 260px;
-    --absent-color: #f87171;
-    --badge-text-color: #ffffff;
-    --overlay-bg: rgba(0, 0, 0, 0.6);
+    --header-height: 70px;
+    --border-radius: 12px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
+/* تحسينات عامة للتصميم */
 * {
     margin: 0;
     padding: 0;
@@ -68,18 +36,14 @@
     font-family: 'Cairo', sans-serif;
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
 body {
-    background-color: var(--bg-light);
-    color: var(--text-main);
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    line-height: 1.6;
     overflow-x: hidden;
+    transition: var(--transition);
 }
 
-/* الهيكل الأساسي المتكامل (Layout) */
 .app-wrapper {
     display: flex;
     flex-direction: column;
@@ -90,7 +54,7 @@ body {
     border-radius: 50%;
     height: 60px;
 }
-/* ================================== */
+
 .form-group {
     margin-bottom: 20px;
 }
@@ -99,7 +63,7 @@ body {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
-        color: var(--secondary-color);
+        color: var(--text-color);
     }
 
     .form-group select {
@@ -109,6 +73,8 @@ body {
         border-radius: 8px;
         font-size: 15px;
         font-family: 'Cairo',sans-serif;
+        background-color: var(--bg-alt);
+        color: var(--text-color);
     }
 
 .day-card {
@@ -116,7 +82,7 @@ body {
     padding: 20px;
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    background: #fafafa;
+    background: var(--card-bg);
 }
 
 .day-title {
@@ -139,6 +105,7 @@ body {
         display: block;
         margin-bottom: 8px;
         font-weight: 600;
+        color: var(--text-color);
     }
 
     .day-field select,
@@ -148,27 +115,24 @@ body {
         border: 1px solid var(--border-color);
         border-radius: 8px;
         font-family: 'Cairo',sans-serif;
+        background-color: var(--bg-alt);
+        color: var(--text-color);
     }
 
 @media(max-width:768px) {
-
     .day-row {
         flex-direction: column;
     }
 }
 
-/* ===================================== */
-
-
-/* Videos Section */
 .videos {
     padding: 80px 0;
-    background: #f8f9fa;
+    background: var(--bg-main);
 }
 
     .videos .section-title p {
         margin-top: 10px;
-        color: #666;
+        color: var(--text-muted);
     }
 
 .videos-grid {
@@ -180,10 +144,10 @@ body {
 
 .video-card {
     max-width: 400px;
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    box-shadow: var(--shadow-md);
     transition: .3s;
 }
 
@@ -199,19 +163,18 @@ body {
 
     .video-card h3 {
         margin: 20px 20px 10px;
-        color: var(--secondary-color);
+        color: var(--text-color);
     }
 
     .video-card p {
         margin: 0 20px 20px;
-        color: #666;
+        color: var(--text-muted);
         line-height: 1.7;
     }
 
-/* Features Section */
 .features {
     padding: 60px 0;
-    background-color: var(--white);
+    background-color: var(--bg-main);
 }
 
 .section-title {
@@ -221,7 +184,7 @@ body {
 
     .section-title h2 {
         font-size: 2rem;
-        color: var(--secondary-color);
+        color: var(--text-color);
         position: relative;
         display: inline-block;
         padding-bottom: 10px;
@@ -247,14 +210,15 @@ body {
 .feature-card {
     padding: 30px;
     border-radius: 10px;
-    background-color: var(--bg-color);
+    background-color: var(--card-bg);
     text-align: center;
     transition: 0.3s;
+    border: 1px solid var(--border-color);
 }
 
     .feature-card:hover {
         transform: translateY(-10px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-md);
     }
 
     .feature-card i {
@@ -263,9 +227,7 @@ body {
         margin-bottom: 20px;
     }
 
-/* Tablets */
 @media (max-width: 992px) {
-
     .videos {
         padding: 60px 20px;
     }
@@ -275,9 +237,7 @@ body {
     }
 }
 
-/* Mobile */
 @media (max-width: 768px) {
-
     .videos-grid {
         grid-template-columns: 1fr;
     }
@@ -297,9 +257,7 @@ body {
         }
 }
 
-/* Small Phones */
 @media (max-width: 480px) {
-
     .videos {
         padding: 40px 15px;
     }
@@ -325,14 +283,15 @@ body {
     padding: 10px;
     border: none;
     background: var(--primary-color);
-    color: #fff;
+    color: var(--bg-dark);
     border-radius: 8px;
     cursor: pointer;
     transition: .3s;
+    font-weight: bold;
 }
 
     .edit-video-btn:hover {
-        background: var(--secondary-color);
+        background: var(--primary-hover);
     }
 
 .modal {
@@ -346,11 +305,13 @@ body {
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--card-bg);
+    color: var(--text-color);
     width: 500px;
     max-width: 90%;
     border-radius: 12px;
     padding: 25px;
+    border: 1px solid var(--border-color);
 }
 
     .modal-content input,
@@ -358,6 +319,10 @@ body {
         width: 100%;
         padding: 10px;
         margin: 10px 0 20px;
+        background-color: var(--bg-alt);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
     }
 
     .modal-content textarea {
@@ -383,31 +348,26 @@ body {
         transition: all .3s ease;
     }
 
-        /* زر الحفظ */
         .modal-buttons button:first-child {
             background-color: var(--primary-color);
-            color: var(--white);
+            color: var(--bg-dark);
         }
 
             .modal-buttons button:first-child:hover {
-                background-color: var(--secondary-color);
-                transform: translateY(-2px);
+                background-color: var(--primary-hover);
             }
 
-        /* زر الإلغاء */
         .modal-buttons button:last-child {
-            background-color: #f1f1f1;
-            color: var(--text-main);
+            background-color: var(--bg-alt-2);
+            color: var(--text-color);
             border: 1px solid var(--border-color);
         }
 
             .modal-buttons button:last-child:hover {
-                background-color: #e5e5e5;
-                transform: translateY(-2px);
+                background-color: var(--bg-alt);
             }
 
 @media (max-width: 576px) {
-
     .modal-buttons {
         flex-direction: column;
     }
@@ -417,39 +377,36 @@ body {
         }
 }
 
-/* Overlay */
 .custom-popup-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,.5);
-    display: none; /* أو flex عند الفتح */
-
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 9999;
     padding: 20px;
 }
 
-/* نافذة الـ Popup */
 .popup-window-content {
-    background: #fff;
+    background: var(--card-bg);
+    color: var(--text-color);
     width: 700px;
     max-width: 95%;
-    max-height: 90vh; /* أقصى ارتفاع */
-    overflow-y: auto; /* Scroll رأسي */
+    max-height: 90vh;
+    overflow-y: auto;
     border-radius: 12px;
     padding: 25px;
-    box-shadow: 0 10px 30px rgba(0,0,0,.2);
-    scrollbar-width: thin;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
 }
 
-    /* شكل الـ Scroll للكروم */
     .popup-window-content::-webkit-scrollbar {
         width: 8px;
     }
 
     .popup-window-content::-webkit-scrollbar-track {
-        background: #f1f1f1;
+        background: var(--bg-alt);
         border-radius: 10px;
     }
 
@@ -459,11 +416,10 @@ body {
     }
 
         .popup-window-content::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-color);
+            background: var(--primary-hover);
         }
 
 @media (max-width:768px) {
-
     .custom-popup-overlay {
         padding: 10px;
     }
@@ -476,12 +432,9 @@ body {
     }
 }
 
-
-
-/* شريط التنقل العلوي */
 .main-header {
-    background-color: var(--white);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    background-color: var(--card-bg);
+    box-shadow: var(--shadow-sm);
     position: fixed;
     top: 0;
     right: 0;
@@ -491,6 +444,7 @@ body {
     display: flex;
     align-items: center;
     padding: 0 20px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .header-nav {
@@ -514,7 +468,7 @@ body {
 
 .brand-title {
     font-size: 1.25rem;
-    color: var(--secondary-color);
+    color: var(--text-color);
     font-weight: 700;
 }
 
@@ -529,22 +483,21 @@ body {
 
 .action-button {
     background-color: var(--primary-color);
-    color: var(--white);
+    color: var(--bg-dark);
     text-decoration: none;
     padding: 8px 18px;
     border-radius: 8px;
     font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 700;
     transition: 0.3s ease;
     border: none;
     cursor: pointer;
 }
 
     .action-button:hover {
-        background-color: var(--secondary-color);
+        background-color: var(--primary-hover);
     }
 
-/* الهيكل الداخلي للمحتوى والجانبية */
 .workspace-layout {
     display: flex;
     margin-top: 70px;
@@ -552,10 +505,9 @@ body {
     position: relative;
 }
 
-/* القائمة الجانبية */
 .navigation-sidebar {
     width: var(--sidebar-width);
-    background-color: var(--white);
+    background-color: var(--card-bg);
     border-left: 1px solid var(--border-color);
     padding: 20px 10px;
     position: fixed;
@@ -593,19 +545,18 @@ body {
 
     .sidebar-item-link:hover,
     .sidebar-item-link.link-active {
-        background-color: #f0f4fa;
+        background-color: var(--bg-alt-2);
         color: var(--primary-color);
     }
 
-/* منطقة المحتوى الرئيسي */
 .content-workspace {
     flex: 1;
     margin-right: var(--sidebar-width);
     padding: 30px;
     width: calc(100% - var(--sidebar-width));
+    background-color: var(--bg-main);
 }
 
-/* شبكة الإحصائيات العامة */
 .dashboard-stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -614,10 +565,10 @@ body {
 }
 
 .metric-card {
-    background-color: var(--white);
+    background-color: var(--card-bg);
     padding: 25px 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    box-shadow: var(--shadow-sm);
     border-right: 4px solid var(--primary-color);
 }
 
@@ -630,13 +581,9 @@ body {
     .metric-card .metric-value {
         font-size: 1.8rem;
         font-weight: 700;
-        color: var(--secondary-color);
+        color: var(--text-color);
     }
 
-
-/* ==================== */
-
-/* الجداول والعناصر الخاصة بإدارة البيانات */
 .section-header-block {
     display: flex;
     justify-content: space-between;
@@ -647,15 +594,15 @@ body {
 
     .section-header-block h2 {
         font-size: 1.4rem;
-        color: var(--secondary-color);
+        color: var(--text-color);
     }
 
 .table-responsive-container {
     width: 100%;
     overflow-x: auto;
-    background-color: var(--white);
+    background-color: var(--card-bg);
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
 }
 
@@ -667,7 +614,7 @@ body {
 }
 
     .data-display-table th {
-        background-color: #fafbfe;
+        background-color: var(--bg-alt-2);
         color: var(--text-muted);
         padding: 15px;
         font-weight: 600;
@@ -679,6 +626,7 @@ body {
         padding: 15px;
         border-bottom: 1px solid var(--border-color);
         font-size: 0.95rem;
+        color: var(--text-color);
     }
 
     .data-display-table tr:last-child td {
@@ -692,39 +640,12 @@ body {
     font-size: 1.1rem;
     margin-left: 10px;
     transition: transform 0.2s;
+    color: var(--text-muted);
 }
 
     .action-icon-btn:hover {
         transform: scale(1.15);
-    }
-
-/* النوافذ المنبثقة (Modals) */
-.custom-popup-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5);
-    z-index: 2000;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.popup-window-content {
-    background-color: var(--white);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 500px;
-    padding: 25px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
-
-    .popup-window-content h3 {
-        margin-bottom: 20px;
-        color: var(--secondary-color);
+        color: var(--primary-color);
     }
 
 .input-field-group {
@@ -736,6 +657,7 @@ body {
         margin-bottom: 8px;
         font-size: 0.9rem;
         font-weight: 500;
+        color: var(--text-color);
     }
 
     .input-field-group input,
@@ -746,6 +668,8 @@ body {
         border-radius: 6px;
         font-size: 0.95rem;
         outline: none;
+        background-color: var(--bg-alt);
+        color: var(--text-color);
     }
 
         .input-field-group input:focus,
@@ -759,7 +683,6 @@ body {
     margin-top: 20px;
 }
 
-/* غطاء الخلفية عند فتح القائمة على الموبايل */
 .sidebar-overlay-backdrop {
     display: none;
     position: fixed;
@@ -767,18 +690,17 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0,0,0,0.3);
+    background-color: rgba(0,0,0,.5);
     z-index: 998;
 }
 
-/* شاشات التابلت والموبايل (التجاوب الكامل المتقدم) */
 @media (max-width: 992px) {
     .menu-toggle-btn {
         display: block;
     }
 
     .navigation-sidebar {
-        transform: translateX(100%); /* إخفاء القائمة خارج الشاشة يمينًا */
+        transform: translateX(100%);
     }
 
         .navigation-sidebar.sidebar-visible {
@@ -814,40 +736,6 @@ body {
             width: 100%;
             text-align: center;
         }
-
-    /* تحسين عرض البيانات كبطاقات صغيرة على الهواتف */
-    .data-display-table min-width {
-        min-width: 100%;
-    }
-}
-
-.main-header {
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
-    padding: 15px 30px;
-}
-
-.header-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.brand-identity {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.brand-logo {
-    width: 55px;
-    height: 55px;
-}
-
-.brand-title {
-    color: var(--secondary-color);
-    font-size: 1.5rem;
-    font-weight: 700;
 }
 
 .back-link {
@@ -861,99 +749,10 @@ body {
 }
 
     .back-link:hover {
-        color: var(--secondary-color);
+        color: var(--primary-hover);
     }
 
-.menu-toggle-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-
-@media (max-width:992px) {
-
-    .header-nav {
-        display: flex;
-        justify-content: space-between;
-        height: 70px;
-    }
-
-    /* القائمة */
-    .menu-toggle-btn {
-        display: block;
-        justify-self: end; /* أقصى اليمين */
-    }
-
-    /* اللوجو */
-    .brand-identity {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: static; /* مهم جداً */
-    }
-
-    .brand-title {
-        display: none;
-    }
-
-    .brand-logo {
-        width: 45px;
-        height: 45px;
-    }
-
-    /* العودة */
-    .back-link {
-        justify-self: start; /* أقصى اليسار */
-        font-size: 14px;
-        gap: 5px;
-    }
-}
-
-
-
-@media(max-width:768px) {
-    /**/
-    .videos-header {
-        flex-direction: column;
-        align-items: center;
-        align-items: center !important;
-    }
-
-    .action-button {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    .video-actions {
-        flex-direction: column;
-    }
-
-    .edit-video-btn {
-        width: 100%;
-    }
-
-    .delete-video-btn {
-        width: 100% !important;
-        height: 45px;
-    }
-}
-
-
-/* ==========================================================
-   قسم صفحة الحضور والغياب (Attendance Section)
-   ملاحظة مهمة: كل الكلاسات هنا اتحطت جوه .attendance-wrapper
-   عشان أسماء زي (.action-button / .table-responsive-container /
-   .data-display-table / .custom-popup-overlay / .popup-window-content /
-   .popup-actions-flex / .form-group label) بتتكرر في لوحة التحكم
-   العامة فوق بتنسيقات مختلفة تمامًا. من غير العزل ده، كان آخر تعريف
-   في الملف (بتاع الحضور) هيكسب على طول ويبوّظ شكل الجدول/الأزرار/
-   المودالز في باقي صفحات اللوحة. ضيف كلاس "attendance-wrapper" على
-   الـ div الأب اللي لافّ صفحة الحضور والغياب في الـ HTML.
-   ========================================================== */
-
+/* Attendance Wrapper styles (re-used variables) */
 .attendance-wrapper {
     direction: rtl;
     color: var(--text-color);
@@ -1048,7 +847,6 @@ body {
         font-size: 1rem;
     }
 
-    /* أدوات التحكم المباشر بالجدول */
     .attendance-wrapper .table-toolbar {
         display: flex;
         justify-content: space-between;
@@ -1092,12 +890,11 @@ body {
     .attendance-wrapper .legend-box-absent {
         width: 16px;
         height: 16px;
-        background-color: var(--absent-row-bg);
-        border: 1px solid var(--absent-row-border);
+        background-color: rgba(239, 68, 68, 0.08);
+        border: 1px solid #f87171;
         border-radius: 4px;
     }
 
-    /* جدول عرض البيانات */
     .attendance-wrapper .table-responsive-container {
         width: 100%;
         overflow-x: auto;
@@ -1132,18 +929,18 @@ body {
         }
 
         .attendance-wrapper .data-display-table tr.was-absent-last-time {
-            background-color: var(--absent-row-bg) !important;
+            background-color: rgba(239, 68, 68, 0.08) !important;
         }
 
             .attendance-wrapper .data-display-table tr.was-absent-last-time td:nth-child(2) {
-                color: var(--absent-color);
+                color: #f87171;
                 font-weight: 700;
             }
 
     .attendance-wrapper .absent-badge-inline {
         display: inline-block;
-        background-color: var(--absent-color);
-        color: var(--badge-text-color);
+        background-color: #f87171;
+        color: #ffffff;
         font-size: 0.7rem;
         padding: 2px 6px;
         border-radius: 4px;
@@ -1198,12 +995,11 @@ body {
         box-shadow: var(--shadow-glow);
     }
 
-    /* النافذة المنبثقة للملاحظات */
     .attendance-wrapper .custom-popup-overlay {
         display: none;
         position: fixed;
         inset: 0;
-        background: var(--overlay-bg);
+        background: rgba(0,0,0,.5);
         backdrop-filter: blur(5px);
         justify-content: center;
         align-items: center;
