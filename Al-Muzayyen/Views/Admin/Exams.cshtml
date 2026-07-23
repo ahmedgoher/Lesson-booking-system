@@ -285,7 +285,7 @@
                     @foreach (var exam in Model)
                     {
                         var examJson = System.Text.Json.JsonSerializer.Serialize(exam);
-                        <tr data-exam="@examJson">
+                        <tr data-exam='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(exam))'>
 
                             <td>
                                 <strong>@exam.Title</strong><br>
@@ -498,7 +498,9 @@
             </div>
 
             <div class="popup-actions-flex">
-                <button type="submit" class="action-button" style="background-color:#22c55e;">حفظ السؤال</button>
+                <button id="save-question-btn" type="submit" class="action-button" style="background-color:#22c55e;">
+    حفظ السؤال
+</button>
                 <button type="button" class="cancel-btn" onclick="closeModal('question-modal')">إلغاء</button>
             </div>
         </form>
@@ -506,7 +508,6 @@
 </div>
 
 <script>
-    // دالة جلب CSRF Token لحماية الطلبات
     function getAntiforgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
     }
@@ -520,185 +521,380 @@
     }
 
     function openCreateModal() {
-        document.getElementById('modal-title-text').innerText = "إضافة امتحان جديد";
-        document.getElementById('exam-form').reset();
-        document.getElementById('exam-id').value = "";
-        openModal('exam-modal');
+
+        document.getElementById("modal-title-text").innerText = "إضافة امتحان جديد";
+
+        document.getElementById("exam-form").reset();
+
+        document.getElementById("exam-id").value = "";
+
+        document.getElementById("exam-open").value = "";
+
+        document.getElementById("exam-close").value = "";
+
+        document.getElementById("exam-status").value = "Active";
+
+        document.getElementById("exam-total-marks").value = 100;
+
+        document.getElementById("exam-passing-marks").value = 50;
+
+        document.getElementById("exam-max-attempts").value = 1;
+
+        document.getElementById("exam-duration").value = 60;
+
+        document.getElementById("exam-random-questions").checked = false;
+        document.getElementById("exam-shuffle-answers").checked = false;
+        document.getElementById("exam-allow-review").checked = false;
+        document.getElementById("exam-show-result").checked = false;
+
+        openModal("exam-modal");
     }
 
-    function editExam(buttonElement) {
-        const row = buttonElement.closest('tr');
-        // قراءة البيانات بأمان كـ JSON بدون مشاكل علامات التنصيص
+    function editExam(btn) {
+
+        const row = btn.closest("tr");
+
         const exam = JSON.parse(row.dataset.exam);
 
-        document.getElementById('exam-id').value = exam.Id || exam.id || '';
-        document.getElementById('exam-title').value = exam.Title || exam.title || '';
-        document.getElementById('exam-description').value = exam.Description || exam.description || '';
-        document.getElementById('exam-grade').value = exam.GradeId || exam.gradeId || '1';
-        
-        // ضبط التاريخ والوقت بالصيغ الصحيحة للمدخلات
-        if (exam.Date || exam.date) {
-            const dateObj = new Date(exam.Date || exam.date);
-            document.getElementById('exam-date').value = dateObj.toISOString().split('T')[0];
-        }
+        document.getElementById("modal-title-text").innerText = "تعديل الامتحان";
 
-        document.getElementById('exam-duration').value = exam.Duration || exam.duration || '60';
-        
-        if (exam.OpenDate || exam.openDate) {
-            const openObj = new Date(exam.OpenDate || exam.openDate);
-            document.getElementById('exam-open').value = openObj.toISOString().slice(0, 16);
-        } else {
-            document.getElementById('exam-open').value = '';
-        }
+        document.getElementById("exam-id").value = exam.Id;
 
-        if (exam.CloseDate || exam.closeDate) {
-            const closeObj = new Date(exam.CloseDate || exam.closeDate);
-            document.getElementById('exam-close').value = closeObj.toISOString().slice(0, 16);
-        } else {
-            document.getElementById('exam-close').value = '';
-        }
+        document.getElementById("exam-title").value = exam.Title;
 
-        document.getElementById('exam-total-marks').value = exam.TotalMarks || exam.totalMarks || '100';
-        document.getElementById('exam-passing-marks').value = exam.PassingMarks || exam.passingMarks || '50';
-        document.getElementById('exam-max-attempts').value = exam.MaxAttempts || exam.maxAttempts || '1';
-        document.getElementById('exam-status').value = exam.Status || exam.status || 'Active';
+        document.getElementById("exam-description").value = exam.Description ?? "";
 
-        document.getElementById('exam-random-questions').checked = !!(exam.RandomQuestions || exam.randomQuestions);
-        document.getElementById('exam-shuffle-answers').checked = !!(exam.ShuffleAnswers || exam.shuffleAnswers);
-        document.getElementById('exam-allow-review').checked = !!(exam.AllowReview || exam.allowReview);
-        document.getElementById('exam-show-result').checked = !!(exam.ShowResult || exam.showResult);
+        document.getElementById("exam-grade").value = exam.GradeId;
 
-        document.getElementById('modal-title-text').innerText = "تعديل الامتحان";
-        openModal('exam-modal');
+        document.getElementById("exam-duration").value = exam.Duration;
+
+        document.getElementById("exam-total-marks").value = exam.TotalMarks;
+
+        document.getElementById("exam-passing-marks").value = exam.PassingMarks;
+
+        document.getElementById("exam-max-attempts").value = exam.MaxAttempts;
+
+        document.getElementById("exam-status").value = exam.Status;
+
+        document.getElementById("exam-random-questions").checked = exam.RandomQuestions;
+
+        document.getElementById("exam-shuffle-answers").checked = exam.ShuffleAnswers;
+
+        document.getElementById("exam-allow-review").checked = exam.AllowReview;
+
+        document.getElementById("exam-show-result").checked = exam.ShowResult;
+
+        if (exam.Date)
+            document.getElementById("exam-date").value = exam.Date.substring(0, 10);
+
+        if (exam.OpenDate)
+            document.getElementById("exam-open").value = exam.OpenDate.substring(0, 16);
+        else
+            document.getElementById("exam-open").value = "";
+
+        if (exam.CloseDate)
+            document.getElementById("exam-close").value = exam.CloseDate.substring(0, 16);
+        else
+            document.getElementById("exam-close").value = "";
+
+        openModal("exam-modal");
     }
 
     function openQuestionModal(examId) {
-        document.getElementById('question-form').reset();
-        document.getElementById('question-exam-id').value = examId;
+
+        document.getElementById("question-form").reset();
+
+        document.getElementById("question-exam-id").value = examId;
+
         toggleQuestionOptions();
-        openModal('question-modal');
+
+        openModal("question-modal");
     }
 
     function toggleQuestionOptions() {
-        const type = document.getElementById("question-type").value;
-        const mcqBox = document.getElementById("mcq-options");
-        const tfBox = document.getElementById("tf-options");
 
-        if (type === "TrueFalse") {
-            mcqBox.style.display = "none";
-            tfBox.style.display = "block";
-        } else {
-            mcqBox.style.display = "block";
-            tfBox.style.display = "none";
-        }
+        const type = document.getElementById("question-type").value;
+
+        document.getElementById("mcq-options").style.display =
+            type === "MCQ" ? "block" : "none";
+
+        document.getElementById("tf-options").style.display =
+            type === "TrueFalse" ? "block" : "none";
     }
 
     // إرسال بيانات الامتحان للخادم
-    async function saveExam() {
-        const payload = {
-            id: document.getElementById('exam-id').value || null,
-            title: document.getElementById('exam-title').value,
-            description: document.getElementById('exam-description').value,
-            gradeId: parseInt(document.getElementById('exam-grade').value),
-            date: document.getElementById('exam-date').value,
-            duration: parseInt(document.getElementById('exam-duration').value),
-            openDate: document.getElementById('exam-open').value || null,
-            closeDate: document.getElementById('exam-close').value || null,
-            totalMarks: parseInt(document.getElementById('exam-total-marks').value),
-            passingMarks: parseInt(document.getElementById('exam-passing-marks').value),
-            maxAttempts: parseInt(document.getElementById('exam-max-attempts').value),
-            status: document.getElementById('exam-status').value,
-            randomQuestions: document.getElementById('exam-random-questions').checked,
-            shuffleAnswers: document.getElementById('exam-shuffle-answers').checked,
-            allowReview: document.getElementById('exam-allow-review').checked,
-            showResult: document.getElementById('exam-show-result').checked
-        };
+    // async function saveExam() {
+    //     const payload = {
+    //         id: document.getElementById('exam-id').value || null,
+    //         title: document.getElementById('exam-title').value,
+    //         description: document.getElementById('exam-description').value,
+    //         gradeId: parseInt(document.getElementById('exam-grade').value),
+    //         date: document.getElementById('exam-date').value,
+    //         duration: parseInt(document.getElementById('exam-duration').value),
+    //         openDate: document.getElementById('exam-open').value || null,
+    //         closeDate: document.getElementById('exam-close').value || null,
+    //         totalMarks: parseInt(document.getElementById('exam-total-marks').value),
+    //         passingMarks: parseInt(document.getElementById('exam-passing-marks').value),
+    //         maxAttempts: parseInt(document.getElementById('exam-max-attempts').value),
+    //         status: document.getElementById('exam-status').value,
+    //         randomQuestions: document.getElementById('exam-random-questions').checked,
+    //         shuffleAnswers: document.getElementById('exam-shuffle-answers').checked,
+    //         allowReview: document.getElementById('exam-allow-review').checked,
+    //         showResult: document.getElementById('exam-show-result').checked
+    //     };
 
-        try {
-            const response = await fetch('/Admin/Exams/Save', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': getAntiforgeryToken()
-                },
-                body: JSON.stringify(payload)
-            });
+    //     try {
+    //         const response = await fetch('/Admin/Exams/Save', {
+    //             method: 'POST',
+    //             headers: { 
+    //                 'Content-Type': 'application/json',
+    //                 'RequestVerificationToken': getAntiforgeryToken()
+    //             },
+    //             body: JSON.stringify(payload)
+    //         });
 
-            if (response.ok) {
-                closeModal('exam-modal');
-                location.reload();
-            } else {
-                alert('حدث خطأ أثناء حفظ الامتحان. يرجى التأكد من البيانات والمحاولة مجدداً.');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('تعذر الاتصال بالخادم.');
-        }
-    }
+    //         if (response.ok) {
+    //             closeModal('exam-modal');
+    //             location.reload();
+    //         } else {
+    //             alert('حدث خطأ أثناء حفظ الامتحان. يرجى التأكد من البيانات والمحاولة مجدداً.');
+    //         }
+    //     } catch (error) {
+    //         console.error(error);
+    //         alert('تعذر الاتصال بالخادم.');
+    //     }
+    // }
 
     // إرسال بيانات السؤال للخادم
     // إرسال بيانات الامتحان للخادم
-async function saveExam() {
-    // قراءة الـ ID وتحويله لرقم (0 في حالة الإضافة الجديدة)
-    const examIdVal = document.getElementById('exam-id').value;
-    const gradeVal = document.getElementById('exam-grade').value;
+    async function saveExam() {
 
-    if (!gradeVal) {
-        alert('يرجى اختيار الصف الدراسي');
-        return;
-    }
+        const gradeId = document.getElementById("exam-grade").value;
 
-    const payload = {
-        id: examIdVal ? parseInt(examIdVal) : 0,
-        title: document.getElementById('exam-title').value,
-        description: document.getElementById('exam-description').value,
-        gradeId: parseInt(gradeVal),
-        date: document.getElementById('exam-date').value || null,
-        duration: parseInt(document.getElementById('exam-duration').value) || 30,
-        openDate: document.getElementById('exam-open').value || null,
-        closeDate: document.getElementById('exam-close').value || null,
-        totalMarks: parseInt(document.getElementById('exam-total-marks').value) || 100,
-        passingMarks: parseInt(document.getElementById('exam-passing-marks').value) || 50,
-        maxAttempts: parseInt(document.getElementById('exam-max-attempts').value) || 1,
-        status: document.getElementById('exam-status').value,
-        randomQuestions: document.getElementById('exam-random-questions').checked,
-        shuffleAnswers: document.getElementById('exam-shuffle-answers').checked,
-        allowReview: document.getElementById('exam-allow-review').checked,
-        showResult: document.getElementById('exam-show-result').checked
-    };
+        if (!gradeId) {
+            alert("يرجى اختيار الصف الدراسي");
+            return;
+        }
 
-    try {
-        // 🟢 تصحيح رابط الـ URL إلى SaveExam
-        const response = await fetch('/Admin/SaveExam', { // أو '/Admin/Exams/SaveExam' حسب الـ Routing لديك
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': getAntiforgeryToken()
-            },
-            body: JSON.stringify(payload)
-        });
+        const payload = {
 
-        if (response.ok) {
-            // 🟢 قراءة النتيجة كـ JSON لمعرفة هل الحفظ نجح أم تفشل الشروط
+            id: Number(document.getElementById("exam-id").value) || 0,
+
+            title: document.getElementById("exam-title").value.trim(),
+
+            description: document.getElementById("exam-description").value.trim(),
+
+            gradeId: Number(gradeId),
+
+            date: document.getElementById("exam-date").value,
+
+            duration: Number(document.getElementById("exam-duration").value) || 30,
+
+            openDate: document.getElementById("exam-open").value || null,
+
+            closeDate: document.getElementById("exam-close").value || null,
+
+            totalMarks: Number(document.getElementById("exam-total-marks").value) || 100,
+
+            passingMarks: Number(document.getElementById("exam-passing-marks").value) || 50,
+
+            maxAttempts: Number(document.getElementById("exam-max-attempts").value) || 1,
+
+            status: document.getElementById("exam-status").value,
+
+            randomQuestions: document.getElementById("exam-random-questions").checked,
+
+            shuffleAnswers: document.getElementById("exam-shuffle-answers").checked,
+
+            allowReview: document.getElementById("exam-allow-review").checked,
+
+            showResult: document.getElementById("exam-show-result").checked
+        };
+
+        if (payload.title.length === 0) {
+            alert("يرجى إدخال عنوان الامتحان");
+            return;
+        }
+
+        try {
+
+            const response = await fetch("/Admin/SaveExam", {
+
+                method: "POST",
+
+                headers: {
+
+                    "Content-Type": "application/json",
+
+                    "RequestVerificationToken": getAntiforgeryToken()
+
+                },
+
+                body: JSON.stringify(payload)
+
+            });
+
             const result = await response.json();
 
             if (result.success) {
-                closeModal('exam-modal');
-                alert(result.message); // إظهار رسالة النجاح
+
+                closeModal("exam-modal");
+
+                alert(result.message);
+
                 location.reload();
-            } else {
-                // 🔴 إظهار سبب عدم الحفظ (مثلاً: "يرجى اختيار الصف الدراسي")
-                alert('تنبيه: ' + result.message);
+
             }
-        } else {
-            alert('حدث خطأ في طلب الخادم (كود: ' + response.status + ') - تأكد من صحة الرابط');
+            else {
+
+                alert(result.message);
+
+            }
+
         }
-    } catch (error) {
-        console.error(error);
-        alert('تعذر الاتصال بالخادم.');
+        catch (ex) {
+
+            console.error(ex);
+
+            alert("حدث خطأ أثناء الاتصال بالخادم.");
+
+        }
+
     }
+
+    async function saveQuestion() {
+        const saveBtn = document.getElementById("save-question-btn");
+
+saveBtn.disabled = true;
+saveBtn.innerText = "جارى الحفظ...";
+
+    const type = document.getElementById("question-type").value;
+
+    const options = document.querySelectorAll(".mcq-option-input");
+
+    let correctAnswer = "";
+
+    if (type === "MCQ") {
+
+        const selected =
+            document.querySelector("input[name='correct-mcq']:checked");
+
+        switch (selected.value) {
+
+            case "0":
+                correctAnswer = "A";
+                break;
+
+            case "1":
+                correctAnswer = "B";
+                break;
+
+            case "2":
+                correctAnswer = "C";
+                break;
+
+            case "3":
+                correctAnswer = "D";
+                break;
+        }
+    }
+    else {
+
+        correctAnswer =
+            document.querySelector("input[name='tf-correct']:checked").value === "true"
+                ? "True"
+                : "False";
+    }
+
+    const formData = new FormData();
+
+formData.append("ExamId", document.getElementById("question-exam-id").value);
+
+formData.append("QuestionText", document.getElementById("question-text").value);
+
+formData.append("Mark", document.getElementById("question-mark").value);
+
+formData.append("Type", type);
+
+formData.append("OptionA", options[0].value);
+
+formData.append("OptionB", options[1].value);
+
+formData.append("OptionC", options[2].value);
+
+formData.append("OptionD", options[3].value);
+
+formData.append("CorrectAnswer", correctAnswer);
+
+const image =
+    document.getElementById("question-image").files[0];
+
+if (image) {
+
+    formData.append("image", image);
+
 }
 
+    const questionText = document.getElementById("question-text").value.trim();
+
+if (questionText === "") {
+
+    alert("اكتب السؤال");
+
+    return;
+}
+
+    try {
+
+        const response = await fetch("/Admin/SaveQuestion", {
+
+            method: "POST",
+
+           headers:{
+RequestVerificationToken:getAntiforgeryToken()
+},
+
+            body: formData
+
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            alert(result.message);
+
+            closeModal("question-modal");
+
+            document.getElementById("question-form").reset();
+
+            toggleQuestionOptions();
+
+            location.reload();
+
+        }
+        else {
+
+            alert(result.message);
+
+        }
+
+    }
+    catch (e) {
+
+        console.error(e);
+
+        alert("حدث خطأ أثناء الاتصال بالسيرفر");
+
+    }
+    finally {
+
+    saveBtn.disabled = false;
+    saveBtn.innerText = "حفظ السؤال";
+
+}
+
+}
     // حذف امتحان
     async function deleteExam(examId) {
         if (!confirm('هل أنت تأكد من رغبتك في حذف هذا الامتحان بالكامل؟')) return;

@@ -69,6 +69,9 @@ namespace Al_Muzayyen
             builder.Services.AddScoped<IBookingRepo, BookingRepo>();
             builder.Services.AddScoped<IGroupRepo, GroupRepo>();
             builder.Services.AddScoped<IClassService, ClassService>();
+            builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+
+            builder.Services.AddScoped<IQuestionService, QuestionService>();
             // أو AddTransient / AddSingleton حسب نوع الخدمة لديك
             // Repositories
             builder.Services.AddScoped<IExamRepository, ExamRepository>();

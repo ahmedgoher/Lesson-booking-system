@@ -29,9 +29,58 @@ namespace Al_Muzayyen.Controllers
         {
             return View();
         }
-        public IActionResult Exams()
+        public async Task<IActionResult> Exams()
         {
-            return View();
+            // 1. جلب معرف المستخدم الحالي من الـ Claim
+            var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userClaim))
+            {
+                return RedirectToAction("login2", "Account");
+            }
+
+            // 2. البحث عن الطالب سواء كان الـ Claim هو UserId أو Student Id
+            Student? student = null;
+
+            if (int.TryParse(userClaim, out int studentId))
+            {
+                student = await _context.Students.FirstOrDefaultAsync(s => s.Id == studentId);
+            }
+            else
+            {
+                student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userClaim);
+            }
+
+            if (student == null)
+            {
+                return View(new List<StudentExamViewModel>());
+            }
+
+            int currentStudentSlotId = student.SlotId;
+            int currentStudentId = student.Id;
+
+            // 3. جلب الامتحانات الموجهة لمجموعة الطالب عبر الجدول الوسيط ExamGroups
+            var exams = await _context.Exams
+                .Where(e => e.IsActive && e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId))
+                .Select(e => new StudentExamViewModel
+                {
+                    ExamId = e.Id,
+                    ExamTitle = e.Title,
+                    Date = e.StartExamTime,
+                    TotalMarks = e.TotalMarks,
+
+                    // التأكد هل أدى الطالب هذا الامتحان قبل ذلك؟
+                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId),
+
+                    // جلب درجة الطالب إن وجدت
+                    Score = e.StudentExams
+                             .Where(se => se.StudentId == currentStudentId)
+                             .Select(se => (double?)se.Score)
+                             .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return View(exams);
         }
         [HttpGet]
         public async Task<IActionResult> Attendance()

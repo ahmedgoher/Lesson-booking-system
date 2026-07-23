@@ -25,6 +25,7 @@ public class AdminController : Controller
         private readonly IConfiguration _configuration;
     private readonly IClassService _ClassService;
     private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IQuestionService _questionService;
 
     private readonly CloudinaryService _cloudinaryService;
     private readonly IExamService _examService;
@@ -42,13 +43,16 @@ public class AdminController : Controller
             IGenericService<Available_slot> availableSlotService,
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo,
+             IQuestionService questionService,
             IConfiguration configuration, IExamService examService)
         {
         _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
         _webHostEnvironment = webHostEnvironment;
         _AdminService = adminService;
-            _classService = classService;
+        _questionService = questionService;
+
+        _classService = classService;
             _bookingService = bookingService;
             _placeService = placeService;
             _availableSlotService = availableSlotService;
@@ -1054,20 +1058,171 @@ public class AdminController : Controller
 
         if (model.Id > 0)
         {
-            await _examService.UpdateExamAsync(examEntity);
-            return Json(new { success = true, message = "تم تعديل الامتحان بنجاح!" });
+            var result = await _examService.UpdateExamAsync(model);
+
+            return Json(new
+            {
+                success = result,
+                message = result ? "تم تعديل الامتحان بنجاح" : "الامتحان غير موجود"
+            });
         }
         else
         {
-            await _examService.CreateExamAsync(examEntity);
-            return Json(new { success = true, message = "تم إضافة الامتحان بنجاح!" });
+            var exam = new Exam
+            {
+                Title = model.Title,
+                Description = model.Description,
+                DurationMinutes = model.Duration,
+                IsActive = model.Status == "Active",
+                CreatedAt = model.Date,
+                StartExamTime = model.OpenDate ?? DateTime.Now,
+                EndExamTime = model.CloseDate ?? DateTime.Now.AddHours(2),
+                ClassId = model.GradeId,
+                TotalMarks = model.TotalMarks,
+                PassingMarks = model.PassingMarks,
+                MaxAttempts = model.MaxAttempts,
+                RandomQuestions = model.RandomQuestions,
+                ShuffleAnswers = model.ShuffleAnswers,
+                AllowReview = model.AllowReview,
+                ShowResult = model.ShowResult
+            };
+
+            await _examService.CreateExamAsync(exam);
+
+            return Json(new
+            {
+                success = true,
+                message = "تم إضافة الامتحان بنجاح"
+            });
         }
     }
-    public IActionResult QExams()
-    {
-        return View();
-    }
+    //[HttpPost]
+    //public async Task<IActionResult> SaveQuestion(
+    // [FromForm] QuestionViewModel model,
+    // IFormFile? image)
+    //{
+    //    if (string.IsNullOrWhiteSpace(model.QuestionText))
+    //    {
+    //        return Json(new
+    //        {
+    //            success = false,
+    //            message = "اكتب السؤال"
+    //        });
+    //    }
 
+    //    if (model.ExamId <= 0)
+    //    {
+    //        return Json(new
+    //        {
+    //            success = false,
+    //            message = "الامتحان غير موجود"
+    //        });
+    //    }
+
+    //    if (image != null)
+    //    {
+    //        model.ImageUrl = await _cloudinaryService.UploadImageAsync(image);
+    //    }
+
+    //    await _questionService.AddQuestionAsync(model);
+
+    //    return Json(new
+    //    {
+    //        success = true,
+    //        message = "تم إضافة السؤال بنجاح"
+    //    });
+    //}
+    [HttpPost]
+    public async Task<IActionResult> SaveQuestion(
+    [FromForm] QuestionViewModel model,
+    IFormFile? image)
+    {
+        if (string.IsNullOrWhiteSpace(model.QuestionText))
+        {
+            return Json(new
+            {
+                success = false,
+                message = "اكتب السؤال"
+            });
+        }
+
+        if (model.ExamId <= 0)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "الامتحان غير موجود"
+            });
+        }
+
+        // رفع الصورة الجديدة في حالة وجودها فقط
+        if (image != null)
+        {
+            model.ImageUrl = await _cloudinaryService.UploadImageAsync(image);
+        }
+
+        // 👈 التعديل الأساسي هنا
+        if (model.Id > 0)
+        {
+            // عملية تعديل سؤال موجود
+            await _questionService.UpdateQuestionAsync(model);
+
+            return Json(new
+            {
+                success = true,
+                message = "تم تعديل السؤال بنجاح"
+            });
+        }
+        else
+        {
+            // عملية إضافة سؤال جديد
+            await _questionService.AddQuestionAsync(model);
+
+            return Json(new
+            {
+                success = true,
+                message = "تم إضافة السؤال بنجاح"
+            });
+        }
+    }
+    public async Task<IActionResult> QExams(int id)
+    {
+        // 1. جلب بيانات الامتحان أولاً للحصول على العنوان وحل خطأ المتغير exam
+        var exam = await _examService.GetExamByIdAsync(id);
+        if (exam == null)
+        {
+            return NotFound();
+        }
+
+        // 2. جلب الأسئلة عن طريق الـ QuestionService
+        var questionsList = (await _questionService.GetQuestionsByExamIdAsync(id)).ToList();
+
+        // 3. ملء بيانات الـ ViewBag
+        ViewBag.ExamId = id;
+        ViewBag.ExamName = exam.Title; // الآن يعمل بدون مشاكل
+        ViewBag.TotalQuestions = questionsList.Count;
+        ViewBag.TotalMarks = questionsList.Sum(x => x.Mark);
+
+        return View(questionsList);
+    }
+    [HttpPost]
+    public async Task<IActionResult> DeleteQuestion(int id)
+    {
+        if (id <= 0)
+        {
+            return Json(new { success = false, message = "رقم السؤال غير صحيح" });
+        }
+
+        try
+        {
+            await _questionService.DeleteQuestionAsync(id);
+            return Json(new { success = true, message = "تم حذف السؤال بنجاح" });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = "حدث خطأ أثناء الحذف" });
+        }
+    }
 
 
 }
