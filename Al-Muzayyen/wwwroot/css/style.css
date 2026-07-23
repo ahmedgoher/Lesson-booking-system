@@ -3,26 +3,11 @@
 /* ==========================================
    1. المتغيرات والألوان الأساسية (الوضع الداكن هو الافتراضي)
    ========================================== */
-:root {
-    --primary-color: #d4af37;
-    --primary-hover: #e5c158;
-    --primary-glow: rgba(212, 175, 55, 0.45);
-    --secondary-color: #0f172a;
-    --bg-main: #0b0f19;
-    --bg-alt: #0e1524;
-    --bg-alt-2: #101a2c;
-    --bg-dark: #030712;
-    --card-bg: #141d30;
-    --text-color: #f8fafc;
-    --text-muted: #94a3b8;
-    --border-color: #263349;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 25px var(--primary-glow);
-}
+
+
 
 /* الوضع الفاتح (اختياري عبر الزر) */
-[data-theme="light"] {
+:root {
     --primary-color: #c5a059;
     --primary-hover: #b08d4a;
     --primary-glow: rgba(197, 160, 89, 0.35);
