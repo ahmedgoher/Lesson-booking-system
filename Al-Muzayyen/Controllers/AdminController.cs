@@ -926,7 +926,10 @@ using DocumentFormat.OpenXml.Bibliography;
 
 
 
-
+    public IActionResult QExams()
+    {
+        return View();
+    }
 
 
 

@@ -1,0 +1,714 @@
+﻿@{
+    Layout = "~/Views/Shared/_layoutadmin.cshtml";
+    ViewData["Title"] = "أسئلة الامتحان";
+}
+
+<style>
+    /* هيدر الصفحة */
+    .questions-header {
+        background: var(--card-bg);
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .questions-header-info h2 {
+        font-size: 1.5rem;
+        color: var(--text-color);
+        font-weight: 700;
+        margin: 0 0 6px 0;
+    }
+
+    .questions-header-info p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 14px;
+    }
+
+    .action-button {
+        background-color: var(--primary-color);
+        color: var(--secondary-color);
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .action-button:hover {
+            background-color: var(--primary-hover);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
+        }
+
+    /* قائمة عرض الأسئلة */
+    .questions-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .question-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .question-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+
+    .question-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .question-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .question-badge {
+        background: var(--bg-alt-2);
+        color: var(--primary-color);
+        border: 1px solid var(--border-color);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .question-score-badge {
+        background: var(--bg-alt);
+        color: var(--text-muted);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin: 12px 0 16px 0;
+        line-height: 1.6;
+    }
+
+    /* مكان وتنسيق صورة السؤال */
+    .question-image-wrapper {
+        position: relative;
+        max-width: 450px;
+        margin: 16px 0 20px 0;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        background: var(--bg-dark);
+    }
+
+        .question-image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+
+    .image-actions-overlay {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 8px;
+        background: var(--overlay-bg);
+        padding: 6px;
+        border-radius: 8px;
+        backdrop-filter: blur(4px);
+    }
+
+    .img-action-btn {
+        background: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+
+        .img-action-btn:hover {
+            background: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+    /* خيارات الإجابة */
+    .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .option-item {
+        background: var(--bg-alt);
+        border: 1px solid var(--border-color);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .option-item.correct-answer {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        .option-item .option-icon {
+            font-size: 14px;
+            width: 20px;
+        }
+
+    /* أزرار الإجراءات للتحكم بالسؤال */
+    .action-icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.1rem;
+        margin-right: 6px;
+        transition: transform 0.2s, color 0.2s;
+        padding: 6px;
+        border-radius: 6px;
+    }
+
+        .action-icon-btn:hover {
+            transform: scale(1.15);
+        }
+
+    /* Popups / Modals */
+    .custom-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--overlay-bg);
+        backdrop-filter: blur(4px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .popup-window-content {
+        position: relative;
+        background: var(--card-bg);
+        color: var(--text-color);
+        padding: 28px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 650px;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-md);
+    }
+
+    /* هيدر الـ Popup مع زر الإغلاق */
+    .popup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+        .popup-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+    .close-popup-btn {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: color 0.2s, background-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .close-popup-btn:hover {
+            color: var(--absent-color);
+            background-color: var(--bg-alt);
+        }
+
+    /* تخصيص الـ Scrollbar باللون الذهبي الـ Primary */
+    .popup-window-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .popup-window-content::-webkit-scrollbar-track {
+        background: var(--bg-alt);
+        border-radius: 8px;
+    }
+
+    .popup-window-content::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 8px;
+    }
+
+        .popup-window-content::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+
+    /* دعم Firefox للـ Scrollbar */
+    .popup-window-content {
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--bg-alt);
+    }
+
+    .input-field-group {
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+        .input-field-group label {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .input-field-group input,
+        .input-field-group select,
+        .input-field-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--bg-alt);
+            color: var(--text-color);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+            .input-field-group input:focus,
+            .input-field-group select:focus,
+            .input-field-group textarea:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px var(--primary-glow);
+            }
+
+    /* =================================================== */
+    /* التنسيقات الجديدة لحقول الاختيارات كما بالصورة الثانية */
+    /* =================================================== */
+    .option-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        width: 100%;
+    }
+
+        .option-row input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+            flex-shrink: 0;
+        }
+
+        .option-row input[type="text"] {
+            flex: 1;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--bg-alt);
+            color: var(--text-color);
+            outline: none;
+            text-align: right;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-sizing: border-box;
+        }
+
+            .option-row input[type="text"]:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px var(--primary-glow);
+            }
+
+    .popup-actions-flex {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+    }
+
+    .cancel-btn {
+        background: var(--absent-color);
+        color: var(--white);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 14px;
+        transition: opacity 0.2s;
+    }
+
+        .cancel-btn:hover {
+            opacity: 0.9;
+        }
+
+    @@media (max-width: 768px) {
+        .questions-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .options-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .responsive-flex-row {
+            flex-direction: column;
+            gap: 0 !important;
+        }
+    }
+</style>
+
+<section id="questions-management-section">
+    <!-- الهيدر العلوي -->
+    <div class="questions-header">
+        <div class="questions-header-info">
+            <h2>أسئلة الامتحان: اختبار تجريبي شريف</h2>
+            <p>إجمالي الأسئلة: 2 | المجموع: 5 درجات</p>
+        </div>
+        <button type="button" onclick="openCreateQuestionModal()" class="action-button">
+            <i class="fas fa-plus"></i> إضافة سؤال جديد
+        </button>
+    </div>
+
+    <!-- قائمة عرض الأسئلة -->
+    <div class="questions-list">
+
+        <!-- سؤال 1: اختيار من متعدد مع صورة -->
+        <div class="question-card"
+             data-id="1"
+             data-text="ما اسم الشكل المعروض في الصورة أدناه؟"
+             data-type="MCQ"
+             data-score="2"
+             data-image="~/images/image.png"
+             data-opt1="مكعب"
+             data-opt2="متوازي مستطيلات"
+             data-opt3="هرم رباعي"
+             data-opt4="أسطوانة"
+             data-correct="2">
+
+            <div class="question-card-header">
+                <div class="question-title-group">
+                    <span class="question-badge">سؤال 1</span>
+                    <span class="question-score-badge"><i class="fas fa-star"></i> 2 درجات</span>
+                    <span class="question-score-badge"><i class="fas fa-list-ul"></i> اختيار من متعدد</span>
+                </div>
+                <div>
+                    <button onclick="editQuestion(this)" class="action-icon-btn" title="تعديل السؤال" style="color: var(--primary-color);">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-icon-btn" title="حذف السؤال" style="color: var(--absent-color);">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="question-text">ما اسم الشكل المعروض في الصورة أدناه؟</div>
+
+            <!-- مكان المعاينة والتحكم في صورة السؤال -->
+            <div class="question-image-wrapper">
+                <img src="~/images/image.png" alt="صورة السؤال">
+                <div class="image-actions-overlay">
+                    <button type="button" class="img-action-btn" onclick="triggerImageChange(1)" title="تغيير الصورة">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <button type="button" class="img-action-btn" title="حذف الصورة" style="color: var(--absent-color);">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- خيارات الإجابة -->
+            <div class="options-grid">
+                <div class="option-item">
+                    <span class="option-icon"><i class="far fa-circle"></i></span> أ) مكعب
+                </div>
+                <div class="option-item correct-answer">
+                    <span class="option-icon"><i class="fas fa-check-circle"></i></span> ب) متوازي مستطيلات (الإجابة الصحيحة)
+                </div>
+                <div class="option-item">
+                    <span class="option-icon"><i class="far fa-circle"></i></span> ج) هرم رباعي
+                </div>
+                <div class="option-item">
+                    <span class="option-icon"><i class="far fa-circle"></i></span> د) أسطوانة
+                </div>
+            </div>
+        </div>
+
+        <!-- سؤال 2: صح وخطأ (بدون صورة) -->
+        <div class="question-card"
+             data-id="2"
+             data-text="تعتبر يد الرافعات من أجهزة الدرجة الأولى."
+             data-type="TrueFalse"
+             data-score="3"
+             data-image=""
+             data-tf-correct="false">
+
+            <div class="question-card-header">
+                <div class="question-title-group">
+                    <span class="question-badge">سؤال 2</span>
+                    <span class="question-score-badge"><i class="fas fa-star"></i> 3 درجات</span>
+                    <span class="question-score-badge"><i class="fas fa-check-double"></i> صح / خطأ</span>
+                </div>
+                <div>
+                    <button onclick="editQuestion(this)" class="action-icon-btn" title="تعديل السؤال" style="color: var(--primary-color);">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="action-icon-btn" title="حذف السؤال" style="color: var(--absent-color);">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="question-text">تعتبر يد الرافعات من أجهزة الدرجة الأولى.</div>
+
+            <!-- خيارات صح وخطأ -->
+            <div class="options-grid">
+                <div class="option-item">
+                    <span class="option-icon"><i class="far fa-circle"></i></span> صح (True)
+                </div>
+                <div class="option-item correct-answer">
+                    <span class="option-icon"><i class="fas fa-check-circle"></i></span> خطأ (False) - (الإجابة الصحيحة)
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- مدخل ملفات مخفي لتغيير الصورة بسرعة -->
+<input type="file" id="quick-image-input" accept="image/*" style="display:none;" onchange="handleImageSelected(this)">
+
+<!-- Popup Modal: إضافة أو تعديل سؤال -->
+<div id="question-modal" class="custom-popup-overlay" style="display:none;">
+    <div class="popup-window-content">
+        <!-- هيدر الـ Popup مع علامة الإغلاق -->
+        <div class="popup-header">
+            <h3 id="modal-title">إضافة سؤال جديد</h3>
+            <button type="button" class="close-popup-btn" onclick="closeModal('question-modal')" title="إغلاق">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="question-form">
+            <input type="hidden" id="question-id" value="">
+
+            <div class="input-field-group">
+                <label for="question-text-input">نص السؤال</label>
+                <textarea id="question-text-input" rows="3" placeholder="أدخل نص السؤال هنا..."></textarea>
+            </div>
+
+            <div class="responsive-flex-row" style="display:flex; gap:12px;">
+                <div class="input-field-group" style="flex:1;">
+                    <label for="question-type-select">نوع السؤال</label>
+                    <select id="question-type-select" onchange="toggleQuestionTypeUI()">
+                        <option value="MCQ">اختيار من متعدد (MCQ)</option>
+                        <option value="TrueFalse">صح / خطأ (True / False)</option>
+                    </select>
+                </div>
+                <div class="input-field-group" style="flex:1;">
+                    <label for="question-score-input">درجة السؤال</label>
+                    <input type="number" id="question-score-input" value="1" min="1">
+                </div>
+            </div>
+
+            <!-- إرفاق/تغيير صورة السؤال داخل الـ Modal -->
+            <div class="input-field-group">
+                <label for="question-image-input">صورة السؤال (اختياري)</label>
+                <input type="file" id="question-image-input" accept="image/*">
+            </div>
+
+            <hr style="margin:20px 0; border:0; border-top:1px solid var(--border-color);" />
+
+            <!-- واجهة الاختيارات -->
+            <div id="options-wrapper">
+
+                <!-- خيارات الاختيار من متعدد المصممة حديثاً -->
+                <div id="mcq-options-container">
+                    <label style="font-weight:700; display:block; margin-bottom:14px; color:var(--text-color); font-size:15px;">
+                        خيارات الإجابة (حدد الخيار الصحيح):
+                    </label>
+
+                    <div class="option-row">
+                        <input type="radio" name="mcq-correct-group" value="1" id="mcq-r1" checked>
+                        <input type="text" id="mcq-opt-1" placeholder="الخيار 1">
+                    </div>
+                    <div class="option-row">
+                        <input type="radio" name="mcq-correct-group" value="2" id="mcq-r2">
+                        <input type="text" id="mcq-opt-2" placeholder="الخيار 2">
+                    </div>
+                    <div class="option-row">
+                        <input type="radio" name="mcq-correct-group" value="3" id="mcq-r3">
+                        <input type="text" id="mcq-opt-3" placeholder="الخيار 3">
+                    </div>
+                    <div class="option-row">
+                        <input type="radio" name="mcq-correct-group" value="4" id="mcq-r4">
+                        <input type="text" id="mcq-opt-4" placeholder="الخيار 4">
+                    </div>
+                </div>
+
+                <!-- خيارات الصح والخطأ -->
+                <div id="tf-options-container" style="display:none;">
+                    <label style="font-weight:700; display:block; margin-bottom:14px; color:var(--text-color); font-size:15px;">
+                        الإجابة الصحيحة:
+                    </label>
+                    <div style="display:flex; gap:24px;">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="tf-correct-group" value="true" id="tf-r-true" checked> صح (True)
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+                            <input type="radio" name="tf-correct-group" value="false" id="tf-r-false"> خطأ (False)
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- أزرار الحفظ والإلغاء -->
+            <div class="popup-actions-flex">
+                <button type="button" class="action-button">حفظ السؤال</button>
+                <button type="button" class="cancel-btn" onclick="closeModal('question-modal')">إلغاء</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JS لتفاعل الواجهة والـ Modal -->
+<script>
+    let currentEditingQuestionId = null;
+
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = "flex";
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    // فتح النافذة لإضافة سؤال جديد
+    function openCreateQuestionModal() {
+        document.getElementById('modal-title').innerText = "إضافة سؤال جديد";
+        document.getElementById('question-form').reset();
+        document.getElementById('question-id').value = "";
+        toggleQuestionTypeUI();
+        openModal('question-modal');
+    }
+
+    // قراءة وتعبئة بيانات السؤال عند ضغط "تعديل"
+    function editQuestion(buttonBtn) {
+        const card = buttonBtn.closest('.question-card');
+
+        document.getElementById('modal-title').innerText = "تعديل السؤال";
+        document.getElementById('question-id').value = card.dataset.id || '';
+        document.getElementById('question-text-input').value = card.dataset.text || '';
+        document.getElementById('question-score-input').value = card.dataset.score || '1';
+
+        const qType = card.dataset.type || 'MCQ';
+        document.getElementById('question-type-select').value = qType;
+
+        if (qType === 'MCQ') {
+            document.getElementById('mcq-opt-1').value = card.dataset.opt1 || '';
+            document.getElementById('mcq-opt-2').value = card.dataset.opt2 || '';
+            document.getElementById('mcq-opt-3').value = card.dataset.opt3 || '';
+            document.getElementById('mcq-opt-4').value = card.dataset.opt4 || '';
+
+            const correctOpt = card.dataset.correct || '1';
+            const radioToSelect = document.getElementById('mcq-r' + correctOpt);
+            if (radioToSelect) radioToSelect.checked = true;
+        } else {
+            const isTrue = card.dataset.tfCorrect === 'true';
+            document.getElementById('tf-r-true').checked = isTrue;
+            document.getElementById('tf-r-false').checked = !isTrue;
+        }
+
+        toggleQuestionTypeUI();
+        openModal('question-modal');
+    }
+
+    // التبديل بين واجهة MCQ و TrueFalse
+    function toggleQuestionTypeUI() {
+        const selectedType = document.getElementById('question-type-select').value;
+        const mcqBox = document.getElementById('mcq-options-container');
+        const tfBox = document.getElementById('tf-options-container');
+
+        if (selectedType === 'TrueFalse') {
+            mcqBox.style.display = 'none';
+            tfBox.style.display = 'block';
+        } else {
+            mcqBox.style.display = 'block';
+            tfBox.style.display = 'none';
+        }
+    }
+
+    // إطلاق التغيير السريع للصورة من الكارت مباشرةً
+    function triggerImageChange(qId) {
+        currentEditingQuestionId = qId;
+        document.getElementById('quick-image-input').click();
+    }
+
+    function handleImageSelected(input) {
+        if (input.files && input.files[0]) {
+            alert('تم اختيار صورة جديدة بنجاح للسؤال رقم: ' + currentEditingQuestionId);
+        }
+    }
+</script>
