@@ -223,4 +223,21 @@ namespace Al_Muzayyen.Controllers
         }
 
     }
+
+
+
+        [HttpGet]
+        public IActionResult GetGroupStudents(int slotId)
+        {
+            
+  
+
+            return View();
+        }
+
+}
+
+
+
+    
 }
