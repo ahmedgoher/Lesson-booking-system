@@ -237,27 +237,27 @@
                         <th>نتائج الطلاب</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>امتحان منتصف الفصل - الرياضيات</td>
-                        <td>2026-08-10</td>
-                        <td>20 سؤال</td>
-                        <td>
-                            <button class="action-icon-btn" onclick="openModal('examResultsModal')" title="عرض النتائج">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>اختبار قصير - التفاضل والتكامل</td>
-                        <td>2026-07-25</td>
-                        <td>10 أسئلة</td>
-                        <td>
-                            <button class="action-icon-btn" onclick="openModal('examResultsModal')" title="عرض النتائج">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
+                <tbody >
+                    @foreach (var exam in Model.Exams)
+                    {
+                        <tr>
+                            <td>@exam.Title</td>
+
+                            <td>@exam.CreatedAt.ToString("yyyy-MM-dd")</td>
+
+                            <td>@exam.QuestionsCount سؤال</td>
+
+                            <td>
+                                <button class="action-icon-btn"
+                                        onclick="showExamResults(@exam.ExamId)"
+                                        title="عرض النتائج">
+
+                                    <i class="fas fa-eye"></i>
+
+                                </button>
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -370,15 +370,16 @@
         </div>
         <div class="table-responsive-container">
             <table class="data-display-table">
-                <thead>
-                    <tr>
-                        <th>اسم الطالب</th>
-                        <th>الدرجة</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
+                            <thead>
+                                <tr>
+                                    <th>اسم الطالب</th>
+                                    <th>الدرجة</th>
+                                    <th>الحالة</th>
+                                    <th>وقت التسليم</th>
+                                </tr>
+                            </thead>
+                             <tbody id="exam-results-body">
+                    @*<tr>
                         <td>أحمد محمد علي</td>
                         <td>95/100</td>
                         <td><span style="color: green; font-weight: bold;">مكتمل</span></td>
@@ -392,7 +393,7 @@
                         <td>محمود حسن</td>
                         <td>--</td>
                         <td><span style="color: var(--absent-color, #f87171); font-weight: bold;">لم يمتحن</span></td>
-                    </tr>
+                    </tr> *@
                 </tbody>
             </table>
         </div>
@@ -503,4 +504,95 @@
             event.target.classList.remove('active');
         }
     }
+                async function showExamResults(examId) {
+
+                    try {
+
+                        const response = await fetch(`/GroupManagement/GetExamResults?examId=${examId}&slotId=@Model.SlotId`);
+
+                        const result = await response.json();
+
+                        if (!result.success) {
+
+                            alert("حدث خطأ");
+
+                            return;
+                        }
+
+                        const tbody =
+                            document.getElementById("exam-results-body");
+
+                        tbody.innerHTML = "";
+
+                        result.data.forEach(student => {
+
+                            let score =
+                                student.score == null ? "--" : student.score;
+
+                            let submitted =
+                                student.submittedAt == null
+                                    ? "--"
+                                    : new Date(student.submittedAt)
+                                        .toLocaleDateString("ar-EG");
+
+                            let statusColor = "";
+
+switch (student.status) {
+    case "ناجح":
+        statusColor = "green";
+        break;
+
+    case "راسب":
+        statusColor = "red";
+        break;
+
+    case "غائب":
+        statusColor = "#dc2626";
+        break;
+
+    case "لم يبدأ":
+        statusColor = "#2563eb";
+        break;
+
+    case "لم يمتحن بعد":
+        statusColor = "#f59e0b";
+        break;
+
+    default:
+        statusColor = "#64748b";
+        break;
+}
+
+                            tbody.innerHTML += `
+                                <tr>
+
+                                    <td>${student.studentName}</td>
+
+                                    <td>${score}</td>
+
+                                    <td>
+                                        <span style="color:${statusColor};font-weight:bold;">
+                                            ${student.status}
+                                        </span>
+                                    </td>
+
+                                    <td>${submitted}</td>
+
+                                </tr>
+                            `;
+
+                        });
+
+                        openModal("examResultsModal");
+
+                    }
+                    catch (e) {
+
+                        console.error(e);
+
+                        alert("حدث خطأ أثناء تحميل النتائج");
+
+                    }
+
+                }
 </script>
