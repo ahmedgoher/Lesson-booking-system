@@ -462,9 +462,13 @@
                     <i class="fa-solid fa-location-dot input-icon"></i>
                     <select id="centerLocation" class="custom-input custom-select" required>
                         <option value="" disabled selected>اختر المكان / السنتر</option>
-                        <option value="1">سنتر النور - المقر الرئيسي</option>
-                        <option value="2">سنتر التفوق - فرع المهندسين</option>
-                        <option value="3">أونلاين (عن بُعد)</option>
+                        @if(ViewBag.Places != null)
+                        {
+                            @foreach (var place in ViewBag.Places)
+                            {
+                                <option value="@place.Id">@place.Name</option>
+                            }
+                        }
                     </select>
                 </div>
             </div>
@@ -476,9 +480,14 @@
                     <i class="fa-solid fa-layer-group input-icon"></i>
                     <select id="gradeLevel" class="custom-input custom-select" required>
                         <option value="" disabled selected>اختر الصف الدراسي</option>
-                        <option value="1">الصف الأول الثانوي</option>
-                        <option value="2">الصف الثاني الثانوي</option>
-                        <option value="3">الصف الثالث الثانوي</option>
+                        @if(ViewBag.Classes != null)
+                        {
+                            @foreach (var Class in ViewBag.Classes)
+                            {
+                                <option value="@Class.Id">@Class.Name</option>
+                            }
+                        }
+
                     </select>
                 </div>
             </div>
@@ -489,10 +498,7 @@
                 <div class="input-icon-wrapper">
                     <i class="fa-solid fa-users input-icon"></i>
                     <select id="newGroup" class="custom-input custom-select" required>
-                        <option value="" disabled selected>اختر المجموعة المتاحة</option>
-                        <option value="A">مجموعة A (السبت والأربعاء - 04:00 مساءً)</option>
-                        <option value="B">مجموعة B (الأحد والثلاثاء - 06:00 مساءً)</option>
-                        <option value="C">مجموعة C (الإثنين والخميس - 02:00 ظهراً)</option>
+                       <option value="" disabled selected>يرجى اختيار المكان والصف أولاً</option>
                     </select>
                 </div>
             </div>
@@ -540,6 +546,72 @@
     });
     });
 
+      $('#centerLocation, #gradeLevel').change(function () {
+        var classId = $('#gradeLevel').val();
+        var placeId = $('#centerLocation').val();
+
+        var groupSelect = $('#newGroup');
+        if (!classId || !placeId) {
+        groupSelect.empty().append('<option value="" disabled selected>يرجى اختيار المكان والصف أولاً</option>');
+        return;
+        }
+
+        groupSelect.empty().append('<option value="" disabled selected>جاري البحث عن مجموعات...</option>');
+
+            $.getJSON('/Student/GetSlots', { classId: classId, placeId: placeId }, function (data) {
+            groupSelect.empty();
+              if (data && data.length > 0) {
+               groupSelect.append('<option value="" disabled selected>اختر المجموعة الجديدة</option>');
+               $.each(data, function (i, item) {
+                // item.id و item.name قادمة من الأكشن الخاص بك
+                groupSelect.append($('<option>', { value: item.id, text: item.name }));
+            });
+        } else {
+            groupSelect.append('<option value="" disabled selected>لا توجد مجموعات متاحة هنا حالياً</option>');
+        }
+        }).fail(function() {
+        groupSelect.empty().append('<option value="" disabled selected>حدث خطأ أثناء جلب المجموعات</option>'); 
+            });
+    });
+    $('#changeGroupForm').submit(function (e) {
+    e.preventDefault();
+    
+    var requestSlotId = parseInt($('#newGroup').val());
+    var reason = $('#requestNotes').val();
+
+    if (isNaN(requestSlotId)) {
+        alert("يرجى اختيار المجموعة الجديدة.");
+        return;
+    }
+
+    var data = {
+        // تأكد أن الاسم هنا يطابق الـ ViewModel في الـ C# (RequestedSlotId)
+        RequestedSlotId: requestSlotId, 
+        Reason: reason
+    };
+
+    $.ajax({
+        url: '/Student/SubmitGroupChangeRequest',
+        type: 'POST',
+        contentType: 'application/json',
+        headers: { "RequestVerificationToken": token },
+        data: JSON.stringify(data),
+        success: function (res) {
+            if (res.success) {
+                alert(res.message);
+                $('#changeGroupModal').hide();
+                $('#changeGroupForm')[0].reset();
+                // إعادة السيلكت لحالته الافتراضية
+                $('#newGroup').empty().append('<option value="" disabled selected>يرجى اختيار المكان والصف أولاً</option>');
+            } else {
+                alert(res.message);
+            }
+        },
+        error: function () {
+            alert("حدث خطأ أثناء إرسال طلب التحويل!");
+        }
+    });
+});
     // --------------------------------------------------
     // معالجة النماذج الأخرى باستخدام AJAX
     // --------------------------------------------------
@@ -613,4 +685,5 @@
     }
     });
     });
+
 </script>

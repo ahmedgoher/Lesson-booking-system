@@ -464,52 +464,37 @@
             </thead>
             <tbody>
                 <!-- صف طلب قيد الانتظار -->
-                <tr>
-                    <td><strong>أحمد محمد علي</strong></td>
-                    <td>سنتر النور</td>
-                    <td>الصف الأول الثانوي</td>
-                    <td>مجموعة A (السبت - 04:00 م)</td>
+                @foreach(var request in Model.GroupChangeRequests)
+                {
+                    <tr>
+                    <td><strong>@request.Student?.Name</strong></td>
+                        <td>@request.Student?.Place?.Name</td>
+                    <td>@request.Student?.Class?.Name</td>
+                    <td>@request.RequestedSlot?.Group_Name</td>
                     <td style="text-align: center;">
                         <!-- زر صغير جداً كأيقونة مع توضيح Title -->
-                        <button type="button" class="action-icon-btn btn-view-reason" title="عرض سبب التحويل" onclick="openReasonModal('أحمد محمد علي', 'تعارض المواعيد مع درس الفيزياء الخاص بالمدرسة')">
+                        <button type="button" class="action-icon-btn btn-view-reason" title="عرض سبب التحويل" onclick="openReasonModal('@request.Student.Name', '@request.Reason')">
                             <i class="fa-solid fa-file-lines"></i>
                         </button>
                     </td>
-                    <td>2026/07/24</td>
-                    <td><span class="status-badge pending">قيد الانتظار</span></td>
-                    <td style="text-align: center;">
+                    <td>@request.RequestDate.ToString("yyyy-MM-dd")</td>
+                        <td><span class="status-badge pending">@request.Status.GetDisplayName()</span></td>
+                        <td style="text-align: center;">
                         <form asp-action="ApproveGroupRequest" asp-controller="Admin" method="post" style="display:inline;">
-                            <input type="hidden" name="requestId" value="1" />
+                                <input type="hidden" name="requestId" value="@request.Id" />
                             <button type="submit" class="action-icon-btn btn-approve-icon" title="قبول الطلب">
                                 <i class="fa-solid fa-check"></i>
                             </button>
                         </form>
                         <form asp-action="RejectGroupRequest" asp-controller="Admin" method="post" style="display:inline;">
-                            <input type="hidden" name="requestId" value="1" />
+                                <input type="hidden" name="requestId" value="@request.Id" />
                             <button type="submit" class="action-icon-btn btn-reject-icon" title="رفض الطلب">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </form>
                     </td>
                 </tr>
-
-                <!-- صف طلب مقبول -->
-                <tr>
-                    <td><strong>محمود حسن</strong></td>
-                    <td>المقر الرئيسي</td>
-                    <td>الصف الثاني الثانوي</td>
-                    <td>مجموعة B (الأحد والثلاثاء)</td>
-                    <td style="text-align: center;">
-                        <button type="button" class="action-icon-btn btn-view-reason" title="عرض سبب التحويل" onclick="openReasonModal('محمود حسن', 'ظروف صحية طارئة تمنع الحضور مساءً')">
-                            <i class="fa-solid fa-file-lines"></i>
-                        </button>
-                    </td>
-                    <td>2026/07/22</td>
-                    <td><span class="status-badge approved">تمت الموافقة</span></td>
-                    <td style="text-align: center;">
-                        <span style="color: #94a3b8; font-size: 0.85rem;">مكتمل</span>
-                    </td>
-                </tr>
+                }
             </tbody>
         </table>
     </div>

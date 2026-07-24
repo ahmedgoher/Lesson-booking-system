@@ -11,5 +11,7 @@ namespace Al_Muzayyen.Viewmodel
         public int ClassesCount { get; set; } = 0;
         public Admin? Admin { get; set; }
 
+        public List<GroupChangeRequest> GroupChangeRequests { get; set; } = new();
+
     }
 }

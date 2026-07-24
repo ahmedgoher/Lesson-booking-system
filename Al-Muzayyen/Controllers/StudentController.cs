@@ -195,6 +195,26 @@ namespace Al_Muzayyen.Controllers
             };
             return View(viewModel);
         }
+        [HttpGet]
+        public async Task<JsonResult> GetSlots(int classId, int placeId)
+        {
+            var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(studentIdClaim) || !int.TryParse(studentIdClaim, out int studentId))
+            {
+                return Json(new { success = false, message = "Unauthorized" });
+            }
+            var student = await _context.Students
+                .Include(s => s.Class)
+                .Include(s => s.AvailableSlot)
+                .FirstOrDefaultAsync(s => s.Id == studentId);
+
+            var slots = await _context.Available_Slots
+                .Where(s => s.ClassId == classId && s.PlaceId == placeId && s.State == "Active" && s.Id != student.SlotId)
+                .Select(s => new { id = s.Id, name = s.Group_Name })
+                .ToListAsync();
+
+            return Json(slots);
+        }
         public async Task<IActionResult> Profile()
         {
             var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -219,7 +239,9 @@ namespace Al_Muzayyen.Controllers
                 ClassName = student.Class?.Name ?? "غير محدد",
                 GroupName = student.AvailableSlot?.Group_Name ?? "غير محدد"
             };
-
+            ViewBag.Classes = await _context.Classes.ToListAsync();
+            ViewBag.Places = await _context.Places
+                .ToListAsync();
             return View(model);
         }
         [HttpPost]
@@ -280,6 +302,51 @@ namespace Al_Muzayyen.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "تم تغيير كلمة المرور بنجاح!" });
+        }
+        [HttpPost]
+        public async Task<IActionResult> SubmitGroupChangeRequest([FromBody] ChangeGroupVM vm)
+        {
+            try
+            {
+                var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(studentIdClaim) || !int.TryParse(studentIdClaim, out int studentId))
+                {
+                    return Json(new { success = false, message = "جلسة العمل انتهت، يرجى تسجيل الدخول مجدداً." });
+                }
+                var student = await _context.Students.FindAsync(studentId);
+                if(student == null)
+                {
+                    return Json(new { success = false, message = "الطالب غير موجود" });
+                }
+                if(student.SlotId == vm.RequestedSlotId)
+                {
+                    return Json(new { success = false, message = "أنت بالفعل مسجل في هذه المجموعة!" });
+                }
+                var existingRequest = await _context.GroupChangeRequests
+                    .FirstOrDefaultAsync(r => r.StudentId == studentId && r.Status == RequestStatus.Pending);
+                if (existingRequest != null)
+                {
+                    return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد الانتظار بالفعل. يرجى انتظار الرد." });
+                }
+                var newRequest = new GroupChangeRequest
+                {
+                    StudentId = studentId,
+                    RequestSlotId = vm.RequestedSlotId,
+                    Reason = vm.Reason,
+                    Status = RequestStatus.Pending,
+                    RequestDate = DateTime.Now
+                };
+                _context.GroupChangeRequests.Add(newRequest);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "تم إرسال طلبك بنجاح، يرجى انتظار موافقة الإدارة." });
+
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى." });
+
+            }
         }
 
         public IActionResult Account()

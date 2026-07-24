@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 [Authorize(Roles = "Admin")]
@@ -19,6 +20,8 @@ public class AdminController : Controller
     private readonly IGenericService<Slot_time> _slotTimeService;
     private readonly IGenericService<Place> _placeServiceGeneric;
     private readonly IGenericService<Video> _videoService;
+    private readonly IGroupRequestRepo _groupchangeRequest;
+
     private readonly IPlaceService _placeService;
     private readonly IBookingRepo bookingRepo;
     private readonly IGroupRepo groupRepo;
@@ -29,6 +32,7 @@ public class AdminController : Controller
 
     private readonly CloudinaryService _cloudinaryService;
     private readonly IExamService _examService;
+
     public AdminController
 
             (IGenericService<Slot_time> slotTimeService,
@@ -41,6 +45,7 @@ public class AdminController : Controller
             IGenericService<Video> videoService,
             IGenericService<Place> genericServiceGeneric,
             IGenericService<Available_slot> availableSlotService,
+            IGroupRequestRepo groupchangeRequest,
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo,
              IQuestionService questionService,
@@ -51,6 +56,7 @@ public class AdminController : Controller
         _webHostEnvironment = webHostEnvironment;
         _AdminService = adminService;
         _questionService = questionService;
+        _groupchangeRequest = groupchangeRequest;
 
         _classService = classService;
         _bookingService = bookingService;
@@ -66,15 +72,52 @@ public class AdminController : Controller
     }
     public IActionResult Index()
     {
+        var groupChangeRequests = _groupchangeRequest.GetPendingRequestsWithDetails();
+        
         var model = new IndexVMAdmin
         {
             StudentsCount = _bookingService.GetAll().Count(),
             GroupsCount = _availableSlotService.GetAll().Count(),
             ClassesCount = _classService.GetAll().Count(),
-            Admin = _AdminService.GetAll().FirstOrDefault()
-
+            Admin = _AdminService.GetAll().FirstOrDefault(),
+            GroupChangeRequests = groupChangeRequests
         };
         return View(model);
+    }
+    public async Task<IActionResult> ApproveGroupRequest(int requestId)
+    {
+        var request = await _groupchangeRequest.GetByIdAsync(requestId);
+        if (request == null)
+        {
+            return NotFound();
+        }
+        // Update the request status to Approved
+
+        request.Status = RequestStatus.Approved;
+        _groupchangeRequest.Update(request);
+        _groupchangeRequest.SaveChanges();  
+        // Update the student's group to the requested slot
+        var student = await _bookingService.GetByIdAsync(request.StudentId);
+        if (student != null)
+        {
+            student.SlotId = request.RequestSlotId;
+            _bookingService.Update(student);
+            _bookingService.SaveChanges();
+        }
+        return RedirectToAction("Index");
+    }
+    public async Task<IActionResult> RejectGroupRequest(int requestId)
+    {
+        var request = await _groupchangeRequest.GetByIdAsync(requestId);
+        if (request == null)
+        {
+            return NotFound();
+        }
+        // Update the request status to Rejected
+        request.Status = RequestStatus.Rejected;
+        _groupchangeRequest.Update(request);
+        _groupchangeRequest.SaveChanges();
+        return RedirectToAction("Index");
     }
 
     public async Task<IActionResult> Students(int? placeId, int? classId, int? groupId)

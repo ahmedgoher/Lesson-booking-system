@@ -33,6 +33,10 @@ namespace Al_Muzayyen.Models
         public DbSet<StudentExam> StudentExams { get; set; }
         public DbSet<ExamGroup> ExamGroup { get; set; }
 
+        public DbSet<GroupChangeRequest> GroupChangeRequests { get; set; }
+
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ضروري جداً لإنشاء جداول الـ Identity تلقائياً (AspNetUsers, AspNetRoles, etc.)
