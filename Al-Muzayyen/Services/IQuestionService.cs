@@ -8,5 +8,6 @@ namespace Al_Muzayyen.Services
         Task<IEnumerable<QuestionListVM>> GetQuestionsByExamIdAsync(int examId);
         Task UpdateQuestionAsync(QuestionViewModel model);
         Task DeleteQuestionAsync(int id);
-    }
+        
+        }
 }

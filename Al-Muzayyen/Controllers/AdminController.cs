@@ -1177,54 +1177,60 @@ public class AdminController : Controller
     //}
     [HttpPost]
     public async Task<IActionResult> SaveQuestion(
-    [FromForm] QuestionViewModel model,
-    IFormFile? image)
+     [FromForm] QuestionViewModel model,
+     IFormFile? image)
     {
-        if (string.IsNullOrWhiteSpace(model.QuestionText))
+        try
         {
-            return Json(new
+            if (string.IsNullOrWhiteSpace(model.QuestionText))
             {
-                success = false,
-                message = "اكتب السؤال"
-            });
-        }
+                return Json(new
+                {
+                    success = false,
+                    message = "اكتب السؤال"
+                });
+            }
 
-        if (model.ExamId <= 0)
-        {
-            return Json(new
+            if (model.ExamId <= 0)
             {
-                success = false,
-                message = "الامتحان غير موجود"
-            });
-        }
+                return Json(new
+                {
+                    success = false,
+                    message = "الامتحان غير موجود"
+                });
+            }
 
-        // رفع الصورة الجديدة في حالة وجودها فقط
-        if (image != null)
-        {
-            model.ImageUrl = await _cloudinaryService.UploadImageAsync(image);
-        }
-
-        // 👈 التعديل الأساسي هنا
-        if (model.Id > 0)
-        {
-            // عملية تعديل سؤال موجود
-            await _questionService.UpdateQuestionAsync(model);
-
-            return Json(new
+            // رفع الصورة الجديدة
+            if (image != null)
             {
-                success = true,
-                message = "تم تعديل السؤال بنجاح"
-            });
-        }
-        else
-        {
-            // عملية إضافة سؤال جديد
+                model.ImageUrl = await _cloudinaryService.UploadImageAsync(image);
+            }
+
+            if (model.Id > 0)
+            {
+                await _questionService.UpdateQuestionAsync(model);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "تم تعديل السؤال بنجاح"
+                });
+            }
+
             await _questionService.AddQuestionAsync(model);
 
             return Json(new
             {
                 success = true,
                 message = "تم إضافة السؤال بنجاح"
+            });
+        }
+        catch (Exception ex)
+        {
+            return Json(new
+            {
+                success = false,
+                message = ex.Message
             });
         }
     }
@@ -1245,6 +1251,17 @@ public class AdminController : Controller
         ViewBag.ExamName = exam.Title; // الآن يعمل بدون مشاكل
         ViewBag.TotalQuestions = questionsList.Count;
         ViewBag.TotalMarks = questionsList.Sum(x => x.Mark);
+        var examTotalMarks = exam.TotalMarks;
+        var currentMarks = questionsList.Sum(x => x.Mark);
+
+        ViewBag.ExamTotalMarks = examTotalMarks;
+        ViewBag.CurrentMarks = currentMarks;
+        ViewBag.RemainingMarks = examTotalMarks - currentMarks;
+
+        ViewBag.Progress =
+            examTotalMarks == 0
+                ? 0
+                : (int)((currentMarks * 100.0) / examTotalMarks);
 
         return View(questionsList);
     }

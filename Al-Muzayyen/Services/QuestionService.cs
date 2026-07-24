@@ -16,18 +16,46 @@ namespace Al_Muzayyen.Services
         {
             return await _questionRepository.GetQuestionsByExamIdAsync(examId);
         }
+        private async Task UpdateExamStatusAsync(int examId)
+        {
+            var exam = await _questionRepository.GetExamByIdAsync(examId);
+
+            if (exam == null)
+                return;
+
+            var totalQuestionsMarks =
+                await _questionRepository.GetExamMarksSumAsync(examId);
+
+            exam.IsActive = totalQuestionsMarks == exam.TotalMarks;
+
+            await _questionRepository.UpdateExamAsync(exam);
+        }
 
         public async Task UpdateQuestionAsync(QuestionViewModel model)
         {
             var question = await _questionRepository.GetByIdAsync(model.Id);
 
             if (question == null)
-            {
                 throw new Exception("السؤال غير موجود");
+
+            var exam = await _questionRepository.GetExamByIdAsync(question.ExamId);
+
+            if (exam == null)
+                throw new Exception("الامتحان غير موجود");
+
+            // مجموع الدرجات بعد التعديل
+            var currentMarks = await _questionRepository.GetExamMarksSumAsync(question.ExamId);
+
+            currentMarks = currentMarks - question.Mark + model.Mark;
+
+            if (currentMarks > exam.TotalMarks)
+            {
+                throw new Exception(
+                    $"لا يمكن تعديل السؤال، لأن مجموع الدرجات سيصبح {currentMarks} من {exam.TotalMarks}");
             }
 
             question.QuestionText = model.QuestionText;
-            question.Mark = (int)model.Mark;
+            question.Mark = model.Mark;
 
             if (Enum.TryParse<QuestionType>(model.Type, out var parsedType))
             {
@@ -39,12 +67,9 @@ namespace Al_Muzayyen.Services
                 question.ImageUrl = model.ImageUrl;
             }
 
-            // ----------------------------------------------------
-            // تحديث الخيارات (Options) بدون استخدام Clear()
-            // ----------------------------------------------------
             if (question.Type == QuestionType.MCQ)
             {
-                var optionsList = new[]
+                var options = new[]
                 {
             new { Text = model.OptionA ?? "", IsCorrect = model.CorrectAnswer == "A" },
             new { Text = model.OptionB ?? "", IsCorrect = model.CorrectAnswer == "B" },
@@ -52,54 +77,81 @@ namespace Al_Muzayyen.Services
             new { Text = model.OptionD ?? "", IsCorrect = model.CorrectAnswer == "D" }
         };
 
-                // تحديث الخيارات الموجودة في الداتا بيز
-                for (int i = 0; i < optionsList.Length; i++)
+                for (int i = 0; i < options.Length; i++)
                 {
                     if (i < question.Options.Count)
                     {
-                        // تحديث الخيار الحالي
-                        question.Options[i].OptionText = optionsList[i].Text;
-                        question.Options[i].IsCorrect = optionsList[i].IsCorrect;
+                        question.Options[i].OptionText = options[i].Text;
+                        question.Options[i].IsCorrect = options[i].IsCorrect;
                     }
                     else
                     {
-                        // إذا كانت الخيارات القديمة أقل من 4، أضف الخيار الجديد
                         question.Options.Add(new QuestionOption
                         {
-                            OptionText = optionsList[i].Text,
-                            IsCorrect = optionsList[i].IsCorrect
+                            OptionText = options[i].Text,
+                            IsCorrect = options[i].IsCorrect
                         });
                     }
                 }
             }
-            else if (question.Type == QuestionType.TrueFalse)
+            else
             {
-                bool isTrueCorrect = model.CorrectAnswer?.ToLower() == "true";
+                bool isTrueCorrect = model.CorrectAnswer == "True";
 
                 if (question.Options.Count >= 2)
                 {
-                    question.Options[0].OptionText = "True";
+                    question.Options[0].OptionText = "صح";
                     question.Options[0].IsCorrect = isTrueCorrect;
 
-                    question.Options[1].OptionText = "False";
+                    question.Options[1].OptionText = "خطأ";
                     question.Options[1].IsCorrect = !isTrueCorrect;
                 }
                 else
                 {
-                    question.Options.Clear(); // إذا كانت أقل من 2 لأي سبب
-                    question.Options.Add(new QuestionOption { OptionText = "True", IsCorrect = isTrueCorrect });
-                    question.Options.Add(new QuestionOption { OptionText = "False", IsCorrect = !isTrueCorrect });
+                    question.Options.Clear();
+
+                    question.Options.Add(new QuestionOption
+                    {
+                        OptionText = "صح",
+                        IsCorrect = isTrueCorrect
+                    });
+
+                    question.Options.Add(new QuestionOption
+                    {
+                        OptionText = "خطأ",
+                        IsCorrect = !isTrueCorrect
+                    });
                 }
             }
 
             await _questionRepository.UpdateAsync(question);
+
+            await UpdateExamStatusAsync(question.ExamId);
         }
         public async Task DeleteQuestionAsync(int id)
         {
-            await _questionRepository.DeleteQuestionAsync(id);
+            var examId = await _questionRepository.DeleteQuestionAsync(id);
+
+            if (examId.HasValue)
+            {
+                await UpdateExamStatusAsync(examId.Value);
+            }
         }
         public async Task AddQuestionAsync(QuestionViewModel model)
         {
+            var exam = await _questionRepository.GetExamByIdAsync(model.ExamId);
+
+            if (exam == null)
+                throw new Exception("الامتحان غير موجود");
+
+            var currentMarks = await _questionRepository.GetExamMarksSumAsync(model.ExamId);
+
+            if (currentMarks + model.Mark > exam.TotalMarks)
+            {
+                throw new Exception(
+                    $"لا يمكن إضافة السؤال، لأن مجموع الدرجات سيصبح {currentMarks + model.Mark} من {exam.TotalMarks}");
+            }
+
             var question = new Question
             {
                 QuestionText = model.QuestionText,
@@ -107,8 +159,8 @@ namespace Al_Muzayyen.Services
                 Mark = model.Mark,
                 ExamId = model.ExamId,
                 Type = model.Type == "TrueFalse"
-                        ? QuestionType.TrueFalse
-                        : QuestionType.MCQ
+                    ? QuestionType.TrueFalse
+                    : QuestionType.MCQ
             };
 
             if (question.Type == QuestionType.MCQ)
@@ -139,21 +191,25 @@ namespace Al_Muzayyen.Services
             }
             else
             {
+                bool isTrue = model.CorrectAnswer.Equals("true", StringComparison.OrdinalIgnoreCase);
+
                 question.Options.Add(new QuestionOption
                 {
                     OptionText = "صح",
-                    IsCorrect = model.CorrectAnswer == "True"
+                    IsCorrect = isTrue
                 });
 
                 question.Options.Add(new QuestionOption
                 {
                     OptionText = "خطأ",
-                    IsCorrect = model.CorrectAnswer == "False"
+                    IsCorrect = !isTrue
                 });
             }
 
             await _questionRepository.AddAsync(question);
             await _questionRepository.SaveAsync();
+
+            await UpdateExamStatusAsync(model.ExamId);
         }
     }
 }

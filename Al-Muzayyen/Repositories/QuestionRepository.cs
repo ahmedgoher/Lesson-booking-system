@@ -45,31 +45,44 @@ namespace Al_Muzayyen.Repositories
         {
             await _context.Questions.AddAsync(question);
         }
-        public async Task DeleteQuestionAsync(int id)
+        public async Task<int?> DeleteQuestionAsync(int id)
         {
-            // 1. جلب السؤال مع كافة الخيارات التابعة له
             var question = await _context.Questions
-                                         .Include(q => q.Options)
-                                         .FirstOrDefaultAsync(q => q.Id == id);
+                .Include(q => q.Options)
+                .FirstOrDefaultAsync(q => q.Id == id);
 
-            if (question != null)
-            {
-                // 2. مسح الخيارات أولاً من قاعدة البيانات
-                if (question.Options != null && question.Options.Any())
-                {
-                    _context.QuestionOptions.RemoveRange(question.Options);
-                }
+            if (question == null)
+                return null;
 
-                // 3. مسح السؤال نفسه
-                _context.Questions.Remove(question);
+            int examId = question.ExamId;
 
-                // 4. حفظ التغييرات
-                await _context.SaveChangesAsync();
-            }
+            _context.Questions.Remove(question);
+
+            await _context.SaveChangesAsync();
+
+            return examId;
         }
 
         public async Task SaveAsync()
         {
+            await _context.SaveChangesAsync();
+        }
+        public async Task<int> GetExamMarksSumAsync(int examId)
+        {
+            return await _context.Questions
+                .Where(q => q.ExamId == examId)
+                .SumAsync(q => q.Mark);
+        }
+
+        public async Task<Exam?> GetExamByIdAsync(int examId)
+        {
+            return await _context.Exams
+                .FirstOrDefaultAsync(e => e.Id == examId);
+        }
+
+        public async Task UpdateExamAsync(Exam exam)
+        {
+            _context.Exams.Update(exam);
             await _context.SaveChangesAsync();
         }
     }

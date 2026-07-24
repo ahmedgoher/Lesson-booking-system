@@ -10,6 +10,9 @@ namespace Al_Muzayyen.Repositories
         Task SaveAsync();
         Task UpdateAsync(Question question);
         Task<Question?> GetByIdAsync(int id);
-        Task DeleteQuestionAsync(int id);
+        Task<int?> DeleteQuestionAsync(int id);
+        Task<int> GetExamMarksSumAsync(int examId);
+        Task<Exam?> GetExamByIdAsync(int examId);
+        Task UpdateExamAsync(Exam exam);
     }
 }

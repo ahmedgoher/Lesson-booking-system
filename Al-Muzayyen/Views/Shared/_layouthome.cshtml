@@ -241,10 +241,7 @@
                 </a>
 
                 <!-- 🖥️ روابط النافبار للكمبيوتر فقط -->
-                <ul class="nav-links desktop-only">
-                    <li><a asp-action="Index" asp-controller="Student">الطالب</a></li>
-                    <li><a href="#about"> من هو  </a></li>
-                </ul>
+               
 
                 <div class="header-actions">
                     <!-- زر الدارك مود -->
@@ -271,7 +268,7 @@
                                     }
                                     else
                                     {
-                                        <a href="/Account/Profile" class="mobile-menu-item">
+                                        <a asp-action="Index" asp-controller="Student" class="mobile-menu-item">
                                             <i class="fas fa-id-card"></i> الملف الشخصي
                                         </a>
                                     }

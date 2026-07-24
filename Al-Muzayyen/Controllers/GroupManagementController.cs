@@ -222,5 +222,24 @@ namespace Al_Muzayyen.Controllers
             return RedirectToAction(nameof(GroupManagement), new { id = slotId });
         }
 
+        [HttpGet]
+        public IActionResult GetGroupStudents(int slotId)
+        {
+
+
+
+            return View();
+        }
+
     }
+
+
+
+      
+
+
+
+
+
+    
 }
