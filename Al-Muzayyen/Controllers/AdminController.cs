@@ -1226,7 +1226,7 @@ public class AdminController : Controller
     // POST: Admin/DeleteExam/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteExam(int id)
+    public async Task<IActionResult> ToggleStatus(int id)
     {
         var exam = await _examService.GetExamByIdAsync(id);
 
@@ -1235,11 +1235,15 @@ public class AdminController : Controller
             return NotFound(new { success = false, message = "الامتحان غير موجود" });
         }
 
-        exam.IsActive = false;
+        exam.IsActive = !exam.IsActive;
 
         await _examService.UpdateExam(exam);
  
-        return Ok(new { success = true, message = "تم حذف الامتحان بنجاح" });
+        return Ok(new
+        { success = true,
+          isActive = exam.IsActive,
+            message = exam.IsActive ? "تم الغاء حذف الامتحان":"تم حذف الامتحان بنجاح" }
+        );
     }
 
 
