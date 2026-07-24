@@ -4,7 +4,7 @@
 :root {
     --primary-color: #c5a059;
     --primary-hover: #b08d4a;
-    --primary-glow: rgba(197, 160, 89, 0.2);
+    --primary-glow: rgba(197, 160, 89, 0.25);
     --secondary-color: #1e293b;
     --bg-main: #f8fafc;
     --bg-alt: #ffffff;
@@ -16,12 +16,13 @@
     --text-on-primary: #ffffff;
     --border-color: #e2e8f0;
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
     --shadow-glow: 0 0 20px var(--primary-glow);
     --success: #10b981;
     --error: #ef4444;
     --warning: #f59e0b;
     --info: #3b82f6;
+    /* المتغيرات المضافة */
     --sidebar-width: 260px;
     --header-height: 70px;
     --border-radius: 12px;
