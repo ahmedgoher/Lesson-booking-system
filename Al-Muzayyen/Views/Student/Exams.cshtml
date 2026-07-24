@@ -53,9 +53,9 @@
                                 else
                                 {
                                     <!-- ▶️ لم يتم: الانتقال لصفحة خوض الامتحان -->
-                                    <a asp-controller="Student"
-                                       asp-action="TakeExam"
-                                       asp-route-id="@exam.ExamId"
+                                    <a asp-controller="Exams"
+                                       asp-action="ShowExam"
+                                       @* asp-route-id="@exam.ExamId" *@
                                        class="action-icon-btn"
                                        title="بدء الامتحان"
                                        style="color: var(--success-color, #28a745);">

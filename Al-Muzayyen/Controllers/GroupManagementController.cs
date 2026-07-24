@@ -108,5 +108,8 @@ namespace Al_Muzayyen.Controllers
 
             return RedirectToAction("GroupManagement", new { id = slotId });
         }
+
+
+
     }
 }

@@ -1,0 +1,679 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_StudentLayout.cshtml";
+    ViewData["Title"] = "showExam";
+}
+
+<style>
+    :root {
+        --success: #10b981;
+        --error: #ef4444;
+        --warning: #f59e0b;
+        --info: #3b82f6;
+        --border-radius: 12px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* 1. الشريط العلوي الذكي */
+    .top-exam-bar {
+        display: flex;
+        align-items: center;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 12px 18px;
+        margin-bottom: 24px;
+        gap: 16px;
+    }
+
+    .timer-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-dark);
+        color: var(--primary-color);
+        padding: 10px 20px;
+        border-radius: var(--border-radius);
+        font-size: 18px;
+        font-weight: 800;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        flex-shrink: 0;
+        border: 1px solid var(--primary-color);
+    }
+
+        .timer-badge i {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+
+    .questions-scroll-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        overflow-x: auto;
+        flex-grow: 1;
+        padding: 6px;
+        background: var(--bg-alt-2);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+        scroll-behavior: smooth;
+    }
+
+        .questions-scroll-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .questions-scroll-wrapper::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+    .q-btn {
+        min-width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        background: var(--card-bg);
+        color: var(--text-color);
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: var(--transition);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow-sm);
+    }
+
+        .q-btn:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .q-btn.current-active {
+            background-color: var(--primary-color) !important;
+            color: var(--text-on-primary) !important;
+            border-color: var(--primary-color) !important;
+            box-shadow: var(--shadow-glow), 0 4px 10px var(--primary-glow);
+            transform: scale(1.05);
+        }
+
+        .q-btn.state-answered {
+            background-color: var(--success) !important;
+            border-color: var(--success) !important;
+            color: var(--text-on-primary) !important;
+        }
+
+        .q-btn.state-skipped {
+            background-color: var(--error) !important;
+            border-color: var(--error) !important;
+            color: var(--text-on-primary) !important;
+        }
+
+    /* 2. كارت عرض السؤال والمحتوى */
+    .question-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        padding: 28px;
+        display: none;
+    }
+
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .question-flex-body {
+        display: flex;
+        gap: 28px;
+        align-items: flex-start;
+    }
+
+    .question-image-box {
+        position: relative;
+        flex-basis: 320px;
+        max-width: 320px;
+        flex-shrink: 0;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        border: 2px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
+        transition: var(--transition);
+        background-color: var(--bg-alt-2);
+    }
+
+        .question-image-box:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-glow);
+            transform: scale(1.02);
+        }
+
+        .question-image-box img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+
+    .zoom-overlay {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        background: rgba(15, 23, 42, 0.75);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        backdrop-filter: blur(4px);
+    }
+
+    .question-content-box {
+        flex: 1;
+        width: 100%;
+    }
+
+    .question-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--secondary-color);
+        margin-bottom: 20px;
+        line-height: 1.6;
+        border-bottom: 2px solid var(--bg-alt-2);
+        padding-bottom: 12px;
+    }
+
+        .question-title span {
+            color: var(--primary-color);
+        }
+
+    .answers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .answer-item {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border: 2px solid var(--border-color);
+        border-radius: var(--border-radius);
+        background: var(--bg-alt);
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+        .answer-item:hover {
+            border-color: var(--primary-color);
+            background: var(--bg-alt-2);
+        }
+
+        .answer-item input[type="radio"] {
+            margin-left: 14px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-color);
+        }
+
+        .answer-item.selected {
+            border-color: var(--primary-color);
+            background: var(--primary-glow);
+            color: var(--secondary-color);
+        }
+
+    /* 3. شريط أزرار التحكم السفلية */
+    .actions-footer {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        margin-top: 24px;
+        background: var(--card-bg);
+        padding: 16px 24px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        gap: 12px;
+    }
+
+    #btnPrev {
+        justify-self: start;
+    }
+
+    #btnSkip {
+        justify-self: center;
+        grid-column: 2;
+    }
+
+    #btnNext, #btnSubmit {
+        justify-self: end;
+        grid-column: 3;
+    }
+
+    .btn {
+        padding: 12px 26px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-prev {
+        background-color: var(--bg-alt-2);
+        color: var(--secondary-color);
+    }
+
+        .btn-prev:hover {
+            background-color: var(--border-color);
+        }
+
+    .btn-skip {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+        .btn-skip:hover {
+            background-color: var(--error);
+            color: #ffffff;
+        }
+
+    .btn-next {
+        background-color: var(--primary-color);
+        color: var(--text-on-primary);
+    }
+
+        .btn-next:hover {
+            background-color: var(--primary-hover);
+        }
+
+    .btn-submit {
+        background-color: var(--success);
+        color: var(--text-on-primary);
+    }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+    .image-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(6px);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+        .image-modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+    .image-modal-card {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+    }
+
+        .image-modal-card img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--primary-color);
+        }
+
+    .close-modal-btn {
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        background: var(--error);
+        color: white;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+    }
+
+    @@media (max-width: 768px) {
+        .top-exam-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .timer-badge {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .question-flex-body {
+            flex-direction: column;
+        }
+
+        .question-image-box {
+            flex-basis: 100%;
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .actions-footer {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            justify-content: center;
+        }
+    }
+</style>
+
+
+
+<div class="exam-container">
+    <!-- نموذج C# Post Form جاهز للاستخدام -->
+    <form id="examForm" method="post" action="/Exam/Submit">
+
+        <!-- حقول مخفية يمكن تغيير قيمتها ديناميكياً من Razor Model -->
+        <input type="hidden" id="ExamId" name="ExamId" value="1" />
+        <input type="hidden" id="StudentId" name="StudentId" value="101" />
+
+        <!-- 1. الشريط العلوي (تم ربط مدة الامتحان بـ Data Attribute) -->
+        <div class="top-exam-bar">
+            <div class="timer-badge" id="timerContainer" data-duration-minutes="30">
+                <i class="fas fa-clock"></i>
+                <span id="timerDisplay">00:00</span>
+            </div>
+
+            <div class="questions-scroll-wrapper" id="questionsNav">
+                <!-- يتم توليد الأزرار ديناميكياً بواسطة السكريبت حسب عدد الكروت الموجودة -->
+            </div>
+        </div>
+
+        <!-- 2. حاوية الأسئلة -->
+        <div id="questionsContainer">
+
+            <!-- مثال سؤال 1 (Razor foreach loop) -->
+            <div class="question-card active" data-q-index="1" data-question-id="1001">
+                <div class="question-flex-body">
+                    <div class="question-content-box">
+                        <div class="question-title">
+                            <span>1:</span> ما هي اللغة الأساسية المستخدمة لتنسيق وتصميم واجهات صفحات الويب؟
+                        </div>
+                        <div class="answers-list">
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1001]" value="10" onchange="selectOption(this)">
+                                HTML
+                            </label>
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1001]" value="11" onchange="selectOption(this)">
+                                CSS
+                            </label>
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1001]" value="12" onchange="selectOption(this)">
+                                JavaScript
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- مثال سؤال 2 (يحتوي على صورة) -->
+            <div class="question-card" data-q-index="2" data-question-id="1002">
+                <div class="question-flex-body">
+                    <div class="question-image-box" onclick="zoomImage(this)">
+                        <img src="/assets/images/image.png" alt="صورة السؤال">
+                        <div class="zoom-overlay"><i class="fas fa-search-plus"></i> اضغط التكبير</div>
+                    </div>
+
+                    <div class="question-content-box">
+                        <div class="question-title">
+                            <span> 2:</span> بناءً على الشكل الموضح جانباً، ما هو قيمة المتغير (س) في الرسم التخطيطي؟
+                        </div>
+                        <div class="answers-list">
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1002]" value="13" onchange="selectOption(this)">
+                                45 درجة
+                            </label>
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1002]" value="14" onchange="selectOption(this)">
+                                90 درجة
+                            </label>
+                            <label class="answer-item">
+                                <input type="radio" name="Answers[1002]" value="15" onchange="selectOption(this)">
+                                180 درجة
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 3. أزرار التنقل السفلية -->
+        <div class="actions-footer">
+            <button type="button" class="btn btn-prev" id="btnPrev" onclick="prevQuestion()">
+                <i class="fas fa-arrow-right"></i> السابق
+            </button>
+
+            <button type="button" class="btn btn-skip" id="btnSkip" onclick="skipQuestion()">
+                تخطي  <i class="fas fa-forward"></i>
+            </button>
+
+            <button type="button" class="btn btn-next" id="btnNext" onclick="nextQuestion()">
+                التالي <i class="fas fa-arrow-left"></i>
+            </button>
+
+            <button type="submit" class="btn btn-submit" id="btnSubmit" style="display: none;">
+                تسليم الامتحان <i class="fas fa-check-circle"></i>
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<!-- 4. النافذة المنبثقة لتكبير الصورة -->
+<div class="image-modal-overlay" id="imageModal" onclick="closeImageModal()">
+    <div class="image-modal-card" onclick="event.stopPropagation()">
+        <button type="button" class="close-modal-btn" onclick="closeImageModal()">&times;</button>
+        <img id="modalImg" src="" alt="صورة مكبرة">
+    </div>
+</div>
+
+<script>
+    // =========================================================
+    // ⚙️ محرك الصفحة العام (ديناميكي بالكامل ولا يتأثر بقيم ثابتة)
+    // =========================================================
+    let currentQuestionIndex = 1;
+    let totalQuestions = 0;
+    let timeInSeconds = 0;
+    const examState = {};
+
+    function initExamEngine() {
+        const questionCards = document.querySelectorAll('.question-card');
+        totalQuestions = questionCards.length;
+
+        // قراءة الوقت بالدقائق من HTML Data Attribute
+        const timerContainer = document.getElementById('timerContainer');
+        const durationMinutes = parseInt(timerContainer.getAttribute('data-duration-minutes')) || 30;
+        timeInSeconds = durationMinutes * 60;
+
+        // تهيئة كروت الأسئلة والحالة
+        questionCards.forEach((card, index) => {
+            const qIndex = index + 1;
+            card.setAttribute('data-q-index', qIndex);
+            examState[qIndex] = { answered: false, skipped: false };
+        });
+
+        buildNavigationButtons();
+        startTimer();
+        updateUI();
+    }
+
+    function buildNavigationButtons() {
+        const navContainer = document.getElementById('questionsNav');
+        navContainer.innerHTML = '';
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = `q-btn-${i}`;
+            btn.className = `q-btn ${i === currentQuestionIndex ? 'current-active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => goToQuestion(i);
+            navContainer.appendChild(btn);
+        }
+    }
+
+    function goToQuestion(qIndex) {
+        if (qIndex < 1 || qIndex > totalQuestions) return;
+
+        const currentCard = document.querySelector('.question-card.active');
+        if (currentCard) currentCard.classList.remove('active');
+
+        currentQuestionIndex = qIndex;
+        const targetCard = document.querySelector(`.question-card[data-q-index="${qIndex}"]`);
+        if (targetCard) targetCard.classList.add('active');
+
+        updateUI();
+    }
+
+    function selectOption(radioInput) {
+        const card = radioInput.closest('.question-card');
+        const qIndex = parseInt(card.getAttribute('data-q-index'));
+
+        examState[qIndex].answered = true;
+        examState[qIndex].skipped = false;
+
+        const labels = card.querySelectorAll('.answer-item');
+        labels.forEach(lbl => lbl.classList.remove('selected'));
+        radioInput.parentElement.classList.add('selected');
+
+        updateUI();
+    }
+
+    function skipQuestion() {
+        if (!examState[currentQuestionIndex].answered) {
+            examState[currentQuestionIndex].skipped = true;
+        }
+
+        if (currentQuestionIndex < totalQuestions) {
+            goToQuestion(currentQuestionIndex + 1);
+        } else {
+            updateUI();
+        }
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < totalQuestions) {
+            goToQuestion(currentQuestionIndex + 1);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 1) {
+            goToQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function updateUI() {
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.getElementById(`q-btn-${i}`);
+            if (!btn) continue;
+
+            btn.className = 'q-btn';
+
+            if (i === currentQuestionIndex) {
+                btn.classList.add('current-active');
+            }
+
+            if (examState[i].answered) {
+                btn.classList.add('state-answered');
+            } else if (examState[i].skipped) {
+                btn.classList.add('state-skipped');
+            }
+        }
+
+        document.getElementById('btnPrev').style.display = (currentQuestionIndex === 1) ? 'none' : 'inline-flex';
+
+        if (currentQuestionIndex === totalQuestions) {
+            document.getElementById('btnNext').style.display = 'none';
+            document.getElementById('btnSubmit').style.display = 'inline-flex';
+        } else {
+            document.getElementById('btnNext').style.display = 'inline-flex';
+            document.getElementById('btnSubmit').style.display = 'none';
+        }
+    }
+
+    function startTimer() {
+        const timerDisplay = document.getElementById('timerDisplay');
+        const interval = setInterval(() => {
+            if (timeInSeconds <= 0) {
+                clearInterval(interval);
+                alert('انتهى وقت الامتحان! سيتم التسليم التلقائي الآن.');
+                document.getElementById('examForm').submit();
+                return;
+            }
+
+            timeInSeconds--;
+            const mins = Math.floor(timeInSeconds / 60);
+            const secs = timeInSeconds % 60;
+            timerDisplay.innerText = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }, 1000);
+    }
+
+    function zoomImage(element) {
+        const imgSrc = typeof element === 'string' ? element : element.querySelector('img')?.src;
+        if (imgSrc) {
+            document.getElementById('modalImg').src = imgSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.remove('active');
+    }
+
+    window.onload = () => {
+        initExamEngine();
+    };
+</script>

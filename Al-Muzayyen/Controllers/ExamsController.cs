@@ -8,5 +8,11 @@ namespace Al_Muzayyen.Controllers
         {
             return View();
         }
+
+        public IActionResult ShowExam()
+        {
+            return View();
+        }
+
     }
 }
