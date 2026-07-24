@@ -900,7 +900,7 @@ RequestVerificationToken:getAntiforgeryToken()
         if (!confirm('هل أنت تأكد من رغبتك في حذف هذا الامتحان بالكامل؟')) return;
 
         try {
-            const response = await fetch(`/Admin/Exams/Delete/${examId}`, {
+            const response = await fetch(`/Admin/DeleteExam/${examId}`, {
                 method: 'POST', // يفضل إرسالها كـ POST مع التوكن
                 headers: {
                     'RequestVerificationToken': getAntiforgeryToken()

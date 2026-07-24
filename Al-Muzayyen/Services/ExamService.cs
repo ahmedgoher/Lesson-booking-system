@@ -62,11 +62,11 @@ namespace Al_Muzayyen.Services
 
             return true;
         }
-        //public async Task UpdateExamAsync(Exam exam)
-        //{
-        //    _examRepository.Update(exam);
-        //    await _examRepository.SaveAsync();
-        //}
+        public async Task UpdateExam(Exam exam)
+        {
+            _examRepository.Update(exam);
+            await _examRepository.SaveAsync();
+        }
 
         public async Task DeleteExamAsync(int id)
         {
