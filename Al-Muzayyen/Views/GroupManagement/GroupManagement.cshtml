@@ -300,7 +300,7 @@
             <i class="fas fa-file-signature"></i>
             <div class="stat-card-info">
                 <h3>عدد الامتحانات</h3>
-                <p>5 امتحانات</p>
+                <p>@Model.ExamCount امتحان</p>
             </div>
         </div>
     </div>
@@ -504,25 +504,44 @@
                 <thead>
                     <tr>
                         <th>اسم الامتحان</th>
-                        <th>المادة</th>
+                        <th>التاريخ </th>
                         <th>الإجراء</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>امتحان شامل - الجبر والهندسة</td>
-                        <td>الرياضيات</td>
-                        <td>
-                            <button class="btn-main-action" style="padding: 4px 10px; font-size: 12px;">إضافة للمجموعة</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>اختبار السرعة - الفيزياء</td>
-                        <td>الفيزياء</td>
-                        <td>
-                            <button class="btn-main-action" style="padding: 4px 10px; font-size: 12px;">إضافة للمجموعة</button>
-                        </td>
-                    </tr>
+                    @foreach (var exam in Model.AvailableExams)
+                    {
+                        <tr>
+
+                            <td>@exam.Title</td>
+
+                            <td>@exam.StartExamTime.ToString("yyyy/MM/dd HH:mm")</td>
+
+                            <td>
+                                @if (exam.AlreadyAdded)
+                                {
+                                    <button class="btn-main-action"
+                                            disabled
+                                            style="background:#9ca3af;cursor:not-allowed;">
+                                        موجود بالفعل
+                                    </button>
+                                }
+                                else
+                                {
+                                    <form asp-action="AddExamToGroup" method="post" style="display:inline;">
+                                        <input type="hidden" name="slotId" value="@Model.SlotId" />
+                                        <input type="hidden" name="examId" value="@exam.ExamId" />
+
+                                        <button type="submit" class="btn-main-action">
+                                            <i class="fas fa-plus"></i>
+                                            إضافة
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>

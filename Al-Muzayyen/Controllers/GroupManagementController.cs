@@ -38,7 +38,21 @@ namespace Al_Muzayyen.Controllers
         QuestionsCount = x.Exam.Questions.Count()
     })
     .ToList();
+            // جميع الامتحانات الخاصة بنفس الصف
+            var availableExams = _context.Exams
+                .Where(e => e.ClassId == group.ClassId)
+                .Select(e => new AvailableExamVM
+                {
+                    ExamId = e.Id,
+                    Title = e.Title,
+                    StartExamTime = e.StartExamTime,
+                    EndExamTime = e.EndExamTime,
 
+                    AlreadyAdded = _context.ExamGroup
+                        .Any(g => g.SlotId == id && g.ExamId == e.Id)
+                })
+                .OrderByDescending(e => e.StartExamTime)
+                .ToList();
             var viewModel = new GroupManagementViewModel
             {
                 SlotId = group.Id,
@@ -50,6 +64,7 @@ namespace Al_Muzayyen.Controllers
                 ExamCount = exams.Count
                 ,
                 Exams = exams,
+                AvailableExams = availableExams,
                 Materials = allMaterials.Where(m => m.Type != MaterialType.VideoLink).ToList(),
                 Videos = allMaterials.Where(m => m.Type == MaterialType.VideoLink).ToList()
             };
@@ -187,6 +202,27 @@ namespace Al_Muzayyen.Controllers
 
             return RedirectToAction("GroupManagement", new { id = slotId });
         }
+        [HttpPost]
+        public IActionResult AddExamToGroup(int slotId, int examId)
+        {
+            bool exists = _context.ExamGroup
+                .Any(x => x.SlotId == slotId && x.ExamId == examId);
+
+            if (!exists)
+            {
+                _context.ExamGroup.Add(new ExamGroup
+                {
+                    SlotId = slotId,
+                    ExamId = examId
+                });
+
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction(nameof(GroupManagement), new { id = slotId });
+        }
+
+    }
 
 
 
