@@ -64,32 +64,36 @@
 
                 <div class="form-group">
                     <label>اسم الطالب بالكامل</label>
-                    <input type="text" name="Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.Name">
+                    @* <input type="text" name="Name" id="student-name" placeholder="أدخل اسمك الثلاثي" value="@Model?.Name"> *@
+                    <input asp-for="Name" id="student-name" placeholder="أدخل اسمك الثلاثي">
                     <span asp-validation-for="Name" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
                 <div class="form-group">
                     <label>رقم الهاتف (سيستخدم لتسجيل الدخول)</label>
-                    <input type="tel" name="StdPhone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.StdPhone">
+                    @* <input type="tel" name="StdPhone" id="student-phone" placeholder="01xxxxxxxxx" value="@Model?.StdPhone"> *@
+                    <input asp-for="StdPhone" id="student-phone" placeholder="01xxxxxxxxx">
                     <span asp-validation-for="StdPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
                 <div class="form-group">
                     <label>رقم ولي الأمر</label>
-                    <input type="tel" name="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.ParentPhone">
+                    @* <input type="tel" name="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx" value="@Model?.ParentPhone"> *@
+                    <input asp-for="ParentPhone" id="student-guardian-phone" placeholder="01xxxxxxxxx">
                     <span asp-validation-for="ParentPhone" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
                 <!-- 🔑 حقل كلمة المرور -->
                 <div class="form-group">
                     <label>كلمة المرور</label>
-                    <input type="password" name="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)">
+                    @* <input type="password" name="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)"> *@
+                        <input asp-for="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)"> 
                     <span asp-validation-for="Password" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
                 <div class="form-group">
                     <label>الصف الدراسي</label>
-                    <select name="ClassId" id="select-grade">
+                    <select asp-for="ClassId" id="select-grade">
                         <option value="0">اختر الصف</option>
                         @if (classes != null)
                         {
@@ -104,7 +108,7 @@
 
                 <div class="form-group">
                     <label>مكان الدرس</label>
-                    <select name="PlaceId" id="select-location">
+                    <select asp-for="PlaceId" id="select-location">
                         <option value="0">اختر المكان</option>
                         @if (places != null)
                         {
@@ -119,7 +123,7 @@
 
                 <div class="form-group">
                     <label>المجموعة المتاحة</label>
-                    <select name="SlotId" id="select-group" disabled>
+                    <select asp-for="SlotId" id="select-group" disabled>
                         <option value="0">اختر المجموعة</option>
                     </select>
                     <span asp-validation-for="SlotId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
@@ -127,7 +131,7 @@
 
                 <div class="form-group">
                     <label>ملاحظات (اختياري)</label>
-                    <textarea name="Notes" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار...">@Model?.Notes</textarea>
+                    <textarea asp-for="Notes" id="student-note" placeholder="اكتب أي ملاحظة أو استفسار..."></textarea>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%;">إنشاء الحساب وتأكيد الحجز</button>
@@ -144,6 +148,8 @@
     </div>
 </div>
 
+@section Scripts {
+    
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
@@ -214,3 +220,7 @@
             "?text=" + encodeURIComponent("السلام عليكم، أريد الاستفسار عن الحجز وتسجيل الحساب");
     });
 </script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+}
