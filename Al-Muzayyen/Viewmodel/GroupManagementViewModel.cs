@@ -13,6 +13,7 @@ namespace Al_Muzayyen.Viewmodel
         public List<Material> Materials { get; set; } = new List<Material>();
         public List<Material> Videos { get; set; } = new List<Material>();
         public List<GroupExamVM> Exams { get; set; } = new();
+        public List<AvailableExamVM> AvailableExams { get; set; } = new();
 
     }
 }
