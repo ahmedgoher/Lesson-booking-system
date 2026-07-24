@@ -11,6 +11,8 @@ namespace Al_Muzayyen.Services
         //Task UpdateExamAsync(Exam exam);
         Task<bool> UpdateExamAsync(ExamViewModel model);
 
+        Task UpdateExam(Exam exam);
+
         Task DeleteExamAsync(int id);
         Task<IEnumerable<ExamViewModel>> GetAllExamsViewModelsAsync();
     }
