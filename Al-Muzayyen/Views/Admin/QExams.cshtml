@@ -418,6 +418,51 @@
             gap: 0 !important;
         }
     }
+    .exam-progress-card {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e6e6e6;
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.exam-progress-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.exam-progress-numbers {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.exam-progress-bar {
+    width: 100%;
+    height: 18px;
+    background: #e9ecef;
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.exam-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,#0d6efd,#38bdf8);
+    border-radius: 50px;
+    transition: width .5s ease;
+}
+
+.exam-progress-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+}
 </style>
 
 <section id="questions-management-section">
@@ -433,6 +478,46 @@
             المجموع:
             <strong>@ViewBag.TotalMarks</strong> درجة
         </p>
+           <div class="exam-progress-card">
+
+    <div class="exam-progress-title">
+        درجات الامتحان
+    </div>
+
+    <div class="exam-progress-numbers">
+        @ViewBag.CurrentMarks / @ViewBag.ExamTotalMarks درجة
+    </div>
+
+    <div class="exam-progress-bar">
+
+        <div class="exam-progress-fill"
+             style="width:@(ViewBag.Progress)%">
+        </div>
+
+    </div>
+
+    <div class="exam-progress-footer">
+
+        <span>
+            المتبقي: @ViewBag.RemainingMarks درجة
+        </span>
+
+        @if (ViewBag.Progress == 100)
+        {
+            <span class="text-success fw-bold">
+               الامتحان جاهز
+            </span>
+        }
+        else
+        {
+            <span class="text-warning fw-bold">
+                 لم يكتمل بعد
+            </span>
+        }
+
+    </div>
+
+</div>
     </div>
 
     <button type="button"
@@ -456,7 +541,21 @@
     var optionC = question.Options.ElementAtOrDefault(2)?.OptionText ?? "";
     var optionD = question.Options.ElementAtOrDefault(3)?.OptionText ?? "";
 
-    var correctIndex = question.Options.FindIndex(x => x.IsCorrect);
+    @* var correctIndex = question.Options.FindIndex(x => x.IsCorrect); *@
+            var correctIndex = question.Options.FindIndex(x => x.IsCorrect);
+
+            string correctValue;
+
+            if (question.Type == Al_Muzayyen.Models.QuestionType.MCQ)
+            {
+                correctValue = (correctIndex + 1).ToString();
+            }
+            else
+            {
+                correctValue = question.Options.Any(x => x.OptionText == "صح" && x.IsCorrect)
+                    ? "true"
+                    : "false";
+            }
 
     <div class="question-card"
          data-id="@question.Id"
@@ -468,7 +567,7 @@
          data-opt2="@optionB"
          data-opt3="@optionC"
          data-opt4="@optionD"
-         data-correct="@(correctIndex + 1)">
+                 data-correct="@correctValue" >
 
         <div class="question-card-header">
             <div class="question-title-group">
@@ -584,9 +683,8 @@
             }
             else
             {
-                var trueOption = question.Options.FirstOrDefault(x => x.OptionText == "True");
-                var falseOption = question.Options.FirstOrDefault(x => x.OptionText == "False");
-
+                        var trueOption = question.Options.FirstOrDefault(x => x.OptionText == "صح");
+                        var falseOption = question.Options.FirstOrDefault(x => x.OptionText == "خطأ");
                 <div class="option-item @(trueOption?.IsCorrect == true ? "correct-answer" : "")">
 
                     @if (trueOption?.IsCorrect == true)
@@ -810,14 +908,14 @@
                 if (radio) radio.checked = true;
             }
         } else {
-            // تحديد الإجابة الصحيحة في حالة الصح والخطأ
-            if (card.dataset.correct === "1") {
+
+            if (card.dataset.correct === "true") {
                 document.getElementById("tf-r-true").checked = true;
             } else {
                 document.getElementById("tf-r-false").checked = true;
             }
-        }
 
+        }
         openModal("question-modal");
     }
 
