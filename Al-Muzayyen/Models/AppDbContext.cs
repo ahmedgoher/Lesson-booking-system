@@ -31,6 +31,7 @@ namespace Al_Muzayyen.Models
         public DbSet<Question> Questions { get; set; }
         public DbSet<QuestionOption> QuestionOptions { get; set; }
         public DbSet<StudentExam> StudentExams { get; set; }
+        public DbSet<ExamGroup> ExamGroup { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -28,6 +28,16 @@ namespace Al_Muzayyen.Controllers
                 .Where(m => m.SlotId == id)
                 .OrderByDescending(m => m.CreatedAt)
                 .ToList();
+            var exams = _context.ExamGroup
+    .Where(x => x.SlotId == id)
+    .Select(x => new GroupExamVM
+    {
+        ExamId = x.Exam.Id,
+        Title = x.Exam.Title,
+        CreatedAt = x.Exam.CreatedAt,
+        QuestionsCount = x.Exam.Questions.Count()
+    })
+    .ToList();
 
             var viewModel = new GroupManagementViewModel
             {
@@ -36,7 +46,10 @@ namespace Al_Muzayyen.Controllers
                 GroupName = $"{group.Group_Name} ({(group.Class != null ? group.Class.Name : "")} - {(group.Place != null ? group.Place.Name : "")})",
                 StudentCount = group.Students.Count,
                 VideoCount = allMaterials.Count(m => m.Type == MaterialType.VideoLink),
-                ExamCount = _context.Exams != null ? _context.Exams.Count(e => e.Id == id) : 0,
+                //ExamCount = _context.Exams != null ? _context.Exams.Count(e => e.Id == id) : 0
+                ExamCount = exams.Count
+                ,
+                Exams = exams,
                 Materials = allMaterials.Where(m => m.Type != MaterialType.VideoLink).ToList(),
                 Videos = allMaterials.Where(m => m.Type == MaterialType.VideoLink).ToList()
             };
@@ -71,6 +84,72 @@ namespace Al_Muzayyen.Controllers
                 _context.SaveChanges();
             }
             return RedirectToAction("GroupManagement", new { id = slotId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetExamResults(int examId, int slotId)
+        {
+            var exam = await _context.Exams
+                .FirstOrDefaultAsync(e => e.Id == examId);
+
+            if (exam == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "الامتحان غير موجود"
+                });
+            }
+
+            var now = DateTime.Now;
+
+            var students = await _context.Students
+                .Where(s => s.SlotId == slotId)
+                .Select(s => new
+                {
+                    Student = s,
+                    StudentExam = s.StudentExams
+                        .FirstOrDefault(se => se.ExamId == examId)
+                })
+                .ToListAsync();
+
+            var result = students.Select(x =>
+            {
+                string status;
+
+                if (x.StudentExam != null)
+                {
+                    status = x.StudentExam.Score >= exam.PassingMarks
+                        ? "ناجح"
+                        : "راسب";
+                }
+                else if (now < exam.StartExamTime)
+                {
+                    status = "لم يبدأ";
+                }
+                else if (now >= exam.StartExamTime && now <= exam.EndExamTime)
+                {
+                    status = "لم يمتحن بعد";
+                }
+                else
+                {
+                    status = "غائب";
+                }
+
+                return new
+                {
+                    studentName = x.Student.Name,
+                    score = x.StudentExam?.Score,
+                    submittedAt = x.StudentExam?.SubmittedAt,
+                    status = status
+                };
+            });
+
+            return Json(new
+            {
+                success = true,
+                data = result
+            });
         }
         // إضافة فيديو جديد
         [HttpPost]
@@ -108,8 +187,6 @@ namespace Al_Muzayyen.Controllers
 
             return RedirectToAction("GroupManagement", new { id = slotId });
         }
-
-
-
+        
     }
 }
