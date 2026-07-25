@@ -97,9 +97,9 @@ nav {
         width: 48px;
         flex-shrink: 0;
         object-fit: cover;
-        box-shadow: 0 0 0 2px var(--primary-color), var(--shadow-glow);
+/*        box-shadow: 0 0 0 2px var(--primary-color), var(--shadow-glow);*/
         /* 12s هو وقت الدورة الكاملة (تقدر تقلله لسرعة أسرع أو تزوده لسرعة أبطأ) */
-        animation: rotateLogo 12s linear infinite;
+/*        animation: rotateLogo 12s linear infinite;*/
     }
 
 /* كود حركة الدوران المستمرة 360 درجة */
