@@ -12,6 +12,26 @@ namespace Al_Muzayyen.Repositories
         {
             _context = context;
         }
+        public async Task<StudentExam?> GetStudentExamAsync(int examId, int studentId)
+        {
+            return await _context.StudentExams
+                .FirstOrDefaultAsync(x =>
+                    x.ExamId == examId &&
+                    x.StudentId == studentId &&
+                    !x.IsSubmitted);
+        }
+        public async Task AddStudentExamAsync(StudentExam studentExam)
+        {
+            await _context.StudentExams.AddAsync(studentExam);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<int> GetStudentAttemptsAsync(int examId, int studentId)
+        {
+            return await _context.StudentExams
+                .CountAsync(x =>
+                    x.ExamId == examId &&
+                    x.StudentId == studentId);
+        }
 
         public async Task<IEnumerable<Exam>> GetAllWithDetailsAsync()
         {

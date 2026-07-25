@@ -10,7 +10,7 @@ namespace Al_Muzayyen.Services
         Task CreateExamAsync(Exam exam);
         //Task UpdateExamAsync(Exam exam);
         Task<bool> UpdateExamAsync(ExamViewModel model);
-
+        Task<StudentExam> StartExamAsync(int examId, int studentId);
         Task UpdateExam(Exam exam);
 
         Task DeleteExamAsync(int id);
