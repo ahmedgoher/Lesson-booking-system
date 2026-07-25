@@ -1,0 +1,377 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "رصد درجات الامتحان الورقي";
+}
+
+<link rel="stylesheet" href="~/css/styleadmin.css">
+
+<style>
+    .exam-entry-container {
+        padding: 20px 0;
+    }
+
+    .form-card {
+        background: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: var(--shadow-sm, 0 2px 8px rgba(0,0,0,0.05));
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-color, #1e293b);
+        }
+
+    .form-control-custom {
+        padding: 10px 12px;
+        border: 1px solid var(--border-color, #cbd5e1);
+        border-radius: 8px;
+        outline: none;
+        font-size: 14px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .form-control-custom:focus {
+            border-color: var(--primary-color, #c5a059);
+            box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2);
+        }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .badge-present {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .badge-absent {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .score-input {
+        width: 120px;
+        text-align: center;
+        font-weight: bold;
+        margin: 0 auto;
+    }
+
+        .score-input:disabled {
+            background-color: #f8fafc;
+            color: #94a3b8;
+            cursor: not-allowed;
+            border-color: #e2e8f0;
+        }
+
+    .btn-submit-all {
+        background-color: var(--primary-color, #c5a059);
+        color: white;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.1s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-submit-all:hover {
+            background-color: #b08d48;
+        }
+
+        .btn-submit-all:active {
+            transform: scale(0.98);
+        }
+
+    .section-header-block h2 {
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--primary-color, #c5a059);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>
+
+<div class="exam-entry-container rtl" dir="rtl">
+    <div class="section-header-block">
+        <h2><i class="fas fa-file-signature"></i> رصد درجات الامتحان الورقي</h2>
+    </div>
+
+    <!-- 1. بيانات الامتحان الأساسية والمجموعة -->
+    <div class="form-card">
+        <h3 style="margin-bottom: 18px; font-size: 16px; color: var(--primary-color, #c5a059); font-weight: bold;">
+            <i class="fas fa-sliders-h"></i> إعدادات الامتحان والحضور
+        </h3>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>المجموعة <span style="color:red">*</span></label>
+                <select id="slotSelect" class="form-control-custom" onchange="onFilterChange()">
+                    <option value="">-- اختر المجموعة --</option>
+                    @if (ViewBag.Slots != null)
+                    {
+                        foreach (var item in ViewBag.Slots)
+                        {
+                            <option value="@item.Id" data-class-id="@item.ClassId">@item.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>تاريخ الحصة / الامتحان <span style="color:red">*</span></label>
+                <input type="date" id="examDate" class="form-control-custom" value="@DateTime.Today.ToString("yyyy-MM-dd")" onchange="onFilterChange()" />
+            </div>
+
+            <div class="form-group">
+                <label>عنوان الامتحان <span style="color:red">*</span></label>
+                <input type="text" id="examTitle" class="form-control-custom" placeholder="مثال: اختبار الشهر الورقي" />
+            </div>
+
+            <div class="form-group">
+                <label>الدرجة الكلية (Total Marks) <span style="color:red">*</span></label>
+                <input type="number" id="totalMarks" class="form-control-custom" value="100" min="1" />
+            </div>
+
+            <div class="form-group full-width">
+                <label>وصف الامتحان / ملاحظات (اختياري)</label>
+                <textarea id="examDescription" class="form-control-custom" rows="2" placeholder="أضف أي ملاحظات أو تفاصيل عن محتوى الامتحان..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. جدول رصد الدرجات حسب سجل الحضور -->
+    <div class="form-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-size: 16px; font-weight: bold;">
+                <i class="fas fa-users-class"></i> قائمة الطلاب ورصد الدرجات
+            </h3>
+            <span id="studentsCountLabel" style="font-size: 13px; background: #e2e8f0; color: #475569; padding: 4px 12px; border-radius: 12px; font-weight: bold;">
+                اختر المجموعة والتاريخ لعرض الطلاب
+            </span>
+        </div>
+
+        <div class="table-responsive-container">
+            <table class="data-display-table" style="width: 100%; border-collapse: collapse; text-align: center;">
+                <thead>
+                    <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px; width: 60px;">#</th>
+                        <th style="padding: 12px; text-align: right;">اسم الطالب</th>
+                        <th style="padding: 12px; width: 160px;">حالة الحضور</th>
+                        <th style="padding: 12px; width: 200px;">الدرجة المستحقة</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #64748b; padding: 35px;">
+                            <i class="fas fa-calendar-alt" style="font-size: 32px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
+                            الرجاء تحديد المجموعة والتاريخ لعرض سجل الحضور ورصد الدرجات.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 25px; text-align: left;">
+            <button type="button" class="btn-submit-all" onclick="savePaperExam()">
+                <i class="fas fa-save"></i> حفظ نتائج الامتحان
+            </button>
+        </div>
+    </div>
+</div>
+
+
+    <script>
+        // 1. جلب الحضور عند تغيير المجموعة أو التاريخ
+        async function onFilterChange() {
+            const slotSelect = document.getElementById("slotSelect");
+            const slotId = slotSelect.value;
+            const examDate = document.getElementById("examDate").value;
+            const tbody = document.getElementById("studentsTableBody");
+            const countLabel = document.getElementById("studentsCountLabel");
+
+            if (!slotId || !examDate) {
+                tbody.innerHTML = `
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #64748b; padding: 35px;">
+                                    <i class="fas fa-calendar-alt" style="font-size: 32px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
+                                    الرجاء تحديد المجموعة والتاريخ لعرض سجل الحضور ورصد الدرجات.
+                                </td>
+                            </tr>`;
+                countLabel.innerText = "اختر المجموعة والتاريخ لعرض الطلاب";
+                return;
+            }
+
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 25px;"><i class="fas fa-spinner fa-spin"></i> جاري تحميل سجل الحضور...</td></tr>`;
+
+            try {
+                const response = await fetch(`/Exams/GetAttendanceStudents?slotId=${slotId}&date=${examDate}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:25px;">${result.message || "حدث خطأ أثناء جلب البيانات."}</td></tr>`;
+                    countLabel.innerText = "عدد الطلاب: 0";
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#f59e0b; padding:25px;">لا يوجد سجل حضور مسجل لهذه المجموعة في هذا التاريخ.</td></tr>`;
+                    countLabel.innerText = "عدد الطلاب: 0";
+                    return;
+                }
+
+                tbody.innerHTML = "";
+                countLabel.innerText = `عدد الطلاب: ${result.data.length}`;
+
+                result.data.forEach((student, index) => {
+                    const isPresent = student.isPresent;
+                    const statusHtml = isPresent
+                        ? `<span class="status-badge badge-present"><i class="fas fa-check-circle"></i> حاضر</span>`
+                        : `<span class="status-badge badge-absent"><i class="fas fa-times-circle"></i> غائب</span>`;
+
+                    const scoreValue = isPresent ? "" : "0";
+                    const disabledAttr = isPresent ? "" : "disabled";
+
+                    const rowHtml = `
+                                <tr data-student-id="${student.studentId}" data-is-present="${isPresent}" style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;">${index + 1}</td>
+                                    <td style="padding: 12px; text-align: right;"><strong>${student.studentName}</strong></td>
+                                    <td style="padding: 12px;">${statusHtml}</td>
+                                    <td style="padding: 12px;">
+                                        <input type="number"
+                                               class="form-control-custom score-input student-score-input"
+                                               value="${scoreValue}"
+                                               placeholder="0"
+                                               min="0"
+                                               ${disabledAttr} />
+                                    </td>
+                                </tr>
+                            `;
+                    tbody.insertAdjacentHTML("beforeend", rowHtml);
+                });
+
+            } catch (error) {
+                console.error(error);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:25px;">حدث خطأ أثناء الاتصال بالسيرفر.</td></tr>`;
+            }
+        }
+
+        // 2. إرسال البيانات للحفظ
+        async function savePaperExam() {
+            const slotSelect = document.getElementById("slotSelect");
+            const slotId = slotSelect.value;
+            const selectedOption = slotSelect.options[slotSelect.selectedIndex];
+            const classId = selectedOption ? selectedOption.getAttribute("data-class-id") : 0;
+
+            const examDate = document.getElementById("examDate").value;
+            const title = document.getElementById("examTitle").value.trim();
+            const totalMarks = document.getElementById("totalMarks").value;
+            const description = document.getElementById("examDescription").value.trim();
+
+            if (!slotId) { alert("يرجى اختيار المجموعة أولاً."); return; }
+            if (!examDate) { alert("يرجى تحديد تاريخ الامتحان."); return; }
+            if (!title) { alert("يرجى إدخال عنوان الامتحان."); document.getElementById("examTitle").focus(); return; }
+            if (!totalMarks || parseInt(totalMarks) <= 0) { alert("يرجى إدخال درجة كلية صالحة للامتحان."); document.getElementById("totalMarks").focus(); return; }
+
+            const rows = document.querySelectorAll("#studentsTableBody tr[data-student-id]");
+            if (rows.length === 0) {
+                alert("لا يوجد طلاب لرصد درجاتهم.");
+                return;
+            }
+
+            let scores = [];
+            let isValid = true;
+
+            rows.forEach(row => {
+                const studentId = parseInt(row.getAttribute("data-student-id"));
+                const isPresent = row.getAttribute("data-is-present") === "true";
+                const scoreInput = row.querySelector(".student-score-input");
+
+                let score = 0;
+                if (isPresent) {
+                    score = parseInt(scoreInput.value);
+                    if (isNaN(score) || score < 0) {
+                        alert("يرجى إدخال درجة صالحة لجميع الطلاب الحاضرين.");
+                        scoreInput.focus();
+                        isValid = false;
+                        return;
+                    }
+                    if (score > parseInt(totalMarks)) {
+                        alert(`درجة الطالب لا يمكن أن تتجاوز الدرجة الكلية (${totalMarks}).`);
+                        scoreInput.focus();
+                        isValid = false;
+                        return;
+                    }
+                }
+
+                scores.push({
+                    studentId: studentId,
+                    score: score,
+                    isPresent: isPresent
+                });
+            });
+
+            if (!isValid) return;
+
+            const payload = {
+                slotId: parseInt(slotId),
+                classId: parseInt(classId) || 0,
+                examDate: examDate,
+                title: title,
+                totalMarks: parseInt(totalMarks),
+                description: description,
+                scores: scores
+            };
+
+            try {
+                const response = await fetch('/Exams/SavePaperExamScores', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert("خطأ: " + result.message);
+                }
+            } catch (error) {
+                console.error(error);
+                alert("حدث خطأ أثناء حفظ نتائج الامتحان.");
+            }
+        }
+    </script>

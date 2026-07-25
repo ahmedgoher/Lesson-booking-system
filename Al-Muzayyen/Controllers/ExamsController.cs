@@ -247,5 +247,10 @@ namespace Al_Muzayyen.Controllers
         {
             return View();
         }
+        public async Task<IActionResult> PaperExam()
+        {
+            return View();
+
+        }
     }
 }
