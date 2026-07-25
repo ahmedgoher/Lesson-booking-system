@@ -1,0 +1,71 @@
+﻿@using Al_Muzayyen.Viewmodel
+
+@model StudentAlertsViewModel
+
+@if (Model.GroupRequest != null)
+{
+    var req = Model.GroupRequest;
+    var statusText = req.Status == RequestStatus.Pending ? "قيد المراجعة" : (req.Status == RequestStatus.Approved ? "تمت الموافقة" : "تم الرفض");
+    var statusBadgeClass = req.Status == RequestStatus.Pending ? "badge-warning" : (req.Status == RequestStatus.Approved ? "badge-success" : "badge-danger");
+
+    <div class="alert-card alert-group-req" id="req-alert-@req.Id">
+        <div class="alert-main-info">
+            <div class="alert-title-group">
+                <h4><i class="fa-solid fa-right-left"></i> طلب تغيير المجموعة</h4>
+                <span class="status-badge @statusBadgeClass">@statusText</span>
+            </div>
+
+            <div class="alert-details-grid">
+                <p><strong>المجموعة المطلوبة:</strong> <span>@(req.RequestedSlot?.Group_Name ?? "مجموعة المتميزين")</span></p>
+                @if (!string.IsNullOrEmpty(req.Reason))
+                {
+                    <p><strong>السبب:</strong> <span>@req.Reason</span></p>
+                }
+            </div>
+        </div>
+
+        @if (req.Status != RequestStatus.Pending)
+        {
+            <div class="alert-action-side">
+                <button onclick="dismissNotification(@req.Id)" class="btn-dismiss">تم المشاهدة (إخفاء)</button>
+            </div>
+        }
+    </div>
+}
+
+@if (Model.PendingExams != null && Model.PendingExams.Any())
+{
+    foreach (var exam in Model.PendingExams)
+    {
+        <div class="alert-card alert-exam">
+            <div class="alert-main-info">
+                <div class="alert-title-group">
+                    <h4><i class="fa-solid fa-file-pen"></i> @exam.Title</h4>
+                    <span class="alert-badge new">جديد</span>
+                </div>
+
+                @if (!string.IsNullOrEmpty(exam.Description))
+                {
+                    <p class="exam-desc">@exam.Description</p>
+                }
+
+                <div class="exam-expiry">
+                    <i class="fa-regular fa-clock"></i>
+                    <span>ينتهي في: @exam.EndExamTime.ToString("yyyy-MM-dd HH:mm")</span>
+                </div>
+            </div>
+
+            <div class="alert-action-side">
+                <a href="@Url.Action("TakeExam", "Student", new { id = exam.Id })" class="btn-start-exam">بدء الامتحان الآن</a>
+            </div>
+        </div>
+    }
+}
+
+@if (Model.GroupRequest == null && (!Model.PendingExams?.Any() ?? true))
+{
+    <div class="empty-alerts-box">
+        <i class="fa-regular fa-bell-slash"></i>
+        <p>لا توجد تنبيهات أو امتحانات جديدة حالياً.</p>
+    </div>
+}

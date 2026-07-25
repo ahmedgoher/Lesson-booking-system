@@ -4,6 +4,7 @@ using Al_Muzayyen.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -20,11 +21,179 @@ namespace Al_Muzayyen.Controllers
             _context = context;
             _userManager = userManager;
         }
-
-        public IActionResult Index()
+        #region
+        // دالة مساعدة لجلب الطالب الحالي من الـ Session أو الـ Identity Claims
+        private async Task<Student?> GetCurrentStudentAsync()
         {
-            return View();
+            // قم بتعديل طريقة جلب الـ StudentId حسب نظام التوثيق لديك (Session أو User.Claims)
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(userIdStr, out int studentId))
+            {
+                return await _context.Students
+                    .Include(s => s.Class)
+                    .Include(s => s.AvailableSlot)
+                    .FirstOrDefaultAsync(s => s.Id == studentId);
+            }
+            return null;
         }
+
+        // 1️⃣ Action الصفحة الرئيسية (Index)
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null) return RedirectToAction("Login", "Account");
+
+            // جلب المجموعات المتاحة للصف الخاص بالطالب لاستخدامها في Dropdown طلب التحويل
+            var availableSlots = await _context.Available_Slots
+                .Where(g => g.ClassId == student.ClassId && g.Id != student.Id)
+                .Select(g => new SelectListItem2
+                {
+                     Id= g.Id,
+                    Name = g.Group_Name
+                })
+                .ToListAsync();
+
+            var viewModel = new StudentDashboardViewModel
+            {
+                StudentName = student.Name,
+                ClassName = student.Class?.Name ?? "غير محدد",
+                GroupName = student.AvailableSlot?.Group_Name ?? "غير محدد",
+                AvailableSlots = availableSlots
+            };
+
+            return View(viewModel);
+        }
+
+        // 2️⃣ Partial View للإحصائيات الأكاديمية
+       
+        public async Task<IActionResult> GetStudentStatsPartial()
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null) return Unauthorized();
+
+            // حساب الحضور والغياب
+            var attendances = await _context.Attendances
+                .Where(a => a.StudentId == student.Id)
+                .ToListAsync();
+
+            int totalClasses = attendances.Count;
+            int presentCount = attendances.Count(a => a.IsPresent == AttendanceStatus.Present);
+            int absentCount = attendances.Count(a => a.IsPresent == AttendanceStatus.Absent);
+            double attendanceRate = totalClasses > 0 ? Math.Round((double)presentCount / totalClasses * 100, 1) : 0;
+
+            // حساب الامتحانات والدرجات
+            var examsTaken = await _context.StudentExams
+                .Where(se => se.StudentId == student.Id)
+                .ToListAsync();
+
+            double avgScore = examsTaken.Any() ? Math.Round(examsTaken.Average(se => se.Score), 1) : 0;
+
+            var statsModel = new StudentStatsViewModel
+            {
+                AttendanceRate = $"{attendanceRate}%",
+                AttendanceDetails = $"حضور {presentCount} من أصل {totalClasses} محاضرة",
+                AbsentCount = absentCount,
+                CompletedExams = examsTaken.Count,
+                AvgScore = $"{avgScore}%"
+            };
+
+            return PartialView("_StudentStatsPartial", statsModel);
+        }
+
+        // 3️⃣ Partial View للتنبيهات والامتحانات القادمة
+    
+        public async Task<IActionResult> GetStudentAlertsPartial()
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null) return Unauthorized();
+
+            var now = DateTime.Now;
+
+            // الامتحانات التي أداها الطالب بالفعل
+            var completedExamIds = await _context.StudentExams
+                .Where(se => se.StudentId == student.Id)
+                .Select(se => se.ExamId)
+                .ToListAsync();
+
+            // الامتحانات المتاحة حالياً ولم يؤدها بعد
+            var pendingExams = await _context.Exams
+                .Where(e => e.ClassId == student.ClassId
+                         && e.IsActive
+                         && e.StartExamTime <= now
+                         && e.EndExamTime >= now
+                         && !completedExamIds.Contains(e.Id))
+                .ToListAsync();
+
+            // أحدث طلب تغيير مجموعة (ولم يتم إخفاؤه/تجاهله)
+            var latestRequest = await _context.GroupChangeRequests
+                .Include(r => r.RequestedSlot)
+                //.Where(r => r.StudentId == student.Id && !r.IsDismissed)
+                .OrderByDescending(r => r.RequestDate)
+                .FirstOrDefaultAsync();
+
+            var alertsModel = new StudentAlertsViewModel
+            {
+                PendingExams = pendingExams,
+                GroupRequest = latestRequest
+            };
+
+            return PartialView("_StudentAlertsPartial", alertsModel);
+        }
+
+        // 4️⃣ استقبال طلب تغيير المجموعة (Submit Form via AJAX)
+        [HttpPost]
+        public async Task<IActionResult> SubmitGroupChangeRequest(int requestedSlotId, string? reason)
+        {
+            var student = await GetCurrentStudentAsync();
+            if (student == null)
+                return Json(new { success = false, message = "جلسة العمل انتهت، يرجى إعادة التسجيل." });
+
+            if (requestedSlotId <= 0)
+                return Json(new { success = false, message = "يرجى اختيار المجموعة المطلوبة." });
+
+            // التثبت من عدم وجود طلب معلق سابقاً
+            bool hasPending = await _context.GroupChangeRequests
+                .AnyAsync(r => r.StudentId == student.Id && r.Status == RequestStatus.Pending);
+
+            if (hasPending)
+                return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد المراجعة بالفعل." });
+
+            var request = new GroupChangeRequest
+            {
+                StudentId = student.Id,
+                RequestSlotId = requestedSlotId,
+                Reason = reason,
+                Status = RequestStatus.Pending,
+                RequestDate = DateTime.Now,
+                //IsDismissed = false
+            };
+
+            _context.GroupChangeRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "تم إرسال طلب تغيير المجموعة بنجاح!" });
+        }
+
+        // 5️⃣ إخفاء التنبيه بعد مشاهدته (Dismiss Notification)
+        [HttpPost]
+        public async Task<IActionResult> DismissGroupNotification(int requestId)
+        {
+            var request = await _context.GroupChangeRequests.FindAsync(requestId);
+            if (request != null)
+            {
+                //request.IsDismissed = true; // خاصية لتعليم أن الطالب شاهد النتيجة وأخفاها
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+
+            return Json(new { success = false, message = "الطلب غير موجود." });
+        }
+
+        #endregion
+
+
+
         public IActionResult Videos()
         {
             var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

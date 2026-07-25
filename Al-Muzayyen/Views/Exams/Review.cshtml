@@ -1,0 +1,288 @@
+﻿@model Al_Muzayyen.Viewmodel.ExamReviewViewModel
+
+@{
+    ViewData["Title"] = "عرض إجابات الامتحان - " + Model.ExamTitle;
+    int number = 1;
+}
+
+<style>
+    /* بنر التأكيد والنجاح */
+    .alert-success-banner {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* التنسيقات الخاصة بالإجابات */
+    .answer-item.is-correct {
+        background-color: #d4edda !important;
+        border-color: #28a745 !important;
+        color: #155724 !important;
+        font-weight: bold;
+    }
+
+    .answer-item.is-wrong {
+        background-color: #f8d7da !important;
+        border-color: #dc3545 !important;
+        color: #721c24 !important;
+    }
+
+    /* مربع عرض الإجابة النموذجية بالأسفل */
+    .correct-answer-box {
+        background: #eef9f1;
+        border: 1px solid #28a745;
+        color: #155724;
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<div class="exam-container">
+
+    <!-- 🟢 بنر تنبيه أعلى الصفحة بتم التسليم -->
+    <div class="alert-success-banner">
+        <i class="fas fa-check-circle fa-lg"></i>
+        <span>تم تسليم الامتحان بنجاح. يمكنك الآن الاطلاع على تقرير الإجابات والإجابة النموذجية.</span>
+    </div>
+
+    <!-- 1. الشريط العلوي -->
+    <div class="top-exam-bar">
+        <div class="timer-badge" style="background-color: #17a2b8;">
+            <i class="fas fa-eye"></i>
+            <span>مراجعة الإجابات</span>
+        </div>
+
+        <div class="questions-scroll-wrapper" id="questionsNav">
+            <!-- سيتم إنشاؤه بالـ JavaScript -->
+        </div>
+    </div>
+
+    <!-- 2. حاوية الأسئلة -->
+    <div id="questionsContainer">
+
+        @foreach (var question in Model.Questions)
+        {
+            <div class="question-card @(number == 1 ? "active" : "")"
+                 data-q-index="@number"
+                 data-question-id="@question.QuestionId">
+
+                <div class="question-flex-body">
+
+                    @if (!string.IsNullOrEmpty(question.ImageUrl))
+                    {
+                        <div class="question-image-box" onclick="zoomImage(this)">
+                            <img src="@question.ImageUrl" alt="صورة السؤال" />
+                        </div>
+                    }
+
+                    <div class="question-content-box">
+
+                        <div class="question-title">
+                            <span>@number :</span>
+                            @question.QuestionText
+                        </div>
+
+                        <div class="answers-list">
+
+                            @foreach (var option in question.Options)
+                            {
+                                bool isSelectedByStudent = (question.SelectedOptionId == option.OptionId);
+                                bool isCorrectOption = option.IsCorrect;
+
+                                string statusClass = "";
+                                if (isSelectedByStudent && isCorrectOption)
+                                {
+                                    statusClass = "is-correct"; // إجابة الطالب وصحيحة
+                                }
+                                else if (isSelectedByStudent && !isCorrectOption)
+                                {
+                                    statusClass = "is-wrong"; // إجابة الطالب وخاطئة
+                                }
+                                else if (isCorrectOption)
+                                {
+                                    statusClass = "is-correct"; // الإجابة الصحيحة التي لم يختارها الطالب
+                                }
+
+                                <label class="answer-item @statusClass">
+
+                                    <input type="radio"
+                                           name="Answers[@question.QuestionId]"
+                                           value="@option.OptionId"
+                                    @(isSelectedByStudent ? "checked" : "")
+                                           disabled />
+
+                                    @option.OptionText
+
+                                    @if (isSelectedByStudent && isCorrectOption)
+                                    {
+                                        <i class="fas fa-check-circle text-success ms-2" title="إجابتك الصحيحة"></i>
+                                    }
+                                    else if (isSelectedByStudent && !isCorrectOption)
+                                    {
+                                        <i class="fas fa-times-circle text-danger ms-2" title="إجابتك الخاطئة"></i>
+                                    }
+                                    else if (isCorrectOption)
+                                    {
+                                        <i class="fas fa-check text-success ms-2" title="الإجابة الصحيحة"></i>
+                                    }
+
+                                </label>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- تخزين نص الإجابة الصحيحة كـ value مخفي للسؤال الحالي -->
+                @{
+                    var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                }
+                <input type="hidden" class="correct-option-text" value="@(correctOption != null ? correctOption.OptionText : "غير محدد")" />
+
+            </div>
+
+            number++;
+        }
+
+    </div>
+
+    <!-- 3. أزرار التنقل السفلية -->
+    <div class="actions-footer">
+        <button type="button" class="btn btn-prev" id="btnPrev" onclick="prevQuestion()">
+            <i class="fas fa-arrow-right"></i> السابق
+        </button>
+
+        <!-- بدلاً من زر تخطي: يظهر صندوق الإجابة الصحيحة هنا -->
+        <div class="correct-answer-box" id="correctAnswerBox">
+            <i class="fas fa-lightbulb text-warning"></i>
+            <span>الإجابة الصحيحة: <span id="correctAnswerText">---</span></span>
+        </div>
+
+        <button type="button" class="btn btn-next" id="btnNext" onclick="nextQuestion()">
+            التالي <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+
+</div>
+
+<!-- 4. النافذة المنبثقة لتكبير الصورة -->
+<div class="image-modal-overlay" id="imageModal" onclick="closeImageModal()">
+    <div class="image-modal-card" onclick="event.stopPropagation()">
+        <button type="button" class="close-modal-btn" onclick="closeImageModal()">&times;</button>
+        <img id="modalImg" src="" alt="صورة مكبرة">
+    </div>
+</div>
+
+<script>
+    let currentQuestionIndex = 1;
+    let totalQuestions = 0;
+
+    function initReviewEngine() {
+        const questionCards = document.querySelectorAll('.question-card');
+        totalQuestions = questionCards.length;
+
+        questionCards.forEach((card, index) => {
+            const qIndex = index + 1;
+            card.setAttribute('data-q-index', qIndex);
+        });
+
+        buildNavigationButtons();
+        updateUI();
+    }
+
+    function buildNavigationButtons() {
+        const navContainer = document.getElementById('questionsNav');
+        navContainer.innerHTML = '';
+
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = `q-btn-${i}`;
+            btn.className = `q-btn ${i === currentQuestionIndex ? 'current-active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => goToQuestion(i);
+            navContainer.appendChild(btn);
+        }
+    }
+
+    function goToQuestion(qIndex) {
+        if (qIndex < 1 || qIndex > totalQuestions) return;
+
+        const currentCard = document.querySelector('.question-card.active');
+        if (currentCard) currentCard.classList.remove('active');
+
+        currentQuestionIndex = qIndex;
+        const targetCard = document.querySelector(`.question-card[data-q-index="${qIndex}"]`);
+        if (targetCard) targetCard.classList.add('active');
+
+        updateUI();
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < totalQuestions) {
+            goToQuestion(currentQuestionIndex + 1);
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIndex > 1) {
+            goToQuestion(currentQuestionIndex - 1);
+        }
+    }
+
+    function updateUI() {
+        // 1. تحديث أزرار التنقل بالترقيم
+        for (let i = 1; i <= totalQuestions; i++) {
+            const btn = document.getElementById(`q-btn-${i}`);
+            if (!btn) continue;
+
+            btn.className = 'q-btn';
+            if (i === currentQuestionIndex) {
+                btn.classList.add('current-active');
+            }
+        }
+
+        // 2. تحديث أزرار التالي والسابق
+        document.getElementById('btnPrev').style.display = (currentQuestionIndex === 1) ? 'none' : 'inline-flex';
+        document.getElementById('btnNext').style.display = (currentQuestionIndex === totalQuestions) ? 'none' : 'inline-flex';
+
+        // 3. قراءة الإجابة الصحيحة للـ Card الحالي وعرضها في المنتصف
+        const activeCard = document.querySelector(`.question-card[data-q-index="${currentQuestionIndex}"]`);
+        if (activeCard) {
+            const correctTextInput = activeCard.querySelector('.correct-option-text');
+            if (correctTextInput) {
+                document.getElementById('correctAnswerText').innerText = correctTextInput.value;
+            }
+        }
+    }
+
+    function zoomImage(element) {
+        const imgSrc = typeof element === 'string' ? element : element.querySelector('img')?.src;
+        if (imgSrc) {
+            document.getElementById('modalImg').src = imgSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.remove('active');
+    }
+
+    window.onload = () => {
+        initReviewEngine();
+    };
+</script>
