@@ -56,6 +56,14 @@ namespace Al_Muzayyen.Models
 
         [Display(Name = "إظهار النتيجة فوراً")]
         public bool ShowResult { get; set; } = true;
+        // أضف الحقلين دول داخل class Exam
+
+        [Display(Name = "امتحان ورقي")]
+        public bool IsPaperExam { get; set; } = false;
+
+        [Display(Name = "تاريخ الامتحان الورقي")]
+        [DataType(DataType.Date)]
+        public DateTime? ExamDate { get; set; }
 
         // ==========================================
         // 🔹 العلاقات (Relationships)

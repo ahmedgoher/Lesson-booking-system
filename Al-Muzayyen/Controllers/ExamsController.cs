@@ -3,6 +3,7 @@
 using Al_Muzayyen.Models;
 using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
+using Al_Muzayyen.ViewModels;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -421,14 +422,250 @@ namespace Al_Muzayyen.Controllers
 
             return Json(new { success = false, message = "لم يتم العثور على محاولة مسجلة لهذا الطالب." });
         }
+
+        //[HttpGet]
+        //public async Task<IActionResult> GetAttendanceStudents(int slotId, DateTime date, string? title)
+        //{
+        //    try
+        //    {
+        //        // 💡 استخدام Date.Date لضمان تجاهل الساعات والدقائق أثناء المقارنة
+        //        var attendanceRecords = await _context.Attendances
+        //            .Include(a => a.Student)
+        //            .Where(a => a.SlotId == slotId && a.Date.Date == date.Date)
+        //            .ToListAsync();
+
+        //        if (!attendanceRecords.Any())
+        //        {
+        //            return Json(new { success = false, message = "لا يوجد سجل حضور مسجل لهذه المجموعة في هذا التاريخ." });
+        //        }
+
+        //        var existingExam = await _context.Exams
+        //            .Include(e => e.StudentExams)
+        //            .FirstOrDefaultAsync(e => e.ExamGroups.Any(g => g.SlotId == slotId)
+        //                                   && e.ExamDate.HasValue
+        //                                   && e.ExamDate.Value.Date == date.Date
+        //                                   && (string.IsNullOrEmpty(title) || e.Title == title));
+
+        //        int totalMarks = existingExam?.TotalMarks ?? 100;
+
+        //        var studentsData = attendanceRecords.Select(a =>
+        //        {
+        //            var existingScore = existingExam?.StudentExams
+        //                .FirstOrDefault(s => s.StudentId == a.StudentId);
+
+        //            return new
+        //            {
+        //                studentId = a.StudentId,
+        //                studentName = a.Student?.Name ?? a.Student?.Name ?? "طالب غير معروف",
+        //                isPresent = a.IsPresent,
+        //                score = existingScore?.Score,
+        //                hasSavedScore = existingScore != null
+        //            };
+        //        }).ToList();
+
+        //        return Json(new
+        //        {
+        //            success = true,
+        //            data = studentsData,
+        //            totalMarks = totalMarks,
+        //            examExists = existingExam != null
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, message = "حدث خطأ أثناء جلب البيانات: " + ex.Message });
+        //    }
+        //}
+        [HttpGet]
+        public async Task<IActionResult> GetAttendanceStudents(int slotId, DateTime date, string? title)
+        {
+            try
+            {
+                // 💡 استخدام Date.Date لضمان تجاهل الساعات والدقائق أثناء المقارنة
+                var attendanceRecords = await _context.Attendances
+                    .Include(a => a.Student)
+                    .Where(a => a.SlotId == slotId && a.Date.Date == date.Date)
+                    .ToListAsync();
+
+                if (!attendanceRecords.Any())
+                {
+                    return Json(new { success = false, message = "لا يوجد سجل حضور مسجل لهذه المجموعة في هذا التاريخ." });
+                }
+
+                var existingExam = await _context.Exams
+                    .Include(e => e.StudentExams)
+                    .FirstOrDefaultAsync(e => e.ExamGroups.Any(g => g.SlotId == slotId)
+                                           && e.ExamDate.HasValue
+                                           && e.ExamDate.Value.Date == date.Date
+                                           && (string.IsNullOrEmpty(title) || e.Title == title));
+
+                int totalMarks = existingExam?.TotalMarks ?? 100;
+
+                var studentsData = attendanceRecords.Select(a =>
+                {
+                    var existingScore = existingExam?.StudentExams
+                        .FirstOrDefault(s => s.StudentId == a.StudentId);
+
+                    // 💡 التعديل هنا: تحويل الـ Enum إلى bool بشكل مباشر وصريح
+                    bool isPresentBool = a.IsPresent == Al_Muzayyen.Models.AttendanceStatus.Present;
+
+                    return new
+                    {
+                        studentId = a.StudentId,
+                        studentName = a.Student?.Name ?? "طالب غير معروف",
+                        isPresent = isPresentBool, // إرسال bool حقيقي
+                        score = existingScore?.Score,
+                        hasSavedScore = existingScore != null
+                    };
+                }).ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    data = studentsData,
+                    totalMarks = totalMarks,
+                    examExists = existingExam != null
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "حدث خطأ أثناء جلب البيانات: " + ex.Message });
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> SavePaperExam([FromBody] SavePaperExamScoresDto dto)
+        {
+            if (dto == null) return BadRequest("البيانات المدخلة غير صالحة");
+
+            var exam = await _context.Exams
+                .Include(e => e.ExamGroups)
+                .Include(e => e.StudentExams)
+                .FirstOrDefaultAsync(e => e.ClassId == dto.ClassId
+                                          && e.IsPaperExam
+                                          && e.ExamDate.HasValue
+                                          && e.ExamDate.Value.Date == dto.ExamDate.Date
+                                          && e.ExamGroups.Any(g => g.SlotId == dto.SlotId));
+
+            if (exam == null)
+            {
+                exam = new Exam
+                {
+                    Title = dto.Title,
+                    Description = dto.Description,
+                    TotalMarks = dto.TotalMarks,
+                    ClassId = dto.ClassId,
+                    ExamDate = dto.ExamDate,
+                    IsPaperExam = true,
+                    CreatedAt = DateTime.Now,
+                    StartExamTime = dto.ExamDate,
+                    EndExamTime = dto.ExamDate,
+                    ExamGroups = new List<ExamGroup>
+            {
+                new ExamGroup { SlotId = dto.SlotId }
+            }
+                };
+                _context.Exams.Add(exam);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                exam.Title = dto.Title;
+                exam.TotalMarks = dto.TotalMarks;
+                exam.Description = dto.Description;
+            }
+
+            foreach (var item in dto.Scores)
+            {
+                if (item.Score.HasValue)
+                {
+                    var studentExam = exam.StudentExams.FirstOrDefault(se => se.StudentId == item.StudentId);
+
+                    if (studentExam == null)
+                    {
+                        exam.StudentExams.Add(new StudentExam
+                        {
+                            StudentId = item.StudentId,
+                            ExamId = exam.Id,
+                            Score = item.Score.Value,
+                            IsSubmitted = true,
+                            StartedAt = dto.ExamDate,
+                            EndTime = dto.ExamDate,
+                            SubmittedAt = DateTime.Now
+                        });
+                    }
+                    else
+                    {
+                        studentExam.Score = item.Score.Value;
+                        studentExam.IsSubmitted = true;
+                        studentExam.SubmittedAt = DateTime.Now;
+                    }
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "تم حفظ درجات الامتحان بنجاح" });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPaperExamData(int classId, int slotId, DateTime date)
+        {
+            var exam = await _context.Exams
+                .Include(e => e.ExamGroups)
+                .Include(e => e.StudentExams)
+                .FirstOrDefaultAsync(e => e.ClassId == classId
+                                          && e.IsPaperExam
+                                          && e.ExamDate.HasValue
+                                          && e.ExamDate.Value.Date == date.Date
+                                          && e.ExamGroups.Any(g => g.SlotId == slotId));
+
+            var attendanceList = await _context.Attendances
+                .Include(a => a.Student)
+                .Where(a => a.SlotId == slotId && a.Date.Date == date.Date)
+                .ToListAsync();
+
+            var result = attendanceList.Select(a => new StudentExamStatusViewModel
+            {
+                StudentId = a.StudentId,
+                StudentName = a.Student?.Name ?? a.Student?.Name ?? "اسم غير معروف",
+                Status = a.IsPresent,
+                Score = exam?.StudentExams.FirstOrDefault(se => se.StudentId == a.StudentId)?.Score
+            }).ToList();
+
+            return Ok(new
+            {
+                ExamTitle = exam?.Title ?? "",
+                TotalMarks = exam?.TotalMarks ?? 100,
+                Description = exam?.Description ?? "",
+                Students = result
+            });
+        }
+        [HttpGet]
+        public async Task<IActionResult> PaperExam()
+        {
+            // جلب المجموعات المتاحة وإرسالها للـ View
+            ViewBag.Slots = await _context.Available_Slots // أو اسم جدول المجموعات لديك مثل ExamGroups / Groups
+                .Select(s => new {
+                    Id = s.Id,
+                    Name = s.Group_Name // أو اسم المجموعة/المواعيد
+                })
+                .ToListAsync();
+
+            return View();
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetSlotsByClass(int classId)
+        {
+            var slots = await _context.Available_Slots
+                .Where(s => s.ClassId == classId)
+                .Select(s => new { id = s.Id, name = s.Group_Name })
+                .ToListAsync();
+
+            return Json(slots);
+        }
         public IActionResult Index()
         {
             return View();
         }
-        public async Task<IActionResult> PaperExam()
-        {
-            return View();
-
-        }
+        
     }
 }

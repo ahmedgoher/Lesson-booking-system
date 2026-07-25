@@ -137,13 +137,13 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>المجموعة <span style="color:red">*</span></label>
-                <select id="slotSelect" class="form-control-custom" onchange="onFilterChange()">
+                <select id="slotSelect" class="form-select">
                     <option value="">-- اختر المجموعة --</option>
                     @if (ViewBag.Slots != null)
                     {
-                        foreach (var item in ViewBag.Slots)
+                        foreach (var slot in ViewBag.Slots)
                         {
-                            <option value="@item.Id" data-class-id="@item.ClassId">@item.Name</option>
+                            <option value="@slot.Id">@slot.Name</option>
                         }
                     }
                 </select>
@@ -193,26 +193,565 @@
                     </tr>
                 </thead>
                 <tbody id="studentsTableBody">
-                    <tr>
-                        <td colspan="4" style="text-align: center; color: #64748b; padding: 35px;">
-                            <i class="fas fa-calendar-alt" style="font-size: 32px; color: #cbd5e1; margin-bottom: 10px; display: block;"></i>
-                            الرجاء تحديد المجموعة والتاريخ لعرض سجل الحضور ورصد الدرجات.
-                        </td>
-                    </tr>
+                    <!-- سيتم ملؤه بواسطة الـ JS -->
                 </tbody>
             </table>
         </div>
 
         <div style="margin-top: 25px; text-align: left;">
-            <button type="button" class="btn-submit-all" onclick="savePaperExam()">
+            <!-- إضافة id="saveBtn" هنا -->
+            <button type="button" id="saveBtn" class="btn-submit-all" onclick="savePaperExam()">
                 <i class="fas fa-save"></i> حفظ نتائج الامتحان
             </button>
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // 1. ربط تغيير الأحداث لجلب كشف الحضور تلقائياً
+        $('#slotSelect, #examDate, #examTitle').on('change input', function() {
+            onFilterChange();
+        });
+
+        // تشغيل الجلب فوراً عند تحميل الصفحة إذا كانت القوائم محددة مسبقاً
+        if ($('#slotSelect').val() && $('#examDate').val()) {
+            onFilterChange();
+        }
+    });
+
+    // =========================================================
+    // 1. دالة جلب قائمة الطلاب والدرجات المترصودة
+    // =========================================================
+    function onFilterChange() {
+        const slotId = $('#slotSelect').val();
+        const date = $('#examDate').val();
+        const title = $('#examTitle').val() ? $('#examTitle').val().trim() : '';
+        const tbody = $('#studentsTableBody');
+
+        // لا تشترط وجود العنوان لجلب الحضور، التاريخ والمجموعة كافيان
+        if (!slotId || !date) {
+            $('#studentsCountLabel').text('اختر المجموعة والتاريخ لعرض الطلاب');
+            tbody.html(`
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            رجاءً اختر الموعد والتاريخ لعرض الطلاب
+                        </td>
+                    </tr>
+                `);
+            return;
+        }
+
+        // عرض مؤشر التحميل (Loading Spinner)
+        tbody.html(`
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted mb-0">جاري تحميل قائمة الطلاب وحالة الحضور...</p>
+                    </td>
+                </tr>
+            `);
+
+        // طلب AJAX للباك إند
+        $.ajax({
+            url: '@Url.Action("GetAttendanceStudents", "Exams")',
+            type: 'GET',
+            data: { slotId: slotId, date: date, title: title },
+            success: function(response) {
+                if (response.success) {
+                    renderStudentsTable(response.data, response.totalMarks);
+                } else {
+                    $('#studentsCountLabel').text('لا توجد بيانات');
+                    tbody.html(`
+                            <tr>
+                                <td colspan="4" class="text-center text-danger py-4">
+                                    <i class="fas fa-exclamation-triangle fs-4 d-block mb-2"></i>
+                                    ${response.message}
+                                </td>
+                            </tr>
+                        `);
+                }
+            },
+            error: function() {
+                $('#studentsCountLabel').text('خطأ في الاتصال');
+                tbody.html(`
+                        <tr>
+                            <td colspan="4" class="text-center text-danger py-4">
+                                حدث خطأ أثناء الاتصال بالسيرفر!
+                            </td>
+                        </tr>
+                    `);
+            }
+        });
+    }
+
+    // =========================================================
+    // 2. دالة رسم جدول الطلاب داخل الصفحة
+    // =========================================================
+    function renderStudentsTable(students, totalMarks) {
+        const tbody = $('#studentsTableBody');
+        tbody.empty();
+
+        if (!students || students.length === 0) {
+            $('#studentsCountLabel').text('عدد الطلاب: 0');
+            tbody.html(`
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        لا يوجد طلاب مسجلين بحضور في هذا الموعد.
+                    </td>
+                </tr>
+            `);
+            return;
+        }
+
+        // 💡 طباعة البيانات في الكونسول للتأكد من قيم isPresent القادمة من الباك إند
+        console.log("Students Data Received:", students);
+
+        $('#studentsCountLabel').text(`كشف الطلاب (${students.length})`);
+        if (totalMarks) {
+            $('#totalMarks').val(totalMarks);
+        }
+
+        students.forEach((student, index) => {
+            // فحص مرن يغطي كافة الأحتمالات (Boolean حقيقي، أو String "true"، أو IsPresent كـ PascalCase)
+            const isPresent = (
+                student.isPresent === true ||
+                student.IsPresent === true ||
+                String(student.isPresent).toLowerCase() === 'true' ||
+                String(student.IsPresent).toLowerCase() === 'true'
+            );
+
+            let statusBadge = isPresent
+                ? '<span class="badge" style="background-color: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 6px; font-weight: bold;">حاضر</span>'
+                : '<span class="badge" style="background-color: #fee2e2; color: #b91c1c; padding: 6px 12px; border-radius: 6px; font-weight: bold;">غائب</span>';
+
+            const savedScore = (student.score !== null && student.score !== undefined) ? student.score : '';
+            const disabledAttr = isPresent ? '' : 'disabled';
+            const scoreValue = isPresent ? savedScore : '0';
+            const placeholderText = isPresent ? 'الدرجة' : 'غائب';
+
+            const row = `
+                <tr data-student-id="${student.studentId}" style="border-bottom: 1px solid #e2e8f0;">
+                    <td class="text-center fw-bold" style="padding: 12px;">${index + 1}</td>
+                    <td class="fw-semibold" style="padding: 12px; text-align: right;">${student.studentName}</td>
+                    <td class="text-center" style="padding: 12px;">${statusBadge}</td>
+                    <td style="padding: 12px;">
+                        <input type="number"
+                               class="form-control-custom text-center student-score-input"
+                               style="max-width: 120px; margin: 0 auto;"
+                               data-student-id="${student.studentId}"
+                               value="${scoreValue}"
+                               placeholder="${placeholderText}"
+                               min="0"
+                               max="${$('#totalMarks').val() || 100}"
+                               ${disabledAttr} />
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+    // =========================================================
+    // 3. دالة إرسال وحفظ الدرجات إلى الباك إند
+    // =========================================================
+    function savePaperExam() {
+        const slotId = $('#slotSelect').val();
+        const examDate = $('#examDate').val();
+        const title = $('#examTitle').val().trim();
+        const totalMarks = parseInt($('#totalMarks').val()) || 100;
+        const description = $('#examDescription').val();
+
+        if (!slotId || !examDate || !title) {
+            alert('يرجى اختيار الموعد، التاريخ، وتحديد عنوان الامتحان قبل الحفظ!');
+            return;
+        }
+
+        const scoresList = [];
+        let isValid = true;
+
+        $('.student-score-input').each(function() {
+            const input = $(this);
+            const studentId = input.data('student-id');
+            const scoreVal = input.val().trim();
+            const isDisabled = input.is(':disabled');
+
+            if (!isDisabled) {
+                if (scoreVal !== "") {
+                    const parsedScore = parseFloat(scoreVal);
+                    if (parsedScore < 0 || parsedScore > totalMarks) {
+                        alert(`درجة الطالب لا يمكن أن تكون بالسالب أو أكبر من الدرجة الكلية (${totalMarks})!`);
+                        input.addClass('is-invalid').focus();
+                        isValid = false;
+                        return false;
+                    }
+                    input.removeClass('is-invalid');
+                    scoresList.push({ studentId: parseInt(studentId), score: parsedScore });
+                } else {
+                    scoresList.push({ studentId: parseInt(studentId), score: null });
+                }
+            } else {
+                scoresList.push({ studentId: parseInt(studentId), score: 0 });
+            }
+        });
+
+        if (!isValid) return;
+
+        const payload = {
+            slotId: parseInt(slotId),
+            classId: 1, // استبدله بالصف إن وجد
+            examDate: examDate,
+            title: title,
+            totalMarks: totalMarks,
+            description: description,
+            scores: scoresList
+        };
+
+        const saveBtn = $('#saveBtn');
+        saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> جاري الحفظ...');
+
+        $.ajax({
+            url: '@Url.Action("SavePaperExamScores", "Exams")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message || 'تم حفظ درجات الامتحان بنجاح!');
+                    onFilterChange();
+                } else {
+                    alert('خطأ: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('حدث خطأ غير متوقع أثناء الحفظ!');
+            },
+            complete: function() {
+                saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> حفظ نتائج الامتحان');
+            }
+        });
+    }
+</script>
+    @* <script>
+        $(document).ready(function () {
+            // ربط أحداث التغيير في الفلاتر لجلب البيانات تلقائياً
+            $('#slotSelect, #examDate, #examTitle').on('change input', function () {
+                onFilterChange();
+            });
+        });
+
+        // =========================================================
+        // 1. دالة جلب قائمة الطلاب والدرجات المترصودة
+        // =========================================================
+        function onFilterChange() {
+            const slotId = $('#slotSelect').val();
+            const date = $('#examDate').val();
+            const title = $('#examTitle').val();
+            const tbody = $('#studentsTableBody');
+
+            // عدم التحميل إلا إذا تم اختيار المجموعة والتاريخ وعنوان الامتحان
+            if (!slotId || !date || !title.trim()) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            رجاءً اختر الموعد، التاريخ، وعنوان الامتحان لعرض الطلاب
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            // عرض مؤشر التحميل (Loading Spinner)
+            tbody.html(`
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">جاري تحميل قائمة الطلاب وحالة الحضور...</p>
+                    </td>
+                </tr>
+            `);
+
+            // طلب AJAX للباك إند
+            $.ajax({
+                url: '@Url.Action("GetAttendanceStudents", "Exams")',
+                type: 'GET',
+                data: { slotId: slotId, date: date, title: title },
+                success: function (response) {
+                    if (response.success) {
+                        renderStudentsTable(response.data, response.totalMarks);
+                    } else {
+                        tbody.html(`
+                            <tr>
+                                <td colspan="4" class="text-center text-danger py-4">
+                                    <i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>
+                                    ${response.message}
+                                </td>
+                            </tr>
+                        `);
+                    }
+                },
+                error: function () {
+                    tbody.html(`
+                        <tr>
+                            <td colspan="4" class="text-center text-danger py-4">
+                                حدث خطأ أثناء الاتصال بالسيرفر!
+                            </td>
+                        </tr>
+                    `);
+                }
+            });
+        }
+
+        // =========================================================
+        // 2. دالة رسم جدول الطلاب داخل الصفحة
+        // =========================================================
+        function renderStudentsTable(students, totalMarks) {
+            const tbody = $('#studentsTableBody');
+            tbody.empty();
+
+            if (!students || students.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-4">
+                            لا يوجد طلاب مسجلين في هذا الموعد.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            // إذا كان للامتحان درجة كلية مسجلة سابقاً، نقوم بتحديث الـ Input الخاص بها
+            if (totalMarks) {
+                $('#totalMarks').val(totalMarks);
+            }
+
+            students.forEach((student, index) => {
+                // AttendanceStatus Enum: 0 = Present, 1 = Absent, 2 = Excused
+                const isPresent = (student.status === 0 || student.status === "Present");
+                
+                // تحديد النص والـ Badge الخاص بالحضور
+                let statusBadge = '';
+                if (isPresent) {
+                    statusBadge = '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">حاضر</span>';
+                } else if (student.status === 1 || student.status === "Absent") {
+                    statusBadge = '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">غائب</span>';
+                } else {
+                    statusBadge = '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">معذور</span>';
+                }
+
+                // قيمة الدرجة: لو متسجلة قبل كده تنزل، لو مش متسجلة تسيب الـ input فاضي
+                const savedScore = (student.score !== null && student.score !== undefined) ? student.score : '';
+                
+                // الغائب أو المعذور يتم تعطيل الـ input وتصفير درجته تلقائياً
+                const disabledAttr = isPresent ? '' : 'disabled';
+                const scoreValue = isPresent ? savedScore : '0';
+                const placeholderText = isPresent ? (savedScore !== '' ? 'تم الحفظ: ' + savedScore : 'أدخل الدرجة') : 'غائب';
+
+                const row = `
+                    <tr data-student-id="${student.studentId}" data-status="${student.status}">
+                        <td class="text-center fw-bold">${index + 1}</td>
+                        <td class="fw-semibold">${student.studentName}</td>
+                        <td class="text-center">${statusBadge}</td>
+                        <td>
+                            <div class="input-group input-group-sm justify-content-center">
+                                <input type="number" 
+                                       class="form-control text-center student-score-input" 
+                                       style="max-width: 140px; border-radius: 8px;"
+                                       value="${scoreValue}" 
+                                       placeholder="${placeholderText}" 
+                                       min="0" 
+                                       max="${$('#totalMarks').val() || 100}"
+                                       ${disabledAttr} />
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+        }
+
+        // =========================================================
+        // 3. دالة إرسال وحفظ الدرجات إلى الباك إند
+        // =========================================================
+        function savePaperExam() {
+            const slotId = $('#slotSelect').val();
+            const classId = $('#classSelect').val(); // أو المادة الحالية
+            const examDate = $('#examDate').val();
+            const title = $('#examTitle').val().trim();
+            const totalMarks = parseInt($('#totalMarks').val()) || 100;
+            const description = $('#examDescription').val();
+
+            // validation مبدئي
+            if (!slotId || !examDate || !title) {
+                alert('يرجى اختيار الموعد، التاريخ، وتحديد عنوان الامتحان قبل الحفظ!');
+                return;
+            }
+
+            const scoresList = [];
+            let isValid = true;
+
+            // جمع درجات الطلاب من الجدول
+            $('#studentsTableBody tr').each(function () {
+                const row = $(this);
+                const studentId = row.data('student-id');
+                const status = row.data('status');
+                const scoreInput = row.find('.student-score-input');
+                const scoreVal = scoreInput.val().trim();
+
+                // إذا كان الطالب حاضراً
+                if (status === 0 || status === "Present") {
+                    if (scoreVal !== "") {
+                        const parsedScore = parseInt(scoreVal);
+                        if (parsedScore < 0 || parsedScore > totalMarks) {
+                            alert(`درجة الطالب لا يمكن أن تكون بالسالب أو أكبر من الدرجة الكلية (${totalMarks})!`);
+                            scoreInput.addClass('is-invalid').focus();
+                            isValid = false;
+                            return false; // Break loop
+                        }
+                        scoreInput.removeClass('is-invalid');
+                        scoresList.push({
+                            studentId: studentId,
+                            score: parsedScore,
+                            status: status
+                        });
+                    } else {
+                        // الطالب حاضر ولم تُدخل درجته بعد (سيُرسل null ليُتاح إدخال درجته لاحقاً)
+                        scoresList.push({
+                            studentId: studentId,
+                            score: null,
+                            status: status
+                        });
+                    }
+                } else {
+                    // الطالب غائب أو معذور
+                    scoresList.push({
+                        studentId: studentId,
+                        score: 0,
+                        status: status
+                    });
+                }
+            });
+
+            if (!isValid) return;
+
+            // كائن البيانات المراد إرساله
+            const payload = {
+                slotId: parseInt(slotId),
+                classId: parseInt(classId) || 0,
+                examDate: examDate,
+                title: title,
+                totalMarks: totalMarks,
+                description: description,
+                scores: scoresList
+            };
+
+            // زر الحفظ - تعطيل مؤقت لمنع التكرار
+            const saveBtn = $('#saveBtn');
+            saveBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span> جاري الحفظ...');
+
+            // إرسال POST Request
+            $.ajax({
+                url: '@Url.Action("SavePaperExamScores", "Exams")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message || 'تم حفظ درجات الامتحان بنجاح!');
+                        // إعادة تحديث القائمة لعرض البيانات المحفوظة حديثاً
+                        onFilterChange();
+                    } else {
+                        alert('خطأ: ' + response.message);
+                    }
+                },
+                error: function (xhr) {
+                    alert('حدث خطأ غير متوقع أثناء الحفظ!');
+                    console.error(xhr.responseText);
+                },
+                complete: function () {
+                    saveBtn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> حفظ النتائج');
+                }
+            });
+        }
+    // عند تغيير الصف أو عند فتح الصفحة
+    $.get('/Exams/GetSlotsByClass?classId=' + selectedClassId, function(data) {
+        let slotDropdown = $('#slotSelect'); // تأكد من الـ ID للـ Select
+        slotDropdown.empty();
+        slotDropdown.append('<option value="">-- اختر المجموعة --</option>');
+
+        $.each(data, function(index, item) {
+            slotDropdown.append(`<option value="${item.id}">${item.name}</option>`);
+        });
+    });
+    
+        $(document).ready(function () {
+            // تشغيل الجلب فوراً عند تغيير المجموعة أو التاريخ
+            $('#slotSelect, #examDate').on('change', function() {
+                fetchAttendance();
+            });
+
+        // تشغيل تلقائي عند فتح الصفحة إذا كانت البيانات محددة بالفعل
+        if ($('#slotSelect').val() && $('#examDate').val()) {
+            fetchAttendance();
+            }
+
+        function fetchAttendance() {
+                var slotId = $('#slotSelect').val();
+        var examDate = $('#examDate').val();
+        var examTitle = $('#examTitle').val();
+
+        if (!slotId || !examDate) return;
+
+        $.ajax({
+            url: '/Exams/GetAttendanceStudents',
+        type: 'GET',
+        data: {slotId: slotId, date: examDate, title: examTitle },
+        success: function (res) {
+                        var $tbody = $('#studentsTableBody');
+        $tbody.empty();
+
+        if (!res.success) {
+            $tbody.html(`<tr><td colspan="4" class="text-center text-danger py-4">${res.message}</td></tr>`);
+        return;
+                        }
+
+        $.each(res.data, function (i, student) {
+                            var statusBadge = student.isPresent
+        ? '<span class="badge bg-success">حاضر</span>'
+        : '<span class="badge bg-danger">غائب</span>';
+
+        var scoreVal = student.score !== null ? student.score : '';
+
+        var row = `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${student.studentName}</td>
+            <td>${statusBadge}</td>
+            <td>
+                <input type="number"
+                    class="form-control score-input"
+                    data-student-id="${student.studentId}"
+                    value="${scoreVal}"
+                    min="0"
+                    max="${res.totalMarks}"
+                    placeholder="الدرجة"
+                    ${!student.isPresent ? 'disabled' : ''} />
+            </td>
+        </tr>
+        `;
+        $tbody.append(row);
+                        });
+                    },
+        error: function () {
+            alert('حدث خطأ في الاتصال أثناء جلب كشف الحضور.');
+                    }
+                });
+            }
+        });
+
+    </script> *@
 
 
-    <script>
+    @* <script>
         // 1. جلب الحضور عند تغيير المجموعة أو التاريخ
         async function onFilterChange() {
             const slotSelect = document.getElementById("slotSelect");
@@ -374,4 +913,4 @@
                 alert("حدث خطأ أثناء حفظ نتائج الامتحان.");
             }
         }
-    </script>
+    </script> *@
