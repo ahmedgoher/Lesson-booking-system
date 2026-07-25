@@ -14,6 +14,7 @@ namespace Al_Muzayyen.Repositories
         Task<StudentExam?> GetStudentExamAsync(int examId, int studentId);
         Task<int> GetStudentAttemptsAsync(int examId, int studentId);
         Task AddStudentExamAsync(StudentExam studentExam);
+        Task<bool> HasStudentInExamAsync(int examId);
         Task<IEnumerable<ExamViewModel>> GetAllExamsViewModelsAsync(); // أضف هذا السطر
     }
 }

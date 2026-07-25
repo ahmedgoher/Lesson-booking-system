@@ -28,13 +28,22 @@ namespace Al_Muzayyen.Services
             await _examRepository.AddAsync(exam);
             await _examRepository.SaveAsync();
         }
+        public async Task<bool> HasStudentInExamAsync(int examId)
+        {
+            return await _examRepository.HasStudentInExamAsync(examId);
+        }
         public async Task<bool> UpdateExamAsync(ExamViewModel model)
         {
             var exam = await _examRepository.GetByIdAsync(model.Id);
 
             if (exam == null)
                 return false;
+            var hasStudentInExam = await _examRepository.HasStudentInExamAsync(model.Id);
 
+            if (hasStudentInExam)
+            {
+                throw new Exception("لا يمكن تعديل الامتحان لأن هناك طالب يؤدي الامتحان حالياً.");
+            }
             exam.Title = model.Title;
             exam.Description = model.Description;
             exam.ClassId = model.GradeId;
