@@ -1,26 +1,32 @@
-﻿using System;
+﻿using Al_Muzayyen.Models;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Al_Muzayyen.Models
+public class StudentExam
 {
-    public class StudentExam
-    {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
 
-        [ForeignKey("Student")]
-        public int StudentId { get; set; }
-        public Student? Student { get; set; }
+    public int StudentId { get; set; }
+    public Student? Student { get; set; }
 
-        [ForeignKey("Exam")]
-        public int ExamId { get; set; }
-        public Exam? Exam { get; set; }
+    public int ExamId { get; set; }
+    public Exam? Exam { get; set; }
 
-        [Display(Name = "الدرجة التي حصل عليها")]
-        public int Score { get; set; }
+    // بداية الامتحان
+    public DateTime StartedAt { get; set; }
 
-        [Display(Name = "وقت تقديم الامتحان")]
-        public DateTime SubmittedAt { get; set; } = DateTime.Now;
-    }
+    // نهاية الوقت المسموح
+    public DateTime EndTime { get; set; }
+
+    // وقت التسليم
+    public DateTime? SubmittedAt { get; set; }
+
+    // الدرجة
+    public int Score { get; set; }
+
+    // هل الطالب سلم؟
+    public bool IsSubmitted { get; set; }
+
+    // رقم المحاولة
+    public int AttemptNumber { get; set; } = 1;
 }

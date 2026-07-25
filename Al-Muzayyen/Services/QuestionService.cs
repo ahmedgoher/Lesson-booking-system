@@ -30,7 +30,28 @@ namespace Al_Muzayyen.Services
 
             await _questionRepository.UpdateExamAsync(exam);
         }
+        public async Task<List<StudentQuestionViewModel>> GetStudentQuestionsAsync(int examId)
+        {
+            // 🟢 جلب الأسئلة المجهزة مع اختياراتها المخلوطة من الـ Repository
+            var questions = await _questionRepository.GetQuestionsByExamIdAsync(examId);
 
+            // 🟢 التحويل المباشر لـ StudentQuestionViewModel
+            return questions.Select(q => new StudentQuestionViewModel
+            {
+                Id = q.Id,
+                QuestionText = q.QuestionText,
+                ImageUrl = q.ImageUrl,
+                Type = q.Type.ToString(),
+
+                // أخذ جميع الاختيارات كاملة كما تم تجهيزها من الـ Repository
+                Options = q.Options.Select(o => new StudentOptionViewModel
+                {
+                    Id = o.Id,
+                    OptionText = o.OptionText
+                }).ToList()
+
+            }).ToList();
+        }
         public async Task UpdateQuestionAsync(QuestionViewModel model)
         {
             var question = await _questionRepository.GetByIdAsync(model.Id);
@@ -165,29 +186,17 @@ namespace Al_Muzayyen.Services
 
             if (question.Type == QuestionType.MCQ)
             {
-                question.Options.Add(new QuestionOption
-                {
-                    OptionText = model.OptionA,
-                    IsCorrect = model.CorrectAnswer == "A"
-                });
+                if (!string.IsNullOrWhiteSpace(model.OptionA))
+                    question.Options.Add(new QuestionOption { OptionText = model.OptionA, IsCorrect = model.CorrectAnswer == "A" });
 
-                question.Options.Add(new QuestionOption
-                {
-                    OptionText = model.OptionB,
-                    IsCorrect = model.CorrectAnswer == "B"
-                });
+                if (!string.IsNullOrWhiteSpace(model.OptionB))
+                    question.Options.Add(new QuestionOption { OptionText = model.OptionB, IsCorrect = model.CorrectAnswer == "B" });
 
-                question.Options.Add(new QuestionOption
-                {
-                    OptionText = model.OptionC,
-                    IsCorrect = model.CorrectAnswer == "C"
-                });
+                if (!string.IsNullOrWhiteSpace(model.OptionC))
+                    question.Options.Add(new QuestionOption { OptionText = model.OptionC, IsCorrect = model.CorrectAnswer == "C" });
 
-                question.Options.Add(new QuestionOption
-                {
-                    OptionText = model.OptionD,
-                    IsCorrect = model.CorrectAnswer == "D"
-                });
+                if (!string.IsNullOrWhiteSpace(model.OptionD))
+                    question.Options.Add(new QuestionOption { OptionText = model.OptionD, IsCorrect = model.CorrectAnswer == "D" });
             }
             else
             {
