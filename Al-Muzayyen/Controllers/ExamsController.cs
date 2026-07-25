@@ -215,60 +215,161 @@ namespace Al_Muzayyen.Controllers
 
             return View(studentExam);
         }
+        //[HttpGet]
+        //public async Task<IActionResult> Review(int examId)
+        //{
+        //    // 1️⃣ جلب UserId الخاص بالطالب
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (string.IsNullOrEmpty(userId))
+        //        return RedirectToAction("login2", "Account");
+
+        //    var student = await _studentService.GetByUserIdAsync(userId);
+        //    if (student == null) return Unauthorized();
+
+        //    // 2️⃣ جلب الامتحان والتحقق من وجوده
+        //    var exam = await _context.Exams.FirstOrDefaultAsync(e => e.Id == examId);
+        //    if (exam == null) return NotFound();
+
+        //    // 3️⃣ جلب محاولة الطالب الأخيرة المعتمدة
+        //    var submission = await _context.StudentExams
+        //        .Where(se => se.ExamId == examId && se.StudentId == student.Id)
+        //        .OrderByDescending(se => se.StartedAt)
+        //        .FirstOrDefaultAsync();
+
+        //    // الشرط الأول: هل أتم الطالب تسليم الامتحان؟
+        //    bool hasSubmitted = submission != null && submission.IsSubmitted;
+
+        //    // الشرط الثاني: هل انتهى وقت نهاية الامتحان المحدد للنظام بالكامل؟
+        //    bool isExamEnded = DateTime.Now >= exam.EndExamTime;
+
+        //    // ⛔ نمنع المراجعة ما لم يتحقق الشرطان
+        //    if (!hasSubmitted || !isExamEnded)
+        //    {
+        //        TempData["ErrorMessage"] = "لا يمكنك عرض نموذج الإجابة إلا بعد تسليم الامتحان وانتهاء الموعد الرسمي المخصص للامتحان بالكامل.";
+        //        return RedirectToAction("Exams", "Student");
+        //    }
+
+        //    // 4️⃣ جلب الأسئلة مع الاختيارات
+        //    var questions = await _context.Questions
+        //        .Include(q => q.Options)
+        //        .Where(q => q.ExamId == examId)
+        //        .AsNoTracking()
+        //        .ToListAsync();
+
+        //    // 5️⃣ جلب إجابات الطالب المسجلة باستخدام (QuestionOptionId) 🎯
+        //    var studentAnswers = await _context.StudentAnswers
+        //        .Where(sa => sa.StudentExamId == submission.Id)
+        //        .AsNoTracking()
+        //        .ToDictionaryAsync(sa => sa.QuestionId, sa => sa.QuestionOptionId);
+
+        //    // 6️⃣ بناء ViewModel العرض
+        //    var reviewModel = new ExamReviewViewModel
+        //    {
+        //        ExamId = exam.Id,
+        //        ExamTitle = exam.Title,
+        //        IsSubmitted = hasSubmitted,
+        //        IsExamEnded = isExamEnded,
+        //        Questions = questions.Select(q =>
+        //        {
+        //            var correctOption = q.Options.FirstOrDefault(o => o.IsCorrect);
+
+        //            return new QuestionReviewViewModel
+        //            {
+        //                QuestionId = q.Id,
+        //                QuestionText = q.QuestionText,
+        //                ImageUrl = q.ImageUrl,
+        //                Mark = q.Mark,
+        //                // إجابة الطالب المحددة (إن وجِدت)
+        //                SelectedOptionId = studentAnswers.ContainsKey(q.Id) ? studentAnswers[q.Id] : null,
+        //                // رقم الإجابة الصحيحة
+        //                CorrectOptionId = correctOption != null ? correctOption.Id : 0,
+        //                Options = q.Options.Select(o => new OptionReviewViewModel
+        //                {
+        //                    OptionId = o.Id,
+        //                    OptionText = o.OptionText,
+        //                    IsCorrect = o.IsCorrect
+        //                }).ToList()
+        //            };
+        //        }).ToList()
+        //    };
+
+        //    return View(reviewModel);
+        //}
         [HttpGet]
-        public async Task<IActionResult> Review(int examId)
+        public async Task<IActionResult> Review(int examId, int? studentId)
         {
-            // 1️⃣ جلب UserId الخاص بالطالب
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return RedirectToAction("login2", "Account");
+            int targetStudentId = 0;
 
-            var student = await _studentService.GetByUserIdAsync(userId);
-            if (student == null) return Unauthorized();
+            // 1️⃣ التحقق مما إذا كان الطلب قادماً من الأدمن/المعلم ومرفق معه studentId
+            if (studentId.HasValue && (User.IsInRole("Admin") || User.IsInRole("Teacher")))
+            {
+                targetStudentId = studentId.Value;
+            }
+            else
+            {
+                // 2️⃣ إذا كان الطلب قادماً من طالب
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                    return RedirectToAction("login2", "Account");
 
-            // 2️⃣ جلب الامتحان والتحقق من وجوده
+                var student = await _studentService.GetByUserIdAsync(userId);
+                if (student == null) return Unauthorized();
+
+                targetStudentId = student.Id;
+            }
+
+            // 3️⃣ جلب الامتحان والتحقق من وجوده
             var exam = await _context.Exams.FirstOrDefaultAsync(e => e.Id == examId);
             if (exam == null) return NotFound();
 
-            // 3️⃣ جلب محاولة الطالب الأخيرة المعتمدة
+            // 4️⃣ جلب محاولة الطالب الأخيرة المعتمدة
             var submission = await _context.StudentExams
-                .Where(se => se.ExamId == examId && se.StudentId == student.Id)
+                .Where(se => se.ExamId == examId && se.StudentId == targetStudentId)
                 .OrderByDescending(se => se.StartedAt)
                 .FirstOrDefaultAsync();
 
-            // الشرط الأول: هل أتم الطالب تسليم الامتحان؟
-            bool hasSubmitted = submission != null && submission.IsSubmitted;
-
-            // الشرط الثاني: هل انتهى وقت نهاية الامتحان المحدد للنظام بالكامل؟
-            bool isExamEnded = DateTime.Now >= exam.EndExamTime;
-
-            // ⛔ نمنع المراجعة ما لم يتحقق الشرطان
-            if (!hasSubmitted || !isExamEnded)
+            // إذا لم تكن هناك محاولة مسجلة لهذا الطالب
+            if (submission == null)
             {
-                TempData["ErrorMessage"] = "لا يمكنك عرض نموذج الإجابة إلا بعد تسليم الامتحان وانتهاء الموعد الرسمي المخصص للامتحان بالكامل.";
-                return RedirectToAction("Exams", "Student");
+                TempData["ErrorMessage"] = "لا توجد محاولة مسجلة لهذا الطالب في هذا الامتحان.";
+                return User.IsInRole("Admin") || User.IsInRole("Teacher")
+                    ? RedirectToAction("Index", "Home")
+                    : RedirectToAction("Exams", "Student");
             }
 
-            // 4️⃣ جلب الأسئلة مع الاختيارات
+            // الشروط الخاصة بالطلاب (تُتجاوز تماماً إذا كان المستخدم أدمن أو معلم)
+            if (!User.IsInRole("Admin") && !User.IsInRole("Teacher"))
+            {
+                bool hasSubmitted = submission.IsSubmitted;
+                bool isExamEnded = DateTime.Now >= exam.EndExamTime;
+
+                if (!hasSubmitted || !isExamEnded)
+                {
+                    TempData["ErrorMessage"] = "لا يمكنك عرض نموذج الإجابة إلا بعد تسليم الامتحان وانتهاء الموعد الرسمي المخصص للامتحان بالكامل.";
+                    return RedirectToAction("Exams", "Student");
+                }
+            }
+
+            // 5️⃣ جلب الأسئلة مع الاختيارات
             var questions = await _context.Questions
                 .Include(q => q.Options)
                 .Where(q => q.ExamId == examId)
                 .AsNoTracking()
                 .ToListAsync();
 
-            // 5️⃣ جلب إجابات الطالب المسجلة باستخدام (QuestionOptionId) 🎯
+            // 6️⃣ جلب إجابات الطالب المسجلة
             var studentAnswers = await _context.StudentAnswers
                 .Where(sa => sa.StudentExamId == submission.Id)
                 .AsNoTracking()
                 .ToDictionaryAsync(sa => sa.QuestionId, sa => sa.QuestionOptionId);
 
-            // 6️⃣ بناء ViewModel العرض
+            // 7️⃣ بناء ViewModel العرض
             var reviewModel = new ExamReviewViewModel
             {
                 ExamId = exam.Id,
                 ExamTitle = exam.Title,
-                IsSubmitted = hasSubmitted,
-                IsExamEnded = isExamEnded,
+                IsSubmitted = submission.IsSubmitted,
+                IsExamEnded = DateTime.Now >= exam.EndExamTime,
                 Questions = questions.Select(q =>
                 {
                     var correctOption = q.Options.FirstOrDefault(o => o.IsCorrect);
@@ -279,7 +380,7 @@ namespace Al_Muzayyen.Controllers
                         QuestionText = q.QuestionText,
                         ImageUrl = q.ImageUrl,
                         Mark = q.Mark,
-                        // إجابة الطالب المحددة (إن وجِدت)
+                        // إجابة الطالب المحددة
                         SelectedOptionId = studentAnswers.ContainsKey(q.Id) ? studentAnswers[q.Id] : null,
                         // رقم الإجابة الصحيحة
                         CorrectOptionId = correctOption != null ? correctOption.Id : 0,
@@ -295,7 +396,31 @@ namespace Al_Muzayyen.Controllers
 
             return View(reviewModel);
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin,Teacher")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetStudentAttempt(int examId, int studentId)
+        {
+            // 1️⃣ البحث عن محاولات الطالب في هذا الامتحان
+            var studentExam = await _context.StudentExams
+                .FirstOrDefaultAsync(se => se.ExamId == examId && se.StudentId == studentId);
 
+            if (studentExam != null)
+            {
+                // 2️⃣ حذف إجابات الطالب المتعلقة بهذه المحاولة من جدول الإجابات أولاً
+                var answers = _context.StudentAnswers.Where(sa => sa.StudentExamId == studentExam.Id);
+                _context.StudentAnswers.RemoveRange(answers);
+
+                // 3️⃣ حذف سجل المحاولة نفسه
+                _context.StudentExams.Remove(studentExam);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "تمت إعادة فتح المحاولة للطالب بنجاح!" });
+            }
+
+            return Json(new { success = false, message = "لم يتم العثور على محاولة مسجلة لهذا الطالب." });
+        }
         public IActionResult Index()
         {
             return View();

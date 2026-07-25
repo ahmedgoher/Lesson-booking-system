@@ -3,7 +3,14 @@
 @{
     ViewData["Title"] = "عرض إجابات الامتحان - " + Model.ExamTitle;
     int number = 1;
-        Layout = "~/Views/Shared/_StudentLayout.cshtml";
+        if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+    {
+        Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; // 👈 ضع هنا مسار الـ Layout الخاص بالأدمن عندك
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_StudentLayout.cshtml"; // 👈 مسار الـ Layout الخاص بالطالب
+    }
 
 }
 

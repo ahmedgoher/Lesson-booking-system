@@ -101,6 +101,71 @@ namespace Al_Muzayyen.Controllers
             return RedirectToAction("GroupManagement", new { id = slotId });
         }
 
+        //[HttpGet]
+        //public async Task<IActionResult> GetExamResults(int examId, int slotId)
+        //{
+        //    var exam = await _context.Exams
+        //        .FirstOrDefaultAsync(e => e.Id == examId);
+
+        //    if (exam == null)
+        //    {
+        //        return Json(new
+        //        {
+        //            success = false,
+        //            message = "الامتحان غير موجود"
+        //        });
+        //    }
+
+        //    var now = DateTime.Now;
+
+        //    var students = await _context.Students
+        //        .Where(s => s.SlotId == slotId)
+        //        .Select(s => new
+        //        {
+        //            Student = s,
+        //            StudentExam = s.StudentExams
+        //                .FirstOrDefault(se => se.ExamId == examId)
+        //        })
+        //        .ToListAsync();
+
+        //    var result = students.Select(x =>
+        //    {
+        //        string status;
+
+        //        if (x.StudentExam != null)
+        //        {
+        //            status = x.StudentExam.Score >= exam.PassingMarks
+        //                ? "ناجح"
+        //                : "راسب";
+        //        }
+        //        else if (now < exam.StartExamTime)
+        //        {
+        //            status = "لم يبدأ";
+        //        }
+        //        else if (now >= exam.StartExamTime && now <= exam.EndExamTime)
+        //        {
+        //            status = "لم يمتحن بعد";
+        //        }
+        //        else
+        //        {
+        //            status = "غائب";
+        //        }
+
+        //        return new
+        //        {
+        //            studentName = x.Student.Name,
+        //            score = x.StudentExam?.Score,
+        //            submittedAt = x.StudentExam?.SubmittedAt,
+        //            status = status
+        //        };
+        //    });
+
+        //    return Json(new
+        //    {
+        //        success = true,
+        //        data = result
+        //    });
+        //}
         [HttpGet]
         public async Task<IActionResult> GetExamResults(int examId, int slotId)
         {
@@ -117,6 +182,9 @@ namespace Al_Muzayyen.Controllers
             }
 
             var now = DateTime.Now;
+
+            // 🎯 هل انتهى وقت الامتحان كلياً بالنسبة للجدول الزمني؟
+            bool isExamEnded = now > exam.EndExamTime;
 
             var students = await _context.Students
                 .Where(s => s.SlotId == slotId)
@@ -153,6 +221,7 @@ namespace Al_Muzayyen.Controllers
 
                 return new
                 {
+                    studentId = x.Student.Id, // 🎯 تم إضافة ID الطالب للتحكم
                     studentName = x.Student.Name,
                     score = x.StudentExam?.Score,
                     submittedAt = x.StudentExam?.SubmittedAt,
@@ -163,6 +232,7 @@ namespace Al_Muzayyen.Controllers
             return Json(new
             {
                 success = true,
+                isExamEnded = isExamEnded, // 🎯 تم إرسال حالة انتهاء موعد الامتحان
                 data = result
             });
         }

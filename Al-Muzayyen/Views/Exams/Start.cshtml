@@ -783,7 +783,9 @@ async function selectOption(radioInput) {
             form.submit();
         }
     }
-
+    window.addEventListener('offline', function() {
+    alert('⚠️ انقطع الاتصال بالإنترنت! يرجى عدم إغلاق الصفحة حتى يعود الاتصال لتجنب ضياع الإجابات.');
+});
     function sendBeaconSubmit() {
         const examId = document.getElementById("ExamId").value;
         const formData = new FormData();
