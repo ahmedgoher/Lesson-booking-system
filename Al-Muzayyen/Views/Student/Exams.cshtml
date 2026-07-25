@@ -4,7 +4,12 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "Exams";
 }
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger" style="padding: 10px 15px; background: #f8d7da; color: #721c24; border-radius: 6px; margin-bottom: 15px;">
+        <i class="fas fa-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+    </div>
+}
 <div class="exams-content">
     <div class="section-header-block">
         <h2>الامتحانات والاختبارات</h2>
@@ -42,9 +47,9 @@
                                 @if (exam.IsCompleted)
                                 {
                                     <!-- 👁️ تم الامتحان: الانتقال لصفحة مراجعة الاجابات والنتيجة -->
-                                    <a asp-controller="Student"
-                                       asp-action="ReviewExam"
-                                       asp-route-id="@exam.ExamId"
+                                    <a asp-controller="Exams"
+                                       asp-action="Review"
+                                       asp-route-examId="@exam.ExamId"
                                        class="action-icon-btn"
                                        title="مراجعة الامتحان">
                                         <i class="fas fa-eye"></i>
