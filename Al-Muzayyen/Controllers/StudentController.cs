@@ -84,10 +84,19 @@ namespace Al_Muzayyen.Controllers
 
             // حساب الامتحانات والدرجات
             var examsTaken = await _context.StudentExams
+                .Include(se => se.Exam)
                 .Where(se => se.StudentId == student.Id)
                 .ToListAsync();
+            double avgScore = 0;
+            if (examsTaken.Any())
+            {
+                // حساب النسبة لكل امتحان (الدرجة / الدرجة الكلية * 100) ثم أخذ المتوسط العام
+                var percentages = examsTaken.Select(se => se.Exam != null && se.Exam.TotalMarks > 0
+                    ? ((double)se.Score / se.Exam.TotalMarks) * 100
+                    : 0);
 
-            double avgScore = examsTaken.Any() ? Math.Round(examsTaken.Average(se => se.Score), 1) : 0;
+                avgScore = Math.Round(percentages.Average(), 1);
+            }
 
             var statsModel = new StudentStatsViewModel
             {
