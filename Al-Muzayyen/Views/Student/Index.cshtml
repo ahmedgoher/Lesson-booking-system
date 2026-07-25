@@ -1,7 +1,14 @@
-﻿@{
+﻿@using Al_Muzayyen.Viewmodel
+@model StudentDashboardViewModel
+
+@{
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "لوحة التحكم";
 }
+
+
+
+
 <style>
 /* =========================================================
    7. تنسيقات لوحة تحكم الطالب (Student Dashboard Styling)
@@ -401,150 +408,335 @@
         align-items: center;
     }
 }
-</style>
 
+
+    /* =========================================================
+       تنسيقات كروت التنبيهات المتجاوبة (Responsive Alerts)
+       ========================================================= */
+
+    .alerts-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+    }
+
+    /* الكارت الأساسي */
+    .alert-card {
+        background-color: var(--card-bg, #ffffff);
+        border: 1px solid var(--border-color, #e5e7eb);
+        border-right: 5px solid var(--primary-color, #c5a059); /* الشريط الذهبي الجانبي */
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* القسم الأيمن (البيانات والحديث) */
+    .alert-main-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        min-width: 0; /* لمنع الكلمات الطويلة من كسر التصميم */
+    }
+
+    /* العنوان مع البادج */
+    .alert-title-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .alert-title-group h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-color, #1f2937);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .alert-title-group h4 i {
+                color: var(--primary-color, #c5a059);
+            }
+
+    /* شارات الحالة (Badges) */
+    .status-badge, .alert-badge {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-success {
+        background-color: rgba(34, 197, 94, 0.15);
+        color: #15803d;
+    }
+
+    .badge-warning {
+        background-color: rgba(234, 179, 8, 0.15);
+        color: #a16207;
+    }
+
+    .badge-danger {
+        background-color: rgba(239, 68, 68, 0.15);
+        color: #b91c1c;
+    }
+
+    .alert-badge.new {
+        background-color: var(--primary-color, #c5a059);
+        color: #ffffff;
+    }
+
+    /* التفاصيل الداخلية (المجموعة/السبب/الوقت) */
+    .alert-details-grid {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 0.88rem;
+        color: var(--text-muted, #4b5563);
+    }
+
+        .alert-details-grid p {
+            margin: 0;
+        }
+
+    .exam-desc {
+        font-size: 0.88rem;
+        color: var(--text-muted, #6b7280);
+        margin: 0;
+    }
+
+    .exam-expiry {
+        font-size: 0.82rem;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+    }
+
+    /* القسم الأيسر (الأزرار) */
+    .alert-action-side {
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .btn-dismiss {
+        background-color: var(--primary-color, #c5a059);
+        color: #ffffff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        white-space: nowrap;
+    }
+
+        .btn-dismiss:hover {
+            opacity: 0.9;
+        }
+
+    .btn-start-exam {
+        background-color: var(--primary-color, #c5a059);
+        color: #ffffff;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-block;
+        white-space: nowrap;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+        .btn-start-exam:hover {
+            opacity: 0.9;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+
+    .empty-alerts-box {
+        text-align: center;
+        padding: 30px;
+        color: var(--text-muted, #9ca3af);
+    }
+
+        .empty-alerts-box i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    /* =========================================================
+       التجاوب مع شاشات الموبايل (Media Queries)
+       ========================================================= */
+
+    @@media (max-width: 640px) {
+        .alert-card {
+            flex-direction: column; /* تحويل العناصر عمودياً في الموبايل */
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px;
+        }
+
+        .alert-action-side {
+            width: 100%; /* الزر يأخذ العرض كامل في الموبايل */
+        }
+
+        .btn-dismiss, .btn-start-exam {
+            width: 100%;
+            text-align: center;
+        }
+
+        .alert-details-grid {
+            flex-direction: column;
+            gap: 4px;
+        }
+    }
+
+</style>
 <div class="dashboard-content">
 
-    <!-- بطاقة التعريف بالطالب -->
+    <!-- 1. بطاقة التعريف بالطالب (تُحمل فوراً) -->
     <div class="student-profile-banner">
         <div class="student-info-main">
             <div class="student-avatar-badge">
                 <i class="fa-solid fa-user-graduate"></i>
             </div>
             <div class="student-details">
-                <h2 class="student-name">أحمد محمد علي</h2>
+                <h2 class="student-name">@Model.StudentName</h2>
                 <div class="student-meta-tags">
-                    <span class="meta-tag"><i class="fa-solid fa-layer-group"></i> الصف الثالث الثانوي</span>
-                    <span class="meta-tag"><i class="fa-solid fa-users"></i> مجموعة (A) - السبت والأربعاء</span>
+                    <span class="meta-tag"><i class="fa-solid fa-layer-group"></i> @Model.ClassName</span>
+                    <span class="meta-tag"><i class="fa-solid fa-users"></i> @Model.GroupName</span>
                 </div>
             </div>
         </div>
-        <div class="academic-level-badge level-good">
-            <span class="level-label">المستوى الأكاديمي</span>
-            <span class="level-value">جيد جداً <i class="fa-solid fa-award"></i></span>
-        </div>
+      
     </div>
 
-    <!-- قسم التنبيهات والامتحانات الجديدة -->
-    <div class="section-header-block">
-        <h2><i class="fa-solid fa-bell"></i> التنبيهات والمهام القادمة</h2>
-    </div>
-    
-    <div class="alerts-container">
-        <!-- تنبيه امتحان جديد -->
-        <div class="alert-card alert-exam">
-            <div class="alert-icon">
-                <i class="fa-solid fa-file-pen"></i>
-            </div>
-            <div class="alert-content">
-                <div class="alert-header">
-                    <h4>امتحان شامل - فيزياء (الكهربية)</h4>
-                    <span class="alert-badge new">جديد</span>
-                </div>
-                <p>تم إضافة امتحان جديد بواسطة أ. محمود. يرجى إكماله قبل الموعد المحدد.</p>
-                <div class="alert-footer">
-                    <span><i class="fa-regular fa-clock"></i> ينتهي في: 25 يوليو 2026</span>
-                    <a href="#" class="action-button btn-sm">بدء الامتحان الآن</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- الإحصائيات الأكاديمية -->
-    <div class="section-header-block">
+    <!-- 2. الإحصائيات الأكاديمية -->
+    <div class="section-header-block mt-4">
         <h2><i class="fa-solid fa-chart-pie"></i> الإحصائيات الأكاديمية</h2>
     </div>
 
-    <div class="dashboard-stats-grid">
-        <div class="metric-card">
-            <div class="metric-icon bg-primary-light">
-                <i class="fa-solid fa-user-check"></i>
-            </div>
-            <div class="metric-info">
-                <h3>نسبة الحضور</h3>
-                <p class="metric-value">92%</p>
-                <span class="metric-subtext">حضور 23 من أصل 25 محاضرة</span>
-            </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon bg-warning-light">
-                <i class="fa-solid fa-user-xmark"></i>
-            </div>
-            <div class="metric-info">
-                <h3>عدد مرات الغياب</h3>
-                <p class="metric-value">2</p>
-                <span class="metric-subtext">أيام: 5 يونيو، 12 يوليو</span>
-            </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon bg-success-light">
-                <i class="fa-solid fa-list-check"></i>
-            </div>
-            <div class="metric-info">
-                <h3>الامتحانات المكتملة</h3>
-                <p class="metric-value">8 / 10</p>
-                <span class="metric-subtext">نسبة الإنجاز: 80%</span>
-            </div>
-        </div>
-
-        <div class="metric-card">
-            <div class="metric-icon bg-info-light">
-                <i class="fa-solid fa-star"></i>
-            </div>
-            <div class="metric-info">
-                <h3>متوسط درجات الامتحانات</h3>
-                <p class="metric-value">88%</p>
-                <span class="metric-subtext">أعلى درجة: 98% (كيمياء)</span>
-            </div>
+    <div class="dashboard-stats-grid" id="stats-container">
+        <!-- مؤشر التحميل (Spinner) -->
+        <div class="text-center w-100 py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل الإحصائيات...</p>
         </div>
     </div>
 
-    <!-- إضافات مقترحة: الوصول السريع والجديد -->
-    <div class="dashboard-secondary-grid">
-        <!-- المحاضرات والملازم المضافة حديثاً -->
-        <div class="dashboard-panel">
-            <div class="panel-header">
-                <h3><i class="fa-solid fa-book-open"></i> أحدث الملازم والمحاضرات</h3>
-                <a href="#" class="panel-link">عرض الكل</a>
-            </div>
-            <ul class="recent-items-list">
-                <li>
-                    <div class="item-icon"><i class="fa-solid fa-file-pdf"></i></div>
-                    <div class="item-details">
-                        <h4>ملزمة الفصل الثالث - الجبر</h4>
-                        <span>تاريخ الإضافة: 22 يوليو 2026</span>
-                    </div>
-                    <a href="#" class="btn-icon"><i class="fa-solid fa-download"></i></a>
-                </li>
-                <li>
-                    <div class="item-icon"><i class="fa-solid fa-circle-play"></i></div>
-                    <div class="item-details">
-                        <h4>شرح محاضرة العضوية 4</h4>
-                        <span>تاريخ الإضافة: 20 يوليو 2026</span>
-                    </div>
-                    <a href="#" class="btn-icon"><i class="fa-solid fa-play"></i></a>
-                </li>
-            </ul>
-        </div>
+    <!-- 3. قسم التنبيهات والامتحانات الجديدة -->
+    <div class="section-header-block mt-4">
+        <h2><i class="fa-solid fa-bell"></i> التنبيهات والمهام القادمة</h2>
+    </div>
 
-        <!-- جدول الحصص الأسبوعي السريع -->
-        <div class="dashboard-panel">
-            <div class="panel-header">
-                <h3><i class="fa-solid fa-calendar-day"></i> المحاضرة القادمة</h3>
-            </div>
-            <div class="next-class-box">
-                <div class="class-time-badge">
-                    <span class="day">السبت</span>
-                    <span class="time">04:00 م</span>
-                </div>
-                <div class="class-info">
-                    <h4>فيزياء - الفصل الرابع</h4>
-                    <p>القاعة الرئيسية - السنتر التعليمي</p>
-                </div>
-            </div>
+    <div class="alerts-container" id="alerts-container">
+        <!-- مؤشر التحميل (Spinner) -->
+        <div class="text-center w-100 py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted">جاري تحميل التنبيهات...</p>
         </div>
     </div>
 
 </div>
+
+<!-- Modal طلب تغيير المجموعة -->
+<div class="modal fade" id="changeGroupModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-right-left me-1"></i> طلب تغيير المجموعة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <form id="groupChangeForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label font-weight-bold">المجموعة المطلوبة <span class="text-danger">*</span></label>
+                        <select class="form-select" name="requestedSlotId" required>
+                            <option value="">اختر المجموعة...</option>
+                            @foreach (var slot in Model.AvailableSlots)
+                            {
+                                <option value="@slot.Id">@slot.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">سبب التحويل</label>
+                        <textarea class="form-control" name="reason" rows="3" placeholder="اكتب سبب طلب التحويل..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitGroup">إرسال الطلب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // استدعاء الدوال فور فتح الصفحة
+        fetchStudentStats();
+        fetchStudentAlerts();
+
+        // إرسال طلب تغيير المجموعة
+        $("#groupChangeForm").on("submit", function(e) {
+            e.preventDefault();
+            var btn = $("#btnSubmitGroup");
+            btn.prop("disabled", true).text("جاري الإرسال...");
+
+            $.post('@Url.Action("SubmitGroupChangeRequest", "Student")', $(this).serialize(), function(res) {
+                btn.prop("disabled", false).text("إرسال الطلب");
+                if (res.success) {
+                    alert(res.message);
+                    $('#changeGroupModal').modal('hide');
+                    $("#groupChangeForm")[0].reset();
+                    fetchStudentAlerts();
+                } else {
+                    alert(res.message);
+                }
+            });
+        });
+    });
+
+    // جلب الإحصائيات
+    function fetchStudentStats() {
+        $.get('@Url.Action("GetStudentStatsPartial", "Student")', function(html) {
+            $('#stats-container').html(html);
+        });
+    }
+
+    // جلب التنبيهات
+    function fetchStudentAlerts() {
+        $.get('@Url.Action("GetStudentAlertsPartial", "Student")', function(html) {
+            $('#alerts-container').html(html);
+        });
+    }
+
+    // إخفاء التنبيه
+    function dismissNotification(requestId) {
+        $.post('@Url.Action("DismissGroupNotification", "Student")', { requestId: requestId }, function(res) {
+            if (res.success) {
+                $('#req-alert-' + requestId).fadeOut(300, function() {
+                    $(this).remove();
+                });
+            }
+        });
+    }
+</script>

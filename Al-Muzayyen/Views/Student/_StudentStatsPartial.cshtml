@@ -1,0 +1,46 @@
+﻿@using Al_Muzayyen.Viewmodel
+@model StudentStatsViewModel
+
+<div class="metric-card">
+    <div class="metric-icon bg-primary-light">
+        <i class="fa-solid fa-user-check"></i>
+    </div>
+    <div class="metric-info">
+        <h3>نسبة الحضور</h3>
+        <p class="metric-value">@Model.AttendanceRate</p>
+        <span class="metric-subtext">@Model.AttendanceDetails</span>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon bg-warning-light">
+        <i class="fa-solid fa-user-xmark"></i>
+    </div>
+    <div class="metric-info">
+        <h3>عدد مرات الغياب</h3>
+        <p class="metric-value">@Model.AbsentCount</p>
+        <span class="metric-subtext">إجمالي الغياب</span>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon bg-success-light">
+        <i class="fa-solid fa-list-check"></i>
+    </div>
+    <div class="metric-info">
+        <h3>الامتحانات المكتملة</h3>
+        <p class="metric-value">@Model.CompletedExams</p>
+        <span class="metric-subtext">الامتحانات المؤداة</span>
+    </div>
+</div>
+
+<div class="metric-card">
+    <div class="metric-icon bg-info-light">
+        <i class="fa-solid fa-star"></i>
+    </div>
+    <div class="metric-info">
+        <h3>متوسط درجات الامتحانات</h3>
+        <p class="metric-value">@Model.AvgScore</p>
+        <span class="metric-subtext">المعدل العام</span>
+    </div>
+</div>

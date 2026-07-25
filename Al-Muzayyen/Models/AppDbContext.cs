@@ -37,7 +37,6 @@ namespace Al_Muzayyen.Models
         public DbSet<GroupChangeRequest> GroupChangeRequests { get; set; }
 
 
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // ضروري جداً لإنشاء جداول الـ Identity تلقائياً (AspNetUsers, AspNetRoles, etc.)

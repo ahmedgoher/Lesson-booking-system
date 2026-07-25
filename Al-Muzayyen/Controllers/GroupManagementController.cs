@@ -223,23 +223,26 @@ namespace Al_Muzayyen.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetGroupStudents(int slotId)
+        public async Task<IActionResult> GetGroupStudents(int slotId)
         {
-
-
-
-            return View();
+            try
+            {
+                var student = await _context.Students
+                .Where(s => s.SlotId == slotId)
+                .Select(s => new
+                {
+                    studentName = s.Name,
+                    ParentPhone = s.ParentPhone,
+                    studentPhone = s.StdPhone,
+                    studentToken = s.ParentAccessToken
+                }).ToListAsync();
+                return Json(new { success = true, data = student });
+            }
+            catch(Exception ex)
+            {
+                return Json(new { success = false, message = "حدث خطأ أثناء جلب البيانات من السيرفر." });
+            }
         }
 
     }
-
-
-
-      
-
-
-
-
-
-    
 }

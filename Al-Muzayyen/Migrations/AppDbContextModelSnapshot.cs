@@ -51,7 +51,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.ApplicationUser", b =>
@@ -158,7 +158,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Attendances");
+                    b.ToTable("Attendances", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Available_slot", b =>
@@ -197,7 +197,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("PlaceId");
 
-                    b.ToTable("Available_Slots");
+                    b.ToTable("Available_Slots", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Class", b =>
@@ -215,7 +215,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Classes");
+                    b.ToTable("Classes", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Exam", b =>
@@ -276,7 +276,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("ClassId");
 
-                    b.ToTable("Exams");
+                    b.ToTable("Exams", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.ExamGroup", b =>
@@ -299,7 +299,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotId");
 
-                    b.ToTable("ExamGroup");
+                    b.ToTable("ExamGroup", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.GroupChangeRequest", b =>
@@ -331,7 +331,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("GroupChangeRequests");
+                    b.ToTable("GroupChangeRequests", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Material", b =>
@@ -366,7 +366,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotId");
 
-                    b.ToTable("Materials");
+                    b.ToTable("Materials", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Place", b =>
@@ -387,7 +387,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Places");
+                    b.ToTable("Places", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Question", b =>
@@ -418,7 +418,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("ExamId");
 
-                    b.ToTable("Questions");
+                    b.ToTable("Questions", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.QuestionOption", b =>
@@ -443,7 +443,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuestionOptions");
+                    b.ToTable("QuestionOptions", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Slot_time", b =>
@@ -469,7 +469,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotID");
 
-                    b.ToTable("Slot_Times");
+                    b.ToTable("Slot_Times", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Student", b =>
@@ -533,7 +533,7 @@ namespace Al_Muzayyen.Migrations
                     b.HasIndex(new[] { "StdPhone" }, "Index_Unique_StdPhone")
                         .IsUnique();
 
-                    b.ToTable("Students");
+                    b.ToTable("Students", (string)null);
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.StudentAnswer", b =>
@@ -594,7 +594,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos");
+                    b.ToTable("Videos", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
