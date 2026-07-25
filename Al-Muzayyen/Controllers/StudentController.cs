@@ -141,39 +141,39 @@ namespace Al_Muzayyen.Controllers
             return PartialView("_StudentAlertsPartial", alertsModel);
         }
 
-        // 4️⃣ استقبال طلب تغيير المجموعة (Submit Form via AJAX)
-        [HttpPost]
-        public async Task<IActionResult> SubmitGroupChangeRequest(int requestedSlotId, string? reason)
-        {
-            var student = await GetCurrentStudentAsync();
-            if (student == null)
-                return Json(new { success = false, message = "جلسة العمل انتهت، يرجى إعادة التسجيل." });
+        //// 4️⃣ استقبال طلب تغيير المجموعة (Submit Form via AJAX)
+        //[HttpPost]
+        //public async Task<IActionResult> SubmitGroupChangeRequest(int requestedSlotId, string? reason)
+        //{
+        //    var student = await GetCurrentStudentAsync();
+        //    if (student == null)
+        //        return Json(new { success = false, message = "جلسة العمل انتهت، يرجى إعادة التسجيل." });
 
-            if (requestedSlotId <= 0)
-                return Json(new { success = false, message = "يرجى اختيار المجموعة المطلوبة." });
+        //    if (requestedSlotId <= 0)
+        //        return Json(new { success = false, message = "يرجى اختيار المجموعة المطلوبة." });
 
-            // التثبت من عدم وجود طلب معلق سابقاً
-            bool hasPending = await _context.GroupChangeRequests
-                .AnyAsync(r => r.StudentId == student.Id && r.Status == RequestStatus.Pending);
+        //    // التثبت من عدم وجود طلب معلق سابقاً
+        //    bool hasPending = await _context.GroupChangeRequests
+        //        .AnyAsync(r => r.StudentId == student.Id && r.Status == RequestStatus.Pending);
 
-            if (hasPending)
-                return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد المراجعة بالفعل." });
+        //    if (hasPending)
+        //        return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد المراجعة بالفعل." });
 
-            var request = new GroupChangeRequest
-            {
-                StudentId = student.Id,
-                RequestSlotId = requestedSlotId,
-                Reason = reason,
-                Status = RequestStatus.Pending,
-                RequestDate = DateTime.Now,
-                IsDismissed = false
-            };
+        //    var request = new GroupChangeRequest
+        //    {
+        //        StudentId = student.Id,
+        //        RequestSlotId = requestedSlotId,
+        //        Reason = reason,
+        //        Status = RequestStatus.Pending,
+        //        RequestDate = DateTime.Now,
+        //        IsDismissed = false
+        //    };
 
-            _context.GroupChangeRequests.Add(request);
-            await _context.SaveChangesAsync();
+        //    _context.GroupChangeRequests.Add(request);
+        //    await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "تم إرسال طلب تغيير المجموعة بنجاح!" });
-        }
+        //    return Json(new { success = true, message = "تم إرسال طلب تغيير المجموعة بنجاح!" });
+        //}
 
         // 5️⃣ إخفاء التنبيه بعد مشاهدته (Dismiss Notification)
         [HttpPost]
@@ -473,6 +473,7 @@ namespace Al_Muzayyen.Controllers
             return Json(new { success = true, message = "تم تغيير كلمة المرور بنجاح!" });
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitGroupChangeRequest([FromBody] ChangeGroupVM vm)
         {
             try
