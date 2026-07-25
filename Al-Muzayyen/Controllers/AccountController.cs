@@ -65,7 +65,7 @@ namespace Al_Muzayyen.Controllers
                     var authProperties = new AuthenticationProperties
                     {
                         IsPersistent = model.RememberMe,
-                        ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(2)
+                        ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddHours(2) : DateTimeOffset.UtcNow.AddMinutes(30)
                     };
 
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(adminIdentity), authProperties);

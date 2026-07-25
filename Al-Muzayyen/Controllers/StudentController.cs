@@ -210,7 +210,7 @@ namespace Al_Muzayyen.Controllers
                 return View(new StudentMatrialVM());
             }
             var videos = _context.Materials
-                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.VideoLink)
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.VideoLink && m.CreatedAt >= student.CreatedAt)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToList();
             var viewModel = new StudentMatrialVM
@@ -366,7 +366,7 @@ namespace Al_Muzayyen.Controllers
             }
 
             var materials = _context.Materials
-                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.PDF)
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.PDF && m.CreatedAt >= student.CreatedAt)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToList();
             var viewModel = new StudentMatrialVM
