@@ -127,12 +127,12 @@ public class AdminController : Controller
 
         if (placeId.HasValue)
         {
-            query = query.Where(s => s.Id == placeId.Value);
+            query = query.Where(s => s.PlaceId == placeId.Value);
         }
 
         if (classId.HasValue)
         {
-            query = query.Where(s => s.Id == classId.Value);
+            query = query.Where(s => s.ClassId == classId.Value);
         }
 
         if (groupId.HasValue)
