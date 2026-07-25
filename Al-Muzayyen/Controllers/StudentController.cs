@@ -49,7 +49,7 @@ namespace Al_Muzayyen.Controllers
                 .Where(g => g.ClassId == student.ClassId && g.Id != student.Id)
                 .Select(g => new SelectListItem2
                 {
-                     Id= g.Id,
+                    Id= g.Id,
                     Name = g.Group_Name
                 })
                 .ToListAsync();
@@ -87,15 +87,23 @@ namespace Al_Muzayyen.Controllers
                 .Include(se => se.Exam)
                 .Where(se => se.StudentId == student.Id)
                 .ToListAsync();
+
             double avgScore = 0;
+
             if (examsTaken.Any())
             {
-                // حساب النسبة لكل امتحان (الدرجة / الدرجة الكلية * 100) ثم أخذ المتوسط العام
-                var percentages = examsTaken.Select(se => se.Exam != null && se.Exam.TotalMarks > 0
-                    ? ((double)se.Score / se.Exam.TotalMarks) * 100
-                    : 0);
+                // مجموع درجات الطالب
+                var totalStudentScore = examsTaken.Sum(se => se.Score);
 
-                avgScore = Math.Round(percentages.Average(), 1);
+                // مجموع الدرجات الكلية للامتحانات
+                var totalExamMarks = examsTaken
+                    .Where(se => se.Exam != null)
+                    .Sum(se => se.Exam.TotalMarks);
+
+                if (totalExamMarks > 0)
+                {
+                    avgScore = Math.Round(((double)totalStudentScore / totalExamMarks) * 100, 1);
+                }
             }
 
             var statsModel = new StudentStatsViewModel
@@ -118,6 +126,7 @@ namespace Al_Muzayyen.Controllers
             if (student == null) return Unauthorized();
 
             var now = DateTime.Now;
+            var joinDate = student.CreatedAt;
 
             // الامتحانات التي أداها الطالب بالفعل
             var completedExamIds = await _context.StudentExams
@@ -126,9 +135,11 @@ namespace Al_Muzayyen.Controllers
                 .ToListAsync();
 
             // الامتحانات المتاحة حالياً ولم يؤدها بعد
-            var pendingExams = await _context.Exams
-                .Where(e => e.ClassId == student.ClassId
-                         && e.IsActive
+            var pendingExams = await _context.ExamGroup
+                .Where(eg => eg.SlotId == student.SlotId
+                          && eg.AssignedAt >= joinDate)
+                .Select(eg => eg.Exam)
+                .Where(e => e.IsActive
                          && e.StartExamTime <= now
                          && e.EndExamTime >= now
                          && !completedExamIds.Contains(e.Id))
@@ -200,6 +211,11 @@ namespace Al_Muzayyen.Controllers
         }
 
         #endregion
+
+
+
+
+
 
 
 
