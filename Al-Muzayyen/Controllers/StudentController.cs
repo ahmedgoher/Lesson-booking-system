@@ -467,8 +467,12 @@ namespace Al_Muzayyen.Controllers
             var student = await _context.Students.FindAsync(studentId);
             if (student == null) return Json(new { success = false, message = "الطالب غير موجود" });
 
-            // التأكد من صحة كلمة المرور الحالية
-            if (student.Password != model.CurrentPassword)
+            // 🟢 1. إنشاء كائن الـ PasswordHasher
+            var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Student>();
+
+            // 🟢 2. التحقق من صحة كلمة المرور الحالية (المقارنة بين النص المدخل والهاش المخزن)
+            var verificationResult = passwordHasher.VerifyHashedPassword(student, student.Password, model.CurrentPassword);
+            if (verificationResult != Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success)
             {
                 return Json(new { success = false, message = "كلمة المرور الحالية غير صحيحة!" });
             }
@@ -478,8 +482,8 @@ namespace Al_Muzayyen.Controllers
                 return Json(new { success = false, message = "كلمة المرور الجديدة وتأكيدها غير متطابقين!" });
             }
 
-            // تحديث كلمة المرور
-            student.Password = model.NewPassword;
+            // 🟢 3. تشفير كلمة المرور الجديدة وتحديثها في قاعدة البيانات
+            student.Password = passwordHasher.HashPassword(student, model.NewPassword);
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "تم تغيير كلمة المرور بنجاح!" });
