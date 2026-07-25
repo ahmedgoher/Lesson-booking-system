@@ -756,186 +756,82 @@ switch (student.status) {
                     }
 
                 }
-
-
-
-
-
-
-                // جلب قائمة الطلاب (مع بيانات وهمية جاهزة للعرض والاختبار)
-async function loadGroupStudents() {
+ async function loadGroupStudents() {
     try {
-        let students = [];
-
-        // محاولة جلب البيانات من الـ Backend
         const response = await fetch(`/GroupManagement/GetGroupStudents?slotId=@Model.SlotId`);
-        
-        if (response.ok) {
-            const result = await response.json();
-            if (result.success && result.data && result.data.length > 0) {
-                students = result.data;
-            }
+
+        if (!response.ok) {
+            throw new Error("فشل في الاتصال بالسيرفر");
         }
+
+        const result = await response.json();
+        const tbody = document.getElementById("group-students-body");
+        tbody.innerHTML = "";
+
+        if (result.success && result.data && result.data.length > 0) {
+            result.data.forEach(student => {
+                // جلب رقم ولي الأمر ورقم الطالب (مع مراعاة حالة الأحرف من الكنترولر)
+                let parentPhone = student.parentPhone || student.ParentPhone || "غير متوفر";
+                let studentPhone = student.studentPhone || "غير متوفر";
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${student.studentName}</strong></td>
+                        <td dir="ltr" style="text-align: right;">${studentPhone}</td>
+                        <td dir="ltr" style="text-align: right;">${parentPhone}</td>
+                        <td style="text-align: center;">
+                            <button class="btn-whatsapp-action" onclick="sendWhatsAppReport('${parentPhone}', '${student.studentName}', '${student.studentToken}')">
+                                <i class="fab fa-whatsapp"></i> إرسال التقرير
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            // تم تعديل colspan إلى 4 لأننا أضفنا عمود رقم الطالب
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: red;">لا يوجد طلاب مسجلين في هذه المجموعة حالياً.</td></tr>`;
+        }
+
+        openModal("studentsListModal");
+
     } catch (e) {
-        console.warn("تعذر الاتصال بالسيرفر، سيتم عرض بيانات وهمية للاختبار.");
+        console.error(e);
+        alert("حدث خطأ أثناء جلب بيانات الطلاب من قاعدة البيانات.");
+    }
+}
+// ==========================================
+// 2. دالة إرسال تقرير الواتساب
+// ==========================================
+window.sendWhatsAppReport = function (phone, studentName, studentToken) {
+    if (!phone || phone.toString().trim() === "") {
+        alert("لا يوجد رقم هاتف متاح لولي الأمر!");
+        return;
     }
 
-    // في حال عدم رجوع بيانات من السيرفر، سنستخدم هذه البيانات الوهمية للاختبار:
-    const mockStudents = [
-        {
-            studentId: 101,
-            studentName: "أحمد محمود علي",
-            parentName: "محمود علي السيد",
-            parentPhone: "01283553306",
-            studentToken: "TOKEN_AHMED_101"
-        },
-        {
-            studentId: 102,
-            studentName: "سارة محمد إبراهيم",
-            parentName: "محمد إبراهيم حسن",
-            parentPhone: "01123456789",
-            studentToken: "TOKEN_SARA_102"
-        },
-        {
-            studentId: 103,
-            studentName: "عمر خالد العبد",
-            parentName: "خالد العبد مصطفى",
-            parentPhone: "01234567890",
-            studentToken: "TOKEN_OMAR_103"
-        },
-        {
-            studentId: 104,
-            studentName: "مريم يوسف أحمد",
-            parentName: "يوسف أحمد حسين",
-            parentPhone: "01543216789",
-            studentToken: "TOKEN_MARYAM_104"
-        },
-        {
-            studentId: 101,
-            studentName: "أحمد محمود علي",
-            parentName: "محمود علي السيد",
-            parentPhone: "01283553306",
-            studentToken: "TOKEN_AHMED_101"
-        },
-        {
-            studentId: 102,
-            studentName: "سارة محمد إبراهيم",
-            parentName: "محمد إبراهيم حسن",
-            parentPhone: "01123456789",
-            studentToken: "TOKEN_SARA_102"
-        },
-        {
-            studentId: 103,
-            studentName: "عمر خالد العبد",
-            parentName: "خالد العبد مصطفى",
-            parentPhone: "01234567890",
-            studentToken: "TOKEN_OMAR_103"
-        },
-        {
-            studentId: 104,
-            studentName: "مريم يوسف أحمد",
-            parentName: "يوسف أحمد حسين",
-            parentPhone: "01543216789",
-            studentToken: "TOKEN_MARYAM_104"
-        },{
-            studentId: 101,
-            studentName: "أحمد محمود علي",
-            parentName: "محمود علي السيد",
-            parentPhone: "01283553306",
-            studentToken: "TOKEN_AHMED_101"
-        },
-        {
-            studentId: 102,
-            studentName: "سارة محمد إبراهيم",
-            parentName: "محمد إبراهيم حسن",
-            parentPhone: "01123456789",
-            studentToken: "TOKEN_SARA_102"
-        },
-        {
-            studentId: 103,
-            studentName: "عمر خالد العبد",
-            parentName: "خالد العبد مصطفى",
-            parentPhone: "01234567890",
-            studentToken: "TOKEN_OMAR_103"
-        },
-        {
-            studentId: 104,
-            studentName: "مريم يوسف أحمد",
-            parentName: "يوسف أحمد حسين",
-            parentPhone: "01543216789",
-            studentToken: "TOKEN_MARYAM_104"
-        },
-        {
-            studentId: 105,
-            studentName: "عبدالرحمن الشامخ",
-            parentName: "الشامخ قابيل عباس",
-            parentPhone: "01098765432",
-            studentToken: "TOKEN_ABDO_105"
-        }
-    ];
+    const monthSelect = document.getElementById("reportMonth");
+    const yearSelect = document.getElementById("reportYear");
 
-    const tbody = document.getElementById("group-students-body");
-    tbody.innerHTML = "";
+    const selectedMonth = monthSelect ? monthSelect.value : "7";
+    const selectedYear = yearSelect ? yearSelect.value : "2026";
 
-    // عرض القائمة الجاهزة
-    mockStudents.forEach(student => {
-        let parentName = student.parentName || "غير محدد";
-        let parentPhone = student.parentPhone || "";
+    const reportUrl = `${window.location.origin}/Report/View?token=${encodeURIComponent(studentToken)}&m=${selectedMonth}&y=${selectedYear}`;
+    @* const reportUrl = `https://quickshow.runasp.net/`; *@
 
-        tbody.innerHTML += `
-            <tr>
-                <td><strong>${student.studentName}</strong></td>
-                <td>${parentName}</td>
-                <td>${parentPhone}</td>
-                <td style="text-align: center;">
-                    <button class="btn-whatsapp-action" onclick="sendWhatsAppReport('${parentPhone}', '${student.studentName}', '${parentName}', '${student.studentToken}')">
-                        <i class="fab fa-whatsapp"></i> إرسال التقرير
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+    // صياغة الرسالة بشكل مرتب جداً ومريح للعين
+    const message = `أهلاً بك ولي أمر الطالب/ة المحترم 🌸\n\n` +
+                    `نود إعلامكم بصدور التقرير الشهري للدرجات والحضور للبنك أو الطالب *(${studentName})* عن شهر ${selectedMonth}/${selectedYear}.\n\n` +
+                    `📌 *اضغط على الرابط التالي للاطلاع على التقرير مباشرة:*\n` +
+                    `${reportUrl}\n\n` +
+                    `مع تحيات إدارة المركز التعليمي ✨`;
 
-    openModal("studentsListModal");
+    let cleanPhone = phone.toString().trim().replace(/\s+/g, '');
+    if (cleanPhone.startsWith("0")) {
+        cleanPhone = "20" + cleanPhone.substring(1);
+    }
 
-
-    // ==========================================
-    // 2. دالة إرسال تقرير الواتساب (WhatsApp Direct Link)
-    // ==========================================
-    window.sendWhatsAppReport = function (phone, studentName, parentName, studentToken) {
-        if (!phone || phone.toString().trim() === "") {
-            alert("لا يوجد رقم هاتف متاح لولي الأمر!");
-            return;
-        }
-
-        // جلب قيم الشهر والسنة من الفلتر مع قيم افتراضية للأمان
-        const monthSelect = document.getElementById("reportMonth");
-        const yearSelect = document.getElementById("reportYear");
-
-        const selectedMonth = monthSelect ? monthSelect.value : "7";
-        const selectedYear = yearSelect ? yearSelect.value : "2026";
-
-        // تجهيز رابط التقرير الخاص بالطالب
-        const reportUrl = `${window.location.origin}/Report/View?token=${encodeURIComponent(studentToken)}&m=${selectedMonth}&y=${selectedYear}`;
-
-        // صياغة نص الرسالة
-        const message = `أهلاً بك أ. ${parentName} 🌸\n\n` +
-                        `نود إعلامكم بصدور التقرير الشهري الشامل الخاص بنجلكم *(${studentName})* لشهر ${selectedMonth}/${selectedYear}.\n\n` +
-                        `يمكنكم الاطلاع على تفاصيل الحضور، درجات الامتحانات، والتوصيات التعليمية عبر الرابط التالي:\n` +
-                        `${reportUrl}\n\n` +
-                        `مع تحيات إدارة المركز التعليمي ✨`;
-
-        // معالجة رقم الهاتف وإضافة رمز الدولة (+20)
-        let cleanPhone = phone.toString().trim().replace(/\s+/g, '');
-        if (cleanPhone.startsWith("0")) {
-            cleanPhone = "20" + cleanPhone.substring(1);
-        }
-
-        // فتح رابط الواتساب المباشر
-        const whatsappUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-    };
-}
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+};
 </script>
 
 
