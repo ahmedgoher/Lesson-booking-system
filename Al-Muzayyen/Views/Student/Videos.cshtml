@@ -4,21 +4,78 @@
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "Videos";
 }
+@section Styles{
+    <style>
+        .video-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 18px 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            margin-bottom: 15px;
+        }
 
+        .empty-materials {
+            width: 100%;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #fff;
+            border: 2px dashed #d8d8d8;
+            border-radius: 20px;
+            padding: 40px 20px;
+        }
+
+            .empty-materials i {
+                font-size: 70px;
+                color: #c5a059;
+                margin-bottom: 20px;
+            }
+
+            .empty-materials h3 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 10px;
+            }
+
+            .empty-materials p {
+                font-size: 16px;
+                color: #777;
+                max-width: 450px;
+                line-height: 1.8;
+            }
+    </style>
+}
 <div class="videos-content">
     <div class="section-header-block">
         <h2>المحاضرات والدروس @Model.GroupName</h2>
     </div>
 
     <div class="videos-grid">
-        @foreach(var video in Model.Matrials)
+        @if(Model.Matrials.Any()){
+          @foreach(var video in Model.Matrials)
+                {
+                    <div class="video-card">
+                        <iframe src="@video.Url" frameborder="0" allowfullscreen></iframe>
+                        <h3>@video.Title</h3>
+                        <p>@video.Description</p>
+                    </div>
+                }
+        }
+        else
         {
-            <div class="video-card">
-                <iframe src="@video.Url" frameborder="0" allowfullscreen></iframe>
-                <h3>@video.Title</h3>
-                <p>@video.Description</p>
+            <div class="empty-materials">
+                <i class="fas fa-file-alt"></i>
+                <h3>لا توجد فيديوهات حالياً</h3>
+                <p>سيتم رفع الملازم والمذكرات قريباً، يرجى متابعة المنصة باستمرار.</p>
             </div>
         }
+
     </div>
 </div>
 

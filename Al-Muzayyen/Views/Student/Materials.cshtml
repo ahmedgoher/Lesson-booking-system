@@ -6,11 +6,49 @@
 }
 @section Styles{
     <style>
-        .video-card{
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
+        .video-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 18px 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,.08);
+            margin-bottom: 15px;
         }
+
+        .empty-materials {
+            width: 100%;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #fff;
+            border: 2px dashed #d8d8d8;
+            border-radius: 20px;
+            padding: 40px 20px;
+        }
+
+            .empty-materials i {
+                font-size: 70px;
+                color: #c5a059;
+                margin-bottom: 20px;
+            }
+
+            .empty-materials h3 {
+                font-size: 24px;
+                color: #333;
+                margin-bottom: 10px;
+            }
+
+            .empty-materials p {
+                font-size: 16px;
+                color: #777;
+                max-width: 450px;
+                line-height: 1.8;
+            }
     </style>
 }
 
@@ -21,16 +59,27 @@
     </div> 
 
     <div class="materials-grid videos-grid">
-        @foreach(var mat in Model.Matrials)
+        @if (Model.Matrials.Any())
         {
-            <div class="video-card">
-                <h3>@mat.Title</h3>
-                <p>@mat.Description</p>
-                <a href="@mat.Url" target="_blank" class="action-icon-btn" title="تحميل / فتح">
-                    <i class="fas fa-download"></i>
-                </a>
-            </div>
-            
+            @foreach (var mat in Model.Matrials)
+            {
+                <div class="video-card">
+                    <h3>@mat.Title</h3>
+                    <p>@mat.Description</p>
+                    <a href="@mat.Url" target="_blank" class="action-icon-btn" title="تحميل / فتح">
+                        <i class="fas fa-download"></i>
+                    </a>
+                </div>
+
+            }
+        }
+        else
+        {
+        <div class="empty-materials">
+            <i class="fas fa-file-alt"></i>
+            <h3>لا توجد ملازم حالياً</h3>
+            <p>سيتم رفع الملازم والمذكرات قريباً، يرجى متابعة المنصة باستمرار.</p>
+        </div>
         }
     </div>
 </div>
