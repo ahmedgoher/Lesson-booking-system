@@ -3,6 +3,7 @@ using Al_Muzayyen.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq; // 👈 إضافة System.Linq لاستخدام Any
+using Microsoft.AspNetCore.Identity; // 👈 1. إضافة مكتبة الـ Identity للـ PasswordHasher
 using System.Threading.Tasks;
 
 namespace Al_Muzayyen.Services
@@ -35,7 +36,10 @@ namespace Al_Muzayyen.Services
                 return false; // إرجاع false ليقوم الـ Controller بإظهار رسالة الخطأ المناسبة
             }
 
-            // 🟢 2. إضافة الطالب في حال كان الرقم غير مكرر
+            // 🟢 2. تشفير كلمة المرور قبل حفظها في الداتا بيز
+            var passwordHasher = new PasswordHasher<Student>();
+            booking.Password = passwordHasher.HashPassword(booking, booking.Password);
+
             await _bookingRepo.AddAsync(booking);
             return await _bookingRepo.SaveChangesAsync();
         }

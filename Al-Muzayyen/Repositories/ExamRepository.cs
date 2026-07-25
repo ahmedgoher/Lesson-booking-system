@@ -20,6 +20,13 @@ namespace Al_Muzayyen.Repositories
                     x.StudentId == studentId &&
                     !x.IsSubmitted);
         }
+        public async Task<bool> HasStudentInExamAsync(int examId)
+        {
+            return await _context.StudentExams.AnyAsync(x =>
+                x.ExamId == examId &&
+                !x.IsSubmitted &&
+                x.EndTime > DateTime.Now);
+        }
         public async Task AddStudentExamAsync(StudentExam studentExam)
         {
             await _context.StudentExams.AddAsync(studentExam);

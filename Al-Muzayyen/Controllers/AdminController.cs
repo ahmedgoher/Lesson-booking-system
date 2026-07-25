@@ -1101,13 +1101,26 @@ public class AdminController : Controller
 
         if (model.Id > 0)
         {
-            var result = await _examService.UpdateExamAsync(model);
-
-            return Json(new
+            try
             {
-                success = result,
-                message = result ? "تم تعديل الامتحان بنجاح" : "الامتحان غير موجود"
-            });
+                var result = await _examService.UpdateExamAsync(model);
+
+                return Json(new
+                {
+                    success = result,
+                    message = result
+                        ? "تم تعديل الامتحان بنجاح"
+                        : "الامتحان غير موجود"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
         else
         {

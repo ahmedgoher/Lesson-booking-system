@@ -5,9 +5,10 @@ using Al_Muzayyen.Services;
 using Al_Muzayyen.Viewmodel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 namespace Al_Muzayyen.Controllers
 {
     [Authorize]
@@ -92,7 +93,7 @@ namespace Al_Muzayyen.Controllers
                         await _context.SaveChangesAsync();
 
                         TempData["ErrorMessage"] = "انتهى وقت الامتحان أثناء غيابك، وتم تسليم إجاباتك المسجلة تلقائياً.";
-                        return RedirectToAction("Exam", "Student");
+                        return RedirectToAction("Exams", "Student");
                     }
                 }
 
@@ -103,7 +104,7 @@ namespace Al_Muzayyen.Controllers
                 if (completedAttempts >= exam.MaxAttempts)
                 {
                     TempData["ErrorMessage"] = "لقد استنفذت جميع المحاولات المسموح بها لهذا الامتحان.";
-                    return RedirectToAction("Exam", "Student");
+                    return RedirectToAction("Exams", "Student");
                 }
             }
 
@@ -176,6 +177,7 @@ namespace Al_Muzayyen.Controllers
             }
 
             // 4️⃣ التحويل لصفحة النتيجة مع تمرير رقم الامتحان أو رقم المحاولة
+            TempData["SuccessMessage"] = "تم تسليم الامتحان بنجاح!";
             return RedirectToAction("Exams", "Student");
         }
 
@@ -198,7 +200,7 @@ namespace Al_Muzayyen.Controllers
                 .FirstOrDefaultAsync(se => se.ExamId == id && se.StudentId == student.Id && se.IsSubmitted);
 
             if (studentExam == null)
-                return RedirectToAction("Exam", "Student");
+                return RedirectToAction("Exams", "Student");
 
             // 3️⃣ إرسال الإعدادات للـ View عبر ViewBag
             ViewBag.ShowResult = exam.ShowResult;
@@ -209,40 +211,86 @@ namespace Al_Muzayyen.Controllers
             return View(studentExam);
         }
         [HttpGet]
-        public async Task<IActionResult> Review(int id)
+        public async Task<IActionResult> Review(int examId)
         {
+            // 1️⃣ جلب UserId الخاص بالطالب
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("login2", "Account");
+
             var student = await _studentService.GetByUserIdAsync(userId);
             if (student == null) return Unauthorized();
 
-            // 1️⃣ جلب بيانات الامتحان
-            var exam = await _examService.GetExamByIdAsync(id);
+            // 2️⃣ جلب الامتحان والتحقق من وجوده
+            var exam = await _context.Exams.FirstOrDefaultAsync(e => e.Id == examId);
             if (exam == null) return NotFound();
 
-            // 🛡️ حماية: منع المراجعة إذا كانت الخاصية False في قاعدة البيانات
-            if (!exam.AllowReview)
+            // 3️⃣ جلب محاولة الطالب الأخيرة المعتمدة
+            var submission = await _context.StudentExams
+                .Where(se => se.ExamId == examId && se.StudentId == student.Id)
+                .OrderByDescending(se => se.StartedAt)
+                .FirstOrDefaultAsync();
+
+            // الشرط الأول: هل أتم الطالب تسليم الامتحان؟
+            bool hasSubmitted = submission != null && submission.IsSubmitted;
+
+            // الشرط الثاني: هل انتهى وقت نهاية الامتحان المحدد للنظام بالكامل؟
+            bool isExamEnded = DateTime.Now >= exam.EndExamTime;
+
+            // ⛔ نمنع المراجعة ما لم يتحقق الشرطان
+            if (!hasSubmitted || !isExamEnded)
             {
-                TempData["ErrorMessage"] = "غير مسموح بمراجعة إجابات هذا الامتحان.";
-                return RedirectToAction("Exam", "Student");
+                TempData["ErrorMessage"] = "لا يمكنك عرض نموذج الإجابة إلا بعد تسليم الامتحان وانتهاء الموعد الرسمي المخصص للامتحان بالكامل.";
+                return RedirectToAction("Exams", "Student");
             }
 
-            // 2️⃣ جلب محاولة الطالب مع إجاباته
-            var studentExam = await _context.StudentExams
-                .FirstOrDefaultAsync(se => se.ExamId == id && se.StudentId == student.Id && se.IsSubmitted);
-
-            if (studentExam == null) return NotFound();
-
-            // 3️⃣ جلب أسئلة الامتحان بالإجابات المسجلة
-            var questions = await _questionService.GetStudentQuestionsAsync(id);
-            var studentAnswers = await _context.StudentAnswers
-                .Where(sa => sa.StudentExamId == studentExam.Id)
+            // 4️⃣ جلب الأسئلة مع الاختيارات
+            var questions = await _context.Questions
+                .Include(q => q.Options)
+                .Where(q => q.ExamId == examId)
+                .AsNoTracking()
                 .ToListAsync();
 
-            ViewBag.StudentAnswers = studentAnswers;
-            ViewBag.ExamTitle = exam.Title;
+            // 5️⃣ جلب إجابات الطالب المسجلة باستخدام (QuestionOptionId) 🎯
+            var studentAnswers = await _context.StudentAnswers
+                .Where(sa => sa.StudentExamId == submission.Id)
+                .AsNoTracking()
+                .ToDictionaryAsync(sa => sa.QuestionId, sa => sa.QuestionOptionId);
 
-            return View(questions);
+            // 6️⃣ بناء ViewModel العرض
+            var reviewModel = new ExamReviewViewModel
+            {
+                ExamId = exam.Id,
+                ExamTitle = exam.Title,
+                IsSubmitted = hasSubmitted,
+                IsExamEnded = isExamEnded,
+                Questions = questions.Select(q =>
+                {
+                    var correctOption = q.Options.FirstOrDefault(o => o.IsCorrect);
+
+                    return new QuestionReviewViewModel
+                    {
+                        QuestionId = q.Id,
+                        QuestionText = q.QuestionText,
+                        ImageUrl = q.ImageUrl,
+                        Mark = q.Mark,
+                        // إجابة الطالب المحددة (إن وجِدت)
+                        SelectedOptionId = studentAnswers.ContainsKey(q.Id) ? studentAnswers[q.Id] : null,
+                        // رقم الإجابة الصحيحة
+                        CorrectOptionId = correctOption != null ? correctOption.Id : 0,
+                        Options = q.Options.Select(o => new OptionReviewViewModel
+                        {
+                            OptionId = o.Id,
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect
+                        }).ToList()
+                    };
+                }).ToList()
+            };
+
+            return View(reviewModel);
         }
+
         public IActionResult Index()
         {
             return View();

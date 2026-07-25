@@ -45,8 +45,11 @@ namespace Al_Muzayyen.Controllers
                     ExamDate = se.Exam.StartExamTime,
                     TotalMarks = se.Exam.TotalMarks,
                     StudentScore = se.Score,
-                    GradeText = se.Score >= (se.Exam.TotalMarks * 0.85) ? "ممتاز" : (se.Score >= (se.Exam.TotalMarks * 0.75) ? "جيد جداً" : "جيد"),
-                }).ToListAsync();
+                    GradeText = se.Score >= (se.Exam.TotalMarks * 0.85) ? "ممتاز" :
+                        se.Score >= (se.Exam.TotalMarks * 0.75) ? "جيد جداً" :
+                        se.Score >= (se.Exam.TotalMarks * 0.70) ? "جيد" :
+                        se.Score >= (se.Exam.TotalMarks * 0.60) ? "مقبول" : "راسب",
+                            }).ToListAsync();
             int totalClasses = attendanceList.Count;
             int presentCount = attendanceList.Count(x => x.Status == "حاضر" || x.Status == "متأخر");
             int attendancePercentage = totalClasses > 0 ? (int)((double)presentCount / totalClasses * 100) : 0;
@@ -64,7 +67,10 @@ namespace Al_Muzayyen.Controllers
                 AttendancePercentage = attendancePercentage,
                 AverageExams = examsList.Any() ? $"{examsList.Average(e => e.StudentScore ?? 0):F1} / {examsList.Average(e => e.TotalMarks)}" : "0",
                 HomeworkCompletion = $"{attendanceList.Count(x => x.HomeworkStatus == "مكتمل")} / {totalClasses} حصص",
-                GeneralEvaluation = attendancePercentage >= 85 ? "ممتاز" : "جيد",
+                GeneralEvaluation = attendancePercentage >= 85 ? "ممتاز" :
+                    attendancePercentage >= 75 ? "جيد جداً" :
+                    attendancePercentage >= 70 ? "جيد" :
+                    attendancePercentage >= 60 ? "مقبول" : "ضعيف",
                 TeacherNotes = student.Notes ?? "استمر في الأداء المتميز.",
                 AttendanceRecord = attendanceList,
                 ExamRecord = examsList
