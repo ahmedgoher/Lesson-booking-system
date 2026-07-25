@@ -32,6 +32,7 @@ namespace Al_Muzayyen.Models
         public DbSet<QuestionOption> QuestionOptions { get; set; }
         public DbSet<StudentExam> StudentExams { get; set; }
         public DbSet<ExamGroup> ExamGroup { get; set; }
+        public DbSet<StudentAnswer> StudentAnswers { get; set; }
 
         public DbSet<GroupChangeRequest> GroupChangeRequests { get; set; }
 

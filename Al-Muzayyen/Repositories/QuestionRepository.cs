@@ -26,20 +26,48 @@ namespace Al_Muzayyen.Repositories
 
         public async Task<IEnumerable<QuestionListVM>> GetQuestionsByExamIdAsync(int examId)
         {
-            return await _context.Questions
+            // 1️⃣ جلب إعدادات الامتحان
+            var exam = await _context.Exams
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == examId);
+
+            bool shouldRandomizeQuestions = exam?.RandomQuestions ?? false;
+            bool shouldShuffleAnswers = exam?.ShuffleAnswers ?? false;
+
+            // 2️⃣ جلب الأسئلة الأصلية مع خياراتها كاملة دفعة واحدة
+            var questionsQuery = _context.Questions
                 .Include(q => q.Options)
                 .Where(q => q.ExamId == examId)
-                .AsNoTracking()
-                .Select(q => new QuestionListVM
+                .AsNoTracking();
+
+            var rawQuestions = await questionsQuery.ToListAsync();
+
+            // 3️⃣ تطبيق العشوائية للأسئلة في الذاكرة (In-Memory)
+            if (shouldRandomizeQuestions)
+            {
+                var rng = new Random();
+                rawQuestions = rawQuestions.OrderBy(_ => rng.Next()).ToList();
+            }
+
+            // 4️⃣ التحويل إلى ViewModel مع خلط الخيارات بأمان
+            return rawQuestions.Select(q => {
+                var optionsList = q.Options.ToList();
+                if (shouldShuffleAnswers)
+                {
+                    var rng = new Random();
+                    optionsList = optionsList.OrderBy(_ => rng.Next()).ToList();
+                }
+
+                return new QuestionListVM
                 {
                     Id = q.Id,
                     QuestionText = q.QuestionText,
                     ImageUrl = q.ImageUrl,
                     Mark = q.Mark,
                     Type = q.Type,
-                    Options = q.Options.ToList()
-                })
-                .ToListAsync();
+                    Options = optionsList
+                };
+            }).ToList();
         }
         public async Task AddAsync(Question question)
         {

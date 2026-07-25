@@ -54,11 +54,11 @@
                                 {
                                     <!-- ▶️ لم يتم: الانتقال لصفحة خوض الامتحان -->
                                     <a asp-controller="Exams"
-                                       asp-action="ShowExam"
-                                       @* asp-route-id="@exam.ExamId" *@
+                                       asp-action="Start"
+                                       asp-route-id="@exam.ExamId"
                                        class="action-icon-btn"
                                        title="بدء الامتحان"
-                                       style="color: var(--success-color, #28a745);">
+                                       style="color: var(--success-color,#28a745);">
                                         <i class="fas fa-play"></i>
                                     </a>
                                 }

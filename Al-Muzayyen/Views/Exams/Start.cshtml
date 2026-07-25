@@ -1,4 +1,6 @@
-﻿
+﻿@using Al_Muzayyen.Viewmodel
+@Html.AntiForgeryToken()
+@model IEnumerable<StudentQuestionViewModel>
 @{
     Layout = "~/Views/Shared/_StudentLayout.cshtml";
     ViewData["Title"] = "showExam";
@@ -411,15 +413,21 @@
 
 <div class="exam-container">
     <!-- نموذج C# Post Form جاهز للاستخدام -->
-    <form id="examForm" method="post" action="/Exam/Submit">
+    <form id="examForm" asp-controller="Exams" asp-action="Submit" method="post">
+    @Html.AntiForgeryToken()
 
         <!-- حقول مخفية يمكن تغيير قيمتها ديناميكياً من Razor Model -->
-        <input type="hidden" id="ExamId" name="ExamId" value="1" />
-        <input type="hidden" id="StudentId" name="StudentId" value="101" />
+        <input type="hidden"
+               id="ExamId"
+               name="ExamId"
+               value="@ViewBag.ExamId" />
+        <input type="hidden" id="StudentId" name="StudentId" value="@ViewBag.StudentId" />
 
         <!-- 1. الشريط العلوي (تم ربط مدة الامتحان بـ Data Attribute) -->
         <div class="top-exam-bar">
-            <div class="timer-badge" id="timerContainer" data-duration-minutes="30">
+            <div class="timer-badge"
+                 id="timerContainer"
+                 data-duration-minutes="@ViewBag.Duration">
                 <i class="fas fa-clock"></i>
                 <span id="timerDisplay">00:00</span>
             </div>
@@ -433,32 +441,62 @@
         <div id="questionsContainer">
 
             <!-- مثال سؤال 1 (Razor foreach loop) -->
-            <div class="question-card active" data-q-index="1" data-question-id="1001">
-                <div class="question-flex-body">
-                    <div class="question-content-box">
-                        <div class="question-title">
-                            <span>1:</span> ما هي اللغة الأساسية المستخدمة لتنسيق وتصميم واجهات صفحات الويب؟
-                        </div>
-                        <div class="answers-list">
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1001]" value="10" onchange="selectOption(this)">
-                                HTML
-                            </label>
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1001]" value="11" onchange="selectOption(this)">
-                                CSS
-                            </label>
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1001]" value="12" onchange="selectOption(this)">
-                                JavaScript
-                            </label>
-                        </div>
-                    </div>
+           @{
+    int number = 1;
+}
+            <p>عدد الأسئلة : @Model.Count()</p>
+@foreach (var question in Model)
+{
+    <div class="question-card @(number == 1 ? "active" : "")"
+         data-q-index="@number"
+         data-question-id="@question.Id">
+
+        <div class="question-flex-body">
+
+            @if(!string.IsNullOrEmpty(question.ImageUrl))
+            {
+                <div class="question-image-box"
+                     onclick="zoomImage(this)">
+                    <img src="@question.ImageUrl" />
                 </div>
+            }
+
+            <div class="question-content-box">
+
+                <div class="question-title">
+                    <span>@number :</span>
+                    @question.QuestionText
+                </div>
+
+                <div class="answers-list">
+
+                    @foreach(var option in question.Options)
+                    {
+                        <label class="answer-item">
+
+                            <input type="radio"
+                                   name="Answers[@question.Id]"
+                                   value="@option.Id"
+                                   onchange="selectOption(this)" />
+
+                            @option.OptionText
+
+                        </label>
+                    }
+
+                </div>
+
             </div>
 
+        </div>
+
+    </div>
+
+    number++;
+}
+
             <!-- مثال سؤال 2 (يحتوي على صورة) -->
-            <div class="question-card" data-q-index="2" data-question-id="1002">
+            @* <div class="question-card" data-q-index="2" data-question-id="1002">
                 <div class="question-flex-body">
                     <div class="question-image-box" onclick="zoomImage(this)">
                         <img src="/assets/images/image.png" alt="صورة السؤال">
@@ -485,7 +523,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> *@
 
         </div>
 
@@ -577,19 +615,68 @@
         updateUI();
     }
 
-    function selectOption(radioInput) {
-        const card = radioInput.closest('.question-card');
-        const qIndex = parseInt(card.getAttribute('data-q-index'));
+    // function selectOption(radioInput) {
+    //     const card = radioInput.closest('.question-card');
+    //     const qIndex = parseInt(card.getAttribute('data-q-index'));
 
-        examState[qIndex].answered = true;
-        examState[qIndex].skipped = false;
+    //     examState[qIndex].answered = true;
+    //     examState[qIndex].skipped = false;
 
-        const labels = card.querySelectorAll('.answer-item');
-        labels.forEach(lbl => lbl.classList.remove('selected'));
-        radioInput.parentElement.classList.add('selected');
+    //     const labels = card.querySelectorAll('.answer-item');
+    //     labels.forEach(lbl => lbl.classList.remove('selected'));
+    //     radioInput.parentElement.classList.add('selected');
 
-        updateUI();
+    //     updateUI();
+    // }
+async function selectOption(radioInput) {
+    const card = radioInput.closest(".question-card");
+    const questionId = card.dataset.questionId;
+    const optionId = radioInput.value;
+    const examId = document.getElementById("ExamId").value;
+    const qIndex = parseInt(card.dataset.qIndex);
+
+    // الحصول على Antiforgery Token من الصفحة
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    const token = tokenInput ? tokenInput.value : '';
+
+    examState[qIndex].answered = true;
+    examState[qIndex].skipped = false;
+
+    const labels = card.querySelectorAll(".answer-item");
+    labels.forEach(x => x.classList.remove("selected"));
+    radioInput.parentElement.classList.add("selected");
+
+    updateUI();
+
+    try {
+        const response = await fetch("/Exams/SaveAnswer", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": token // إرسال توكن الحماية هنا
+            },
+            body: JSON.stringify({
+                examId: parseInt(examId),
+                questionId: parseInt(questionId),
+                optionId: parseInt(optionId)
+            })
+        });
+
+        if (response.status === 401) {
+            alert("انتهت الجلسة، يرجى إعادة تسجيل الدخول.");
+            return;
+        }
+
+        const result = await response.json();
+
+        if (!result.success) {
+            alert("فشل حفظ الإجابة");
+        }
     }
+    catch (e) {
+        console.error("Error saving answer:", e);
+    }
+}
 
     function skipQuestion() {
         if (!examState[currentQuestionIndex].answered) {
@@ -676,4 +763,39 @@
     window.onload = () => {
         initExamEngine();
     };
+    // 1. تسليم تلقائي عند فقدان الاتصال بالإنترنت تماماً
+    window.addEventListener('offline', function() {
+        alert('تم قطع الاتصال بالإنترنت! سيتم تسليم إجاباتك الحالية تلقائياً لمنع فقدان البيانات.');
+        autoSubmitExam();
+    });
+
+    // 2. إرسال الإجابات حتى لو أغلق الطالب المتصفح أو خرج من الصفحة
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+            // إذا خرج الطالب من التبويب أو أغلق الصفحة
+            sendBeaconSubmit();
+        }
+    });
+
+    function autoSubmitExam() {
+        const form = document.getElementById('examForm');
+        if (form) {
+            form.submit();
+        }
+    }
+
+    function sendBeaconSubmit() {
+        const examId = document.getElementById("ExamId").value;
+        const formData = new FormData();
+        formData.append("examId", examId);
+
+        // إضافة توكن الحماية
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenInput) {
+            formData.append("__RequestVerificationToken", tokenInput.value);
+        }
+
+        // إرسال الطلب في الخلفية حتى أثناء إغلاق الشاشة
+        navigator.sendBeacon("/Exams/Submit", formData);
+    }
 </script>
