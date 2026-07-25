@@ -252,13 +252,25 @@ namespace Al_Muzayyen.Controllers
 
             // 3. جلب الامتحانات الموجهة لمجموعة الطالب عبر الجدول الوسيط ExamGroups
             var exams = await _context.Exams
-                .Where(e => e.IsActive && e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId))
+                .Where(e =>
+    e.IsActive &&
+    e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId) &&
+    e.StartExamTime >= student.CreatedAt)
                 .Select(e => new StudentExamViewModel
                 {
                     ExamId = e.Id,
                     ExamTitle = e.Title,
-                    Date = e.StartExamTime,
+                    StartTime = e.StartExamTime,
+                    EndTime = e.EndExamTime,
                     TotalMarks = e.TotalMarks,
+                    Status =
+    e.StudentExams.Any(se => se.StudentId == currentStudentId)
+        ? "Completed"
+        : DateTime.Now < e.StartExamTime
+            ? "NotStarted"
+            : DateTime.Now > e.EndExamTime
+                ? "Ended"
+                : "Available",
 
                     // التأكد هل أدى الطالب هذا الامتحان قبل ذلك؟
                     IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId),

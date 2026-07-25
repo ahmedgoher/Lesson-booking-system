@@ -44,13 +44,18 @@ namespace Al_Muzayyen.Controllers
                 return NotFound();
 
             if (!exam.IsActive)
-                return Content("هذا الامتحان غير مفعل");
+            { TempData["Error"] = "هذا الامتحان غير مفعل";
+            return RedirectToAction("Exams", "Student"); }
 
             if (DateTime.Now < exam.StartExamTime)
-                return Content("الامتحان لم يبدأ بعد");
+            {
+                TempData["Error"] = "الامتحان لم يبدأ بعد";
+                return RedirectToAction("Exams", "Student");
+            }
 
             if (DateTime.Now > exam.EndExamTime)
-                return Content("انتهى موعد الامتحان");
+            { TempData["Error"] = "انتهى موعد الامتحان";
+            return RedirectToAction("Exams", "Student"); }
 
             // 2️⃣ جلب UserId الخاص بـ Identity والتحقق منه
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
