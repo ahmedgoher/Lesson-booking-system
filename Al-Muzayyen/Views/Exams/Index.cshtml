@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Al_Muzayyen.Viewmodel.QuestionListVM>
+@{
+    var studentAnswers = ViewBag.StudentAnswers as List<Al_Muzayyen.Models.StudentAnswer>;
+}
+
+<div class="review-container">
+    <h2>مراجعة إجابات: @ViewBag.ExamTitle</h2>
+
+    @foreach (var question in Model)
+    {
+        // جلب إجابة الطالب لهذا السؤال
+        var studentAns = studentAnswers?.FirstOrDefault(sa => sa.QuestionId == question.Id);
+
+        <div class="card mb-3 p-3">
+            <h4>@question.QuestionText</h4>
+
+            <div class="options-list">
+                @foreach (var option in question.Options)
+                {
+                    bool isSelectedByStudent = studentAns?.QuestionOptionId == option.Id;
+                    bool isCorrectOption = option.IsCorrect; // افترض أن لديك IsCorrect في Option Model
+
+                    string badgeClass = "";
+                    if (isSelectedByStudent && isCorrectOption)
+                    {
+                        badgeClass = "bg-success text-white"; // إجابة الطالب وكانت صحيحة
+                    }
+                    else if (isSelectedByStudent && !isCorrectOption)
+                    {
+                        badgeClass = "bg-danger text-white"; // إجابة الطالب وكانت خاطئة
+                    }
+                    else if (isCorrectOption)
+                    {
+                        badgeClass = "border border-success text-success"; // الإجابة الصحيحة للتوضيح
+                    }
+
+                    <div class="p-2 my-1 rounded @badgeClass">
+                        @option.OptionText
+
+                        @if (isSelectedByStudent)
+                        {
+                            <span class="badge bg-dark ms-2">(إجابتك)</span>
+                        }
+                        @if (isCorrectOption)
+                        {
+                            <span class="badge bg-success ms-2">(الإجابة الصحيحة)</span>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <a asp-controller="Student" asp-action="Exam" class="btn btn-secondary">العودة للرئيسية</a>
+</div>

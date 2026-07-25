@@ -67,7 +67,46 @@ namespace Al_Muzayyen.Services
             _examRepository.Update(exam);
             await _examRepository.SaveAsync();
         }
+        public async Task<StudentExam> StartExamAsync(int examId, int studentId)
+        {
+            // هل يوجد محاولة سابقة؟
+            var studentExam = await _examRepository
+                .GetStudentExamAsync(examId, studentId);
 
+            // لو فيه محاولة ولسه متسلمتش يرجعها ويكمل منها
+            if (studentExam != null && !studentExam.IsSubmitted)
+                return studentExam;
+
+            // بيانات الامتحان
+            var exam = await _examRepository.GetByIdAsync(examId);
+
+            if (exam == null)
+                throw new Exception("الامتحان غير موجود");
+
+            // عدد المحاولات السابقة
+            var attempts = await _examRepository
+                .GetStudentAttemptsAsync(examId, studentId);
+
+            // هل تجاوز الحد؟
+            if (attempts >= exam.MaxAttempts)
+                throw new Exception("لقد استنفذت جميع المحاولات المسموح بها.");
+
+            // إنشاء محاولة جديدة
+            studentExam = new StudentExam
+            {
+                StudentId = studentId,
+                ExamId = examId,
+                StartedAt = DateTime.Now,
+                EndTime = DateTime.Now.AddMinutes(exam.DurationMinutes),
+                IsSubmitted = false,
+                Score = 0,
+                AttemptNumber = attempts + 1
+            };
+
+            await _examRepository.AddStudentExamAsync(studentExam);
+
+            return studentExam;
+        }
         public async Task DeleteExamAsync(int id)
         {
             var exam = await _examRepository.GetByIdAsync(id);

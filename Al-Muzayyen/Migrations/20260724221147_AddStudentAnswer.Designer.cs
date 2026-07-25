@@ -4,6 +4,7 @@ using Al_Muzayyen.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Al_Muzayyen.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724221147_AddStudentAnswer")]
+    partial class AddStudentAnswer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Admins", (string)null);
+                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.ApplicationUser", b =>
@@ -158,7 +161,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Attendances", (string)null);
+                    b.ToTable("Attendances");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Available_slot", b =>
@@ -197,7 +200,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("PlaceId");
 
-                    b.ToTable("Available_Slots", (string)null);
+                    b.ToTable("Available_Slots");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Class", b =>
@@ -215,7 +218,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Classes", (string)null);
+                    b.ToTable("Classes");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Exam", b =>
@@ -276,7 +279,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("ClassId");
 
-                    b.ToTable("Exams", (string)null);
+                    b.ToTable("Exams");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.ExamGroup", b =>
@@ -299,7 +302,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotId");
 
-                    b.ToTable("ExamGroup", (string)null);
+                    b.ToTable("ExamGroup");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.GroupChangeRequest", b =>
@@ -331,7 +334,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("GroupChangeRequests", (string)null);
+                    b.ToTable("GroupChangeRequests");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Material", b =>
@@ -366,7 +369,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotId");
 
-                    b.ToTable("Materials", (string)null);
+                    b.ToTable("Materials");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Place", b =>
@@ -387,7 +390,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Places", (string)null);
+                    b.ToTable("Places");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Question", b =>
@@ -418,7 +421,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("ExamId");
 
-                    b.ToTable("Questions", (string)null);
+                    b.ToTable("Questions");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.QuestionOption", b =>
@@ -443,7 +446,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuestionOptions", (string)null);
+                    b.ToTable("QuestionOptions");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Slot_time", b =>
@@ -469,7 +472,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasIndex("SlotID");
 
-                    b.ToTable("Slot_Times", (string)null);
+                    b.ToTable("Slot_Times");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.Student", b =>
@@ -533,7 +536,7 @@ namespace Al_Muzayyen.Migrations
                     b.HasIndex(new[] { "StdPhone" }, "Index_Unique_StdPhone")
                         .IsUnique();
 
-                    b.ToTable("Students", (string)null);
+                    b.ToTable("Students");
                 });
 
             modelBuilder.Entity("Al_Muzayyen.Models.StudentAnswer", b =>
@@ -594,7 +597,7 @@ namespace Al_Muzayyen.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Videos", (string)null);
+                    b.ToTable("Videos");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

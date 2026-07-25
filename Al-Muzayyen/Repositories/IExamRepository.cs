@@ -11,6 +11,9 @@ namespace Al_Muzayyen.Repositories
         void Update(Exam exam);
         void Delete(Exam exam);
         Task SaveAsync();
+        Task<StudentExam?> GetStudentExamAsync(int examId, int studentId);
+        Task<int> GetStudentAttemptsAsync(int examId, int studentId);
+        Task AddStudentExamAsync(StudentExam studentExam);
         Task<IEnumerable<ExamViewModel>> GetAllExamsViewModelsAsync(); // أضف هذا السطر
     }
 }
