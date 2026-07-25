@@ -93,7 +93,7 @@ namespace Al_Muzayyen.Controllers
                         await _context.SaveChangesAsync();
 
                         TempData["ErrorMessage"] = "انتهى وقت الامتحان أثناء غيابك، وتم تسليم إجاباتك المسجلة تلقائياً.";
-                        return RedirectToAction("Exam", "Student");
+                        return RedirectToAction("Exams", "Student");
                     }
                 }
 
@@ -104,7 +104,7 @@ namespace Al_Muzayyen.Controllers
                 if (completedAttempts >= exam.MaxAttempts)
                 {
                     TempData["ErrorMessage"] = "لقد استنفذت جميع المحاولات المسموح بها لهذا الامتحان.";
-                    return RedirectToAction("Exam", "Student");
+                    return RedirectToAction("Exams", "Student");
                 }
             }
 
@@ -200,7 +200,7 @@ namespace Al_Muzayyen.Controllers
                 .FirstOrDefaultAsync(se => se.ExamId == id && se.StudentId == student.Id && se.IsSubmitted);
 
             if (studentExam == null)
-                return RedirectToAction("Exam", "Student");
+                return RedirectToAction("Exams", "Student");
 
             // 3️⃣ إرسال الإعدادات للـ View عبر ViewBag
             ViewBag.ShowResult = exam.ShowResult;
@@ -241,7 +241,7 @@ namespace Al_Muzayyen.Controllers
             if (!hasSubmitted || !isExamEnded)
             {
                 TempData["ErrorMessage"] = "لا يمكنك عرض نموذج الإجابة إلا بعد تسليم الامتحان وانتهاء الموعد الرسمي المخصص للامتحان بالكامل.";
-                return RedirectToAction("Exam", "Student");
+                return RedirectToAction("Exams", "Student");
             }
 
             // 4️⃣ جلب الأسئلة مع الاختيارات
