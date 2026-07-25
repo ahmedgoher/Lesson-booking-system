@@ -546,6 +546,9 @@
     });
     });
 
+    const token = $('input[name="__RequestVerificationToken"]').val();
+
+
       $('#centerLocation, #gradeLevel').change(function () {
         var classId = $('#gradeLevel').val();
         var placeId = $('#centerLocation').val();
@@ -615,7 +618,6 @@
     // --------------------------------------------------
     // معالجة النماذج الأخرى باستخدام AJAX
     // --------------------------------------------------
-    const token = $('input[name="__RequestVerificationToken"]').val();
 
     // حفظ البيانات الشخصية
     $('#infoForm').submit(function (e) {
