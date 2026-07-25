@@ -145,7 +145,7 @@
                                         break;
 
                                     case "Completed":
-                                        <span class="badge bg-primary">تم</span>
+                                        <span class="badge bg-primary">تم التسليم</span>
                                         break;
 
                                     case "Ended":
@@ -241,5 +241,8 @@
             setTimeout(() => alert.remove(), 500);
         }
     }, 4000);
+    setInterval(function() {
+        location.reload();
+    }, 30000);
     console.log("صفحة الامتحانات جاهزة!");
 </script>

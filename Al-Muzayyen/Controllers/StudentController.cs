@@ -222,7 +222,6 @@ namespace Al_Muzayyen.Controllers
         }
         public async Task<IActionResult> Exams()
         {
-            // 1. جلب معرف المستخدم الحالي من الـ Claim
             var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userClaim))
@@ -230,7 +229,6 @@ namespace Al_Muzayyen.Controllers
                 return RedirectToAction("login2", "Account");
             }
 
-            // 2. البحث عن الطالب سواء كان الـ Claim هو UserId أو Student Id
             Student? student = null;
 
             if (int.TryParse(userClaim, out int studentId))
@@ -250,12 +248,15 @@ namespace Al_Muzayyen.Controllers
             int currentStudentSlotId = student.SlotId;
             int currentStudentId = student.Id;
 
-            // 3. جلب الامتحانات الموجهة لمجموعة الطالب عبر الجدول الوسيط ExamGroups
+            // 🎯 1. تحديد الوقت الحالي خارج الاستعلام
+            var now = DateTime.Now;
+
+            // 2. جلب الامتحانات
             var exams = await _context.Exams
                 .Where(e =>
-    e.IsActive &&
-    e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId) &&
-    e.StartExamTime >= student.CreatedAt)
+                    e.IsActive &&
+                    e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId) &&
+                    e.StartExamTime >= student.CreatedAt)
                 .Select(e => new StudentExamViewModel
                 {
                     ExamId = e.Id,
@@ -263,19 +264,18 @@ namespace Al_Muzayyen.Controllers
                     StartTime = e.StartExamTime,
                     EndTime = e.EndExamTime,
                     TotalMarks = e.TotalMarks,
-                    Status =
-    e.StudentExams.Any(se => se.StudentId == currentStudentId)
-        ? "Completed"
-        : DateTime.Now < e.StartExamTime
-            ? "NotStarted"
-            : DateTime.Now > e.EndExamTime
-                ? "Ended"
-                : "Available",
 
-                    // التأكد هل أدى الطالب هذا الامتحان قبل ذلك؟
-                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId),
+                    // 🎯 3. ضبط شرط الحالة بدقة
+                    Status = e.StudentExams.Any(x => x.StudentId == currentStudentId && x.IsSubmitted)
+                        ? "Completed"
+                        : now < e.StartExamTime
+                            ? "NotStarted"
+                            : now > e.EndExamTime
+                                ? "Ended"
+                                : "Available",
 
-                    // جلب درجة الطالب إن وجدت
+                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId && se.IsSubmitted),
+
                     Score = e.StudentExams
                              .Where(se => se.StudentId == currentStudentId)
                              .Select(se => (double?)se.Score)
