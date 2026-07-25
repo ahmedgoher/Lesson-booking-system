@@ -128,7 +128,7 @@ namespace Al_Muzayyen.Controllers
             // أحدث طلب تغيير مجموعة (ولم يتم إخفاؤه/تجاهله)
             var latestRequest = await _context.GroupChangeRequests
                 .Include(r => r.RequestedSlot)
-                //.Where(r => r.StudentId == student.Id && !r.IsDismissed)
+                .Where(r => r.StudentId == student.Id && !r.IsDismissed)
                 .OrderByDescending(r => r.RequestDate)
                 .FirstOrDefaultAsync();
 
@@ -166,7 +166,7 @@ namespace Al_Muzayyen.Controllers
                 Reason = reason,
                 Status = RequestStatus.Pending,
                 RequestDate = DateTime.Now,
-                //IsDismissed = false
+                IsDismissed = false
             };
 
             _context.GroupChangeRequests.Add(request);
@@ -182,7 +182,7 @@ namespace Al_Muzayyen.Controllers
             var request = await _context.GroupChangeRequests.FindAsync(requestId);
             if (request != null)
             {
-                //request.IsDismissed = true; // خاصية لتعليم أن الطالب شاهد النتيجة وأخفاها
+                request.IsDismissed = true; // خاصية لتعليم أن الطالب شاهد النتيجة وأخفاها
                 await _context.SaveChangesAsync();
                 return Json(new { success = true });
             }

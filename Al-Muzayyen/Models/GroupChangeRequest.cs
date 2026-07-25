@@ -16,6 +16,8 @@ namespace Al_Muzayyen.Models
     {
         [Key]
         public int Id { get; set; }
+
+        public bool IsDismissed { get; set; }
         public int StudentId { get; set; }
         [ForeignKey("StudentId")]
         public Student? Student { get; set; }
