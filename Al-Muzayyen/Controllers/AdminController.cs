@@ -652,7 +652,7 @@ public class AdminController : Controller
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "البيانات غير صحيحة.";
-                return RedirectToAction("Matrials");
+                return RedirectToAction("Videos");
             }
             video.URL = GetMediaUrl(video.URL);
 
@@ -660,7 +660,7 @@ public class AdminController : Controller
             _videoService.SaveChanges();
 
             TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
-            return RedirectToAction("Matrials");
+            return RedirectToAction("Videos");
         }
         catch (Exception)
         {
@@ -697,54 +697,7 @@ public class AdminController : Controller
 
         return RedirectToAction(nameof(Videos));
     }
-    // 1. عرض صفحة تعديل الحساب
-    //public IActionResult ChangeProfile()
-    //{
-    //    // قراءة البيانات الحالية وعرضها في الصفحة
-    //    ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
-    //    return View();
-    //}
-
-    // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
-    //[HttpPost]
-    //public IActionResult ChangeProfile(string newUsername, string newPassword)
-    //{
-    //    if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
-    //    {
-    //        TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
-    //        return View();
-    //    }
-
-    //    try
-    //    {
-    //        // مسار ملف appsettings.json الحقيقي على السيرفر
-    //        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-    //        var json = System.IO.File.ReadAllText(filePath);
-
-    //        // تعديل القيم ديناميكياً داخل نص الـ JSON
-    //        dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-    //        jsonObj["AdminSettings"]["Username"] = newUsername;
-    //        jsonObj["AdminSettings"]["Password"] = newPassword;
-
-    //        string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-    //        System.IO.File.WriteAllText(filePath, output);
-
-    //        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
-
-    //        // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
-    //        return RedirectToAction("Logout", "Account");
-    //    }
-    //    catch (Exception)
-    //    {
-    //        TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
-    //        return View();
-    //    }
-    //}
-
-
-
-
-    // 🟢 1. عرض صفحة تعديل البيانات (GET)
+   
     [HttpGet]
     public IActionResult ChangeProfile()
     {
