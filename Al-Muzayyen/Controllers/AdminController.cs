@@ -258,28 +258,32 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Students));
     }
 
-    public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
+    public async Task<IActionResult> Groups(int? placeId, int? classId, string? status)
     {
         var groups = await groupRepo.GetAllGroupsWithRelations();
         var query = groups.AsQueryable();
-        if (string.IsNullOrEmpty(status))
-        {
-            status = "Active";
-        }
-        if (status != "All") // لو اختار "الكل" هيعرض الكل، غير كده يفلتر حسب الاختيار
+
+        // الحالة الافتراضية
+        status ??= "Active";
+
+        // فلترة الحالة
+        if (status != "All")
         {
             query = query.Where(g => g.State == status);
         }
-        //  الفلترة بالمكان
+
+        // فلترة المكان
         if (placeId.HasValue)
         {
-            query = query.Where(g => g.PlaceId == placeId.Value);
+            query = query.Where(g => g.PlaceId == placeId);
         }
 
+        // فلترة الصف
         if (classId.HasValue)
         {
-            query = query.Where(g => g.ClassId == classId.Value);
+            query = query.Where(g => g.ClassId == classId);
         }
+
         ViewBag.Places = _placeServiceGeneric.GetAll();
         ViewBag.Classes = _classService.GetAll();
 
@@ -731,16 +735,19 @@ public class AdminController : Controller
     // 🟢 2. حفظ البيانات الجديدة في قاعدة البيانات (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
+ 
     public IActionResult ChangeProfile(string newUsername, string newPhone, string newPassword)
     {
         var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         Admin admin = null;
+
         if (int.TryParse(adminIdClaim, out int adminId))
         {
             admin = _AdminService.GetAll().FirstOrDefault(a => a.Id == adminId);
         }
 
+        // في حالة عدم وجود Claim
         if (admin == null)
         {
             admin = _AdminService.GetAll().FirstOrDefault();
@@ -748,31 +755,37 @@ public class AdminController : Controller
 
         if (admin == null)
         {
-            TempData["Error"] = "لم يتم العثور على حساب الآدمن!";
+            TempData["Error"] = "لم يتم العثور على حساب الأدمن!";
             return RedirectToAction(nameof(ChangeProfile));
         }
 
-        // التحقق من أن الحقول ليست فارغة
-        if (string.IsNullOrWhiteSpace(newUsername) || string.IsNullOrWhiteSpace(newPassword))
+        // التحقق من اسم المستخدم
+        if (string.IsNullOrWhiteSpace(newUsername))
         {
-            TempData["Error"] = "برجاء ملء جميع الحقول المطلوبة!";
+            TempData["Error"] = "يرجى إدخال اسم المستخدم.";
             return RedirectToAction(nameof(ChangeProfile));
         }
 
         // تحديث البيانات
         admin.Name = newUsername;
-        admin.Password = newPassword;
 
         if (!string.IsNullOrWhiteSpace(newPhone))
         {
             admin.PhoneNumber = newPhone;
         }
 
-        // حفظ التعديلات باستخدام _AdminService
+        // تحديث كلمة المرور إذا تم إدخالها
+        if (!string.IsNullOrWhiteSpace(newPassword))
+        {
+            var hasher = new PasswordHasher<Admin>();
+            admin.Password = hasher.HashPassword(admin, newPassword);
+        }
+
         _AdminService.Update(admin);
         _AdminService.SaveChanges();
 
-        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح!";
+        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح.";
+
         return RedirectToAction(nameof(ChangeProfile));
     }
 
