@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -32,7 +34,9 @@ public class AdminController : Controller
 
     private readonly CloudinaryService _cloudinaryService;
     private readonly IExamService _examService;
-
+    private readonly AppDbContext _context;
+    // 👈 تعريف الـ PasswordHasher لفحص أو توليد الهاش
+    private readonly IPasswordHasher<object> _passwordHasher;
     public AdminController
 
             (IGenericService<Slot_time> slotTimeService,
@@ -49,7 +53,8 @@ public class AdminController : Controller
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo,
              IQuestionService questionService,
-            IConfiguration configuration, IExamService examService)
+            IConfiguration configuration, IExamService examService,
+           AppDbContext context)
     {
         _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
@@ -69,6 +74,9 @@ public class AdminController : Controller
         _configuration = configuration;
         _examService = examService;
         _ClassService = ClassService;
+
+        _context = context;
+        _passwordHasher = new PasswordHasher<object>();
     }
     public IActionResult Index()
     {
@@ -1317,6 +1325,51 @@ public class AdminController : Controller
           isActive = exam.IsActive,
             message = exam.IsActive ? "تم الغاء حذف الامتحان":"تم حذف الامتحان بنجاح" }
         );
+    }
+
+
+
+
+
+    [HttpGet]
+
+    public IActionResult ChangeStudentPassword()
+    {
+        // تحديد مسار الـ View طالما أنه موجود داخل مجلد Admin
+        return View("~/Views/Admin/ChangeStudentPassword.cshtml");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ChangeStudentPassword(string phoneNumber, string newPassword)
+    {
+        if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(newPassword))
+        {
+            TempData["ErrorMessage"] = "يرجى ملء جميع الحقول المطلوبة.";
+            return View();
+        }
+
+        // 1. البحث عن الطالب بواسطة رقم الهاتف
+        var student = _context.Students.FirstOrDefault(s => s.StdPhone == phoneNumber);
+
+        if (student == null)
+        {
+            TempData["ErrorMessage"] = "لم يتم العثور على طالب مسجل برقم الهاتف هذا.";
+            return View();
+        }
+
+        // 2. إنشاء كائن الـ Hasher المخصص لنموذج الطالب
+        var hasher = new PasswordHasher<Student>();
+
+        // 3. تشفير كلمة السر الجديدة وتحديثها
+        student.Password = hasher.HashPassword(student, newPassword);
+
+        // 4. حفظ التغيرات في قاعدة البيانات
+        _context.Students.Update(student);
+        _context.SaveChanges();
+
+        TempData["SuccessMessage"] = $"تم تغيير كلمة السر بنجاح للطالب: {student.Name}";
+        return RedirectToAction("ChangeStudentPassword");
     }
 
 

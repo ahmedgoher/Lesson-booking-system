@@ -1289,3 +1289,32 @@ body {
         width: 100%;
     }
 }
+
+
+
+
+
+/* جعل القائمة الجانبية قابلة للتمرير (Scrollable) */
+.navigation-sidebar {
+    height: calc(100vh - 70px); /* يطرح ارتفاع الهيدر لضبط الطول */
+    overflow-y: auto; /* تفعيل الـ Scroll عند زيادة اللينكات */
+    /* تثبيت القائمة تحت الهيدر أثناء التصفح */
+}
+
+    /* تحسين شكل الـ Scrollbar ليكون شيك ومريح للعين */
+    .navigation-sidebar::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .navigation-sidebar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .navigation-sidebar::-webkit-scrollbar-thumb {
+        background: var(--primary-color, #c5a059);
+        border-radius: 10px;
+    }
+
+        .navigation-sidebar::-webkit-scrollbar-thumb:hover {
+            background: #b08d48;
+        }

@@ -5,6 +5,9 @@
     ViewData["Title"] = "تسجيل دخول الطالب";
 }
 
+<!-- مكتبة SweetAlert2 لعرض الرسائل التنبيهية الأنيقة -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 <style>
     /* Auth Section Layout */
     .auth-section {
@@ -73,6 +76,7 @@
         color: var(--primary-color);
         font-size: 0.8rem;
         text-decoration: none;
+        cursor: pointer;
     }
 
     /* Input Wrapper & Icons */
@@ -165,6 +169,19 @@
         font-size: 0.8rem;
         margin-top: 0.2rem;
     }
+
+    /* SweetAlert RTL Style */
+    .swal-rtl-popup {
+        direction: rtl;
+        text-align: center;
+        font-family: inherit;
+        border-radius: 16px !important;
+    }
+
+    .swal2-styled.swal2-confirm {
+        color: #000000 !important;
+        font-weight: 700 !important;
+    }
 </style>
 
 <section class="auth-section">
@@ -201,7 +218,7 @@
             <div class="form-group">
                 <div class="label-row">
                     <label asp-for="Password">كلمة السر</label>
-                    <a href="#" class="forgot-pass-link">نسيت كلمة السر؟</a>
+                    <a href="javascript:void(0);" id="forgotPasswordBtn" class="forgot-pass-link">نسيت كلمة السر؟</a>
                 </div>
                 <div class="input-wrapper">
                     <i class="fas fa-lock input-icon"></i>
@@ -236,22 +253,47 @@
     </div>
 </section>
 
+<!-- Scripts -->
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. إظهار/إخفاء كلمة المرور
         const togglePasswordBtn = document.getElementById('togglePasswordBtn');
         const passwordInput = document.getElementById('Password');
         const toggleIcon = document.getElementById('toggleIcon');
 
         if (togglePasswordBtn && passwordInput && toggleIcon) {
-            togglePasswordBtn.addEventListener('click', function () {
+            togglePasswordBtn.addEventListener('click', function() {
                 const isPassword = passwordInput.getAttribute('type') === 'password';
                 passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
                 toggleIcon.classList.toggle('fa-eye', !isPassword);
                 toggleIcon.classList.toggle('fa-eye-slash', isPassword);
             });
         }
+
+        // 2. رسالة نسيت كلمة السر
+        const forgotPasswordBtn = document.getElementById('forgotPasswordBtn');
+        if (forgotPasswordBtn) {
+            forgotPasswordBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'تغيير كلمة السر',
+                    text: 'يرجى التواصل مع المدرس أو المساعد الخاص بك لإعادة ضبط كلمة السر الخاصة بحسابك.',
+                    icon: 'info',
+                    confirmButtonText: 'حسناً، فهمت',
+                    confirmButtonColor: 'var(--primary-color, #f59e0b)',
+                    customClass: {
+                        popup: 'swal-rtl-popup'
+                    },
+                    background: 'var(--card-bg, #ffffff)',
+                    color: 'var(--text-color, #000000)'
+                });
+            });
+        }
     });
 </script>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-<script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
