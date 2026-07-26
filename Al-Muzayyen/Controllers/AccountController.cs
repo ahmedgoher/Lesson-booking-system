@@ -30,7 +30,7 @@ namespace Al_Muzayyen.Controllers
                     return RedirectToAction("Index", "Admin");
 
                 if (User.IsInRole("Student"))
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Student");
             }
             return View();
         }
@@ -98,7 +98,7 @@ namespace Al_Muzayyen.Controllers
                     };
 
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-                    return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Student");
                 }
             }
 
