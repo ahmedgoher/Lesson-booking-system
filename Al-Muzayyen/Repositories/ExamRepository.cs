@@ -93,6 +93,7 @@ namespace Al_Muzayyen.Repositories
                     CloseDate = e.EndExamTime,   // تأكد من مطابقة اسم الحرف (كبير E)
                     Status = e.IsActive ? "Active" : "Closed",
                     QuestionsCount = e.Questions.Count,
+                    IsPaperExam = e.IsPaperExam,
 
                     // 🟢 قراءة البيانات الحقيقية المخزنة في قاعدة البيانات
                     TotalMarks = e.TotalMarks,
