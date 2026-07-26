@@ -16,6 +16,7 @@
         public double? Score { get; set; }
 
         public double TotalMarks { get; set; }
+        public bool IsPaperExam { get; set; }
 
         public string Status { get; set; } = "";
     }

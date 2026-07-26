@@ -258,9 +258,19 @@
     <div class="groups-header">
         <div class="groups-header-top">
             <h2>إدارة الامتحانات</h2>
-            <button type="button" onclick="openCreateModal()" class="action-button">
-                <i class="fas fa-plus"></i> إضافة امتحان جديد
-            </button>
+         <div style="display:flex; align-items:center; gap:12px;">
+                <div class="filter-field" style="min-width:220px;">
+                    <select id="exam-type-filter" onchange="filterExamType()">
+                        <option value="all">جميع الامتحانات</option>
+                        <option value="paper">ورقي</option>
+                        <option value="online">أون لاين</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="openCreateModal()" class="action-button">
+                    <i class="fas fa-plus"></i> إضافة امتحان جديد
+                </button>
+            </div>
         </div>
     </div>
 
@@ -285,8 +295,9 @@
                     @foreach (var exam in Model)
                     {
                         var examJson = System.Text.Json.JsonSerializer.Serialize(exam);
-                        <tr data-exam='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(exam))'>
-
+                        <tr
+                            data-exam='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(exam))'
+                            data-paper="@exam.IsPaperExam.ToString().ToLower()">
                             <td>
                                 <strong>@exam.Title</strong><br>
                                 <small style="color:var(--text-muted, #6b7280);">@exam.Description</small>
@@ -306,10 +317,17 @@
                                 }
                             </td>
                             <td>
-    <a href="/Admin/QExams/@exam.Id" style="text-decoration: none;">
-        <strong style="color: var(--primary-color);">@exam.QuestionsCount أسئلة</strong>
-    </a>
-</td>
+                                @if(!exam.IsPaperExam){
+                                     <a href="/Admin/QExams/@exam.Id" style="text-decoration: none;">
+                                    <strong style="color: var(--primary-color);">@exam.QuestionsCount أسئلة</strong>
+                                </a>
+                                }else{
+                                    <span style="color:#9ca3af; cursor:not-allowed;">
+                                        <strong>@exam.QuestionsCount أسئلة</strong>
+                                    </span>
+                                }
+                               
+                            </td>
                             <td>
                                 <button onclick="openQuestionModal('@exam.Id')" class="action-icon-btn" title="إضافة سؤال" style="color:#22c55e;">
                                     <i class="fas fa-plus-circle"></i>
@@ -927,4 +945,23 @@ RequestVerificationToken:getAntiforgeryToken()
             alert('تعذر الاتصال بالخادم.');
         }
     }
+    function filterExamType() {
+
+    const value = document.getElementById("exam-type-filter").value;
+
+    document.querySelectorAll(".data-display-table tbody tr").forEach(row => {
+
+        const isPaper = row.dataset.paper === "true";
+
+        if (value === "all") {
+            row.style.display = "";
+        }
+        else if (value === "paper") {
+            row.style.display = isPaper ? "" : "none";
+        }
+        else if (value === "online") {
+            row.style.display = !isPaper ? "" : "none";
+        }
+    });
+}
 </script>

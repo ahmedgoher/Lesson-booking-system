@@ -289,6 +289,7 @@ namespace Al_Muzayyen.Controllers
                     StartTime = e.StartExamTime,
                     EndTime = e.EndExamTime,
                     TotalMarks = e.TotalMarks,
+                    IsPaperExam = e.IsPaperExam,
 
                     // 🎯 3. ضبط شرط الحالة بدقة
                     Status = e.StudentExams.Any(x => x.StudentId == currentStudentId && x.IsSubmitted)

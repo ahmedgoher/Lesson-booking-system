@@ -172,7 +172,8 @@
 
                                 @if (exam.Status == "Completed")
                                 {
-                                    <a asp-controller="Exams"
+                                    @if(!exam.IsPaperExam){
+                                          <a asp-controller="Exams"
                                        asp-action="Review"
                                        asp-route-examId="@exam.ExamId"
                                        class="action-icon-btn"
@@ -181,6 +182,19 @@
                                         <i class="fas fa-eye"></i>
 
                                     </a>
+                                    }
+                                    else{
+                                        @*   <span style="color:#9ca3af; cursor:not-allowed; class="action-icon-btn"">
+                                            <i class="fas fa-eye"></i>
+                                        </span> *@
+                                            <a 
+                                       style="color:#9ca3af; cursor:not-allowed;"
+                                       class="action-icon-btn"
+                                       title="غير مسموح بمراجعه الامتحان الورقي">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    }
+                                  
                                 }
                                 else if (exam.Status == "Available")
                                 {
