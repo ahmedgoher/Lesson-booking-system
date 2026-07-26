@@ -243,7 +243,7 @@ namespace Al_Muzayyen
                     };
 
                     // تشفير كلمة المرور وتعيينها
-                    admin.Password = hasher.HashPassword(admin, "123456");
+                    admin.Password = hasher.HashPassword(admin, "admin123");
 
                     context.Admins.Add(admin);
                     context.SaveChanges();
