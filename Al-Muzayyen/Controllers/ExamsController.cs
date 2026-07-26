@@ -478,7 +478,7 @@ namespace Al_Muzayyen.Controllers
         //}
         [HttpGet]
         public async Task<IActionResult> GetAttendanceStudents(int slotId, DateTime date, string? title)
-        {
+       {
             try
             {
                 // 💡 استخدام Date.Date لضمان تجاهل الساعات والدقائق أثناء المقارنة
@@ -533,7 +533,7 @@ namespace Al_Muzayyen.Controllers
             }
         }
         [HttpPost]
-        public async Task<IActionResult> SavePaperExam([FromBody] SavePaperExamScoresDto dto)
+        public async Task<IActionResult> SavePaperExamScores([FromBody] SavePaperExamScoresDto dto)
         {
             if (dto == null) return BadRequest("البيانات المدخلة غير صالحة");
 
