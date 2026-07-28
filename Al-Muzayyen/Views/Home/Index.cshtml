@@ -13,11 +13,23 @@
         <div class="hero-text">
             <h2>فارس اللغة العربية</h2>
             <p>
-                نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا مع الأستاذ عبد الفتاح المزين.
+                نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا مع الأستاذ عبد الفتاح المزين  :.
             </p>
-            <div class="hero-btns">
-                <a href="/Booking/booking" class="btn btn-primary">ابدأ رحلتك الآن</a>
-            </div>
+           
+            
+            @if (User.IsInRole("Student"))
+            {
+                <div class="hero-btns">
+                    <a href="/Student" class="btn btn-primary">ابدأ رحلتك الآن</a>
+                </div>
+            }
+            else
+            {
+                <div class="hero-btns">
+                    <a href="/Booking/booking" class="btn btn-primary">ابدأ رحلتك الآن</a>
+                </div>
+                
+            }
         </div>
 
         <div class="hero-img-wrapper">

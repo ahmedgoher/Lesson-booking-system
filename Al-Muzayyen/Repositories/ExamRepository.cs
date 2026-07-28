@@ -20,6 +20,13 @@ namespace Al_Muzayyen.Repositories
                     x.StudentId == studentId &&
                     !x.IsSubmitted);
         }
+        public async Task<bool> HasStudentInExamAsync(int examId)
+        {
+            return await _context.StudentExams.AnyAsync(x =>
+                x.ExamId == examId &&
+                !x.IsSubmitted &&
+                x.EndTime > DateTime.Now);
+        }
         public async Task AddStudentExamAsync(StudentExam studentExam)
         {
             await _context.StudentExams.AddAsync(studentExam);
@@ -86,6 +93,7 @@ namespace Al_Muzayyen.Repositories
                     CloseDate = e.EndExamTime,   // تأكد من مطابقة اسم الحرف (كبير E)
                     Status = e.IsActive ? "Active" : "Closed",
                     QuestionsCount = e.Questions.Count,
+                    IsPaperExam = e.IsPaperExam,
 
                     // 🟢 قراءة البيانات الحقيقية المخزنة في قاعدة البيانات
                     TotalMarks = e.TotalMarks,

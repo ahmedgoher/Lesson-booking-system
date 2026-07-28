@@ -258,9 +258,19 @@
     <div class="groups-header">
         <div class="groups-header-top">
             <h2>إدارة الامتحانات</h2>
-            <button type="button" onclick="openCreateModal()" class="action-button">
-                <i class="fas fa-plus"></i> إضافة امتحان جديد
-            </button>
+         <div style="display:flex; align-items:center; gap:12px;">
+                @* <div class="filter-field" style="min-width:220px;">
+                    <select id="exam-type-filter" onchange="filterExamType()">
+                        <option value="all">جميع الامتحانات</option>
+                        <option value="paper">ورقي</option>
+                        <option value="online">أون لاين</option>
+                    </select>
+                </div> *@
+
+                <button type="button" onclick="openCreateModal()" class="action-button">
+                    <i class="fas fa-plus"></i> إضافة امتحان جديد
+                </button>
+            </div>
         </div>
     </div>
 
@@ -285,8 +295,9 @@
                     @foreach (var exam in Model)
                     {
                         var examJson = System.Text.Json.JsonSerializer.Serialize(exam);
-                        <tr data-exam='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(exam))'>
-
+                        <tr
+                            data-exam='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(exam))'
+                            data-paper="@exam.IsPaperExam.ToString().ToLower()">
                             <td>
                                 <strong>@exam.Title</strong><br>
                                 <small style="color:var(--text-muted, #6b7280);">@exam.Description</small>
@@ -306,10 +317,17 @@
                                 }
                             </td>
                             <td>
-    <a href="/Admin/QExams/@exam.Id" style="text-decoration: none;">
-        <strong style="color: var(--primary-color);">@exam.QuestionsCount أسئلة</strong>
-    </a>
-</td>
+                                @if(!exam.IsPaperExam){
+                                     <a href="/Admin/QExams/@exam.Id" style="text-decoration: none;">
+                                    <strong style="color: var(--primary-color);">@exam.QuestionsCount أسئلة</strong>
+                                </a>
+                                }else{
+                                    <span style="color:#9ca3af; cursor:not-allowed;">
+                                        <strong>@exam.QuestionsCount أسئلة</strong>
+                                    </span>
+                                }
+                               
+                            </td>
                             <td>
                                 <button onclick="openQuestionModal('@exam.Id')" class="action-icon-btn" title="إضافة سؤال" style="color:#22c55e;">
                                     <i class="fas fa-plus-circle"></i>
@@ -355,19 +373,19 @@
                 <textarea id="exam-description" rows="2" placeholder="أدخل وصفاً اختيارياً"></textarea>
             </div>
 
-           <div class="input-field-group">
-    <label for="exam-grade">الصف الدراسي</label>
-    <select id="exam-grade" required>
-        <option value="" disabled selected>-- اختر الصف الدراسي --</option>
-        @if (ViewBag.Classes != null)
-        {
-            foreach (var grade in ViewBag.Classes)
-            {
-                <option value="@grade.Id">@grade.Name</option>
-            }
-        }
-    </select>
-</div>
+            <div class="input-field-group">
+                <label for="exam-grade">الصف الدراسي</label>
+                <select id="exam-grade" required>
+                    <option value="" disabled selected>-- اختر الصف الدراسي --</option>
+                    @if (ViewBag.Classes != null)
+                    {
+                        foreach (var grade in ViewBag.Classes)
+                        {
+                            <option value="@grade.Id">@grade.Name</option>
+                        }
+                    }
+                </select>
+            </div>
 
             <div class="responsive-flex-row" style="display:flex; gap:10px;">
                 <div class="input-field-group" style="flex:1;">
@@ -414,12 +432,21 @@
                 </select>
             </div>
 
-            <div class="checkbox-container">
+            <!-- 🎯 زر وشريط الإعدادات المتقدمة (مخفية افتراضياً) -->
+            <div style="margin: 12px 0;">
+                <button type="button" 
+                        onclick="toggleAdvancedSettings()" 
+                        style="background:none; border:none; color:#0d6efd; cursor:pointer; font-weight:600; padding:0; display:flex; align-items:center; gap:5px;">
+                     <span>إعدادات العرض والاختبار المتقدمة</span>
+                </button>
+            </div>
+
+            <div id="advanced-settings-box" class="checkbox-container" style="display:none; border: 1px dashed #ccc; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
                 <div class="checkbox-grid">
-                    <label><input type="checkbox" id="exam-random-questions"> عشوائية الأسئلة</label>
-                    <label><input type="checkbox" id="exam-shuffle-answers"> عشوائية الخيارات</label>
+                    <label><input type="checkbox" id="exam-random-questions" checked> عشوائية الأسئلة</label>
+                    <label><input type="checkbox" id="exam-shuffle-answers" checked> عشوائية الخيارات</label>
                     <label><input type="checkbox" id="exam-allow-review"> مراجعة الإجابات</label>
-                    <label><input type="checkbox" id="exam-show-result"> إظهار النتيجة فوراً</label>
+                    <label><input type="checkbox" id="exam-show-result" checked> إظهار النتيجة فوراً</label>
                 </div>
             </div>
 
@@ -667,101 +694,102 @@
 
     // إرسال بيانات السؤال للخادم
     // إرسال بيانات الامتحان للخادم
+    function toggleAdvancedSettings() {
+    const box = document.getElementById("advanced-settings-box");
+    if (box.style.display === "none") {
+        box.style.display = "block";
+    } else {
+        box.style.display = "none";
+    }
+}
     async function saveExam() {
 
-        const gradeId = document.getElementById("exam-grade").value;
+    // 🎯 1. التحديد على الأزرار داخل النموذج
+    const submitBtn = document.querySelector("#exam-form button[type='submit']");
+    const cancelBtn = document.querySelector("#exam-form .cancel-btn");
 
-        if (!gradeId) {
-            alert("يرجى اختيار الصف الدراسي");
-            return;
+    // 🛑 منع الإرسال المتكرر إذا كانت العملية جارية بالفعل
+    if (submitBtn && submitBtn.disabled) return;
+
+    const gradeId = document.getElementById("exam-grade").value;
+
+    if (!gradeId) {
+        alert("يرجى اختيار الصف الدراسي");
+        return;
+    }
+
+    const payload = {
+        id: Number(document.getElementById("exam-id").value) || 0,
+        title: document.getElementById("exam-title").value.trim(),
+        description: document.getElementById("exam-description").value.trim(),
+        gradeId: Number(gradeId),
+        date: document.getElementById("exam-date").value,
+        duration: Number(document.getElementById("exam-duration").value) || 30,
+        openDate: document.getElementById("exam-open").value || null,
+        closeDate: document.getElementById("exam-close").value || null,
+        totalMarks: Number(document.getElementById("exam-total-marks").value) || 100,
+        passingMarks: Number(document.getElementById("exam-passing-marks").value) || 50,
+        maxAttempts: Number(document.getElementById("exam-max-attempts").value) || 1,
+        status: document.getElementById("exam-status").value,
+        randomQuestions: document.getElementById("exam-random-questions").checked,
+        shuffleAnswers: document.getElementById("exam-shuffle-answers").checked,
+        allowReview: document.getElementById("exam-allow-review").checked,
+        showResult: document.getElementById("exam-show-result").checked
+    };
+
+    if (payload.title.length === 0) {
+        alert("يرجى إدخال عنوان الامتحان");
+        return;
+    }
+
+    // 🔒 2. تعطيل الأزرار وتغيير نص زر الحفظ فوراً
+    let originalBtnText = "";
+    if (submitBtn) {
+        originalBtnText = submitBtn.innerText;
+        submitBtn.disabled = true;
+        submitBtn.innerText = "جاري الحفظ...";
+    }
+    if (cancelBtn) {
+        cancelBtn.disabled = true;
+    }
+
+    try {
+        const response = await fetch("/Admin/SaveExam", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "RequestVerificationToken": getAntiforgeryToken()
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            closeModal("exam-modal");
+            alert(result.message);
+            location.reload();
         }
-
-        const payload = {
-
-            id: Number(document.getElementById("exam-id").value) || 0,
-
-            title: document.getElementById("exam-title").value.trim(),
-
-            description: document.getElementById("exam-description").value.trim(),
-
-            gradeId: Number(gradeId),
-
-            date: document.getElementById("exam-date").value,
-
-            duration: Number(document.getElementById("exam-duration").value) || 30,
-
-            openDate: document.getElementById("exam-open").value || null,
-
-            closeDate: document.getElementById("exam-close").value || null,
-
-            totalMarks: Number(document.getElementById("exam-total-marks").value) || 100,
-
-            passingMarks: Number(document.getElementById("exam-passing-marks").value) || 50,
-
-            maxAttempts: Number(document.getElementById("exam-max-attempts").value) || 1,
-
-            status: document.getElementById("exam-status").value,
-
-            randomQuestions: document.getElementById("exam-random-questions").checked,
-
-            shuffleAnswers: document.getElementById("exam-shuffle-answers").checked,
-
-            allowReview: document.getElementById("exam-allow-review").checked,
-
-            showResult: document.getElementById("exam-show-result").checked
-        };
-
-        if (payload.title.length === 0) {
-            alert("يرجى إدخال عنوان الامتحان");
-            return;
-        }
-
-        try {
-
-            const response = await fetch("/Admin/SaveExam", {
-
-                method: "POST",
-
-                headers: {
-
-                    "Content-Type": "application/json",
-
-                    "RequestVerificationToken": getAntiforgeryToken()
-
-                },
-
-                body: JSON.stringify(payload)
-
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-
-                closeModal("exam-modal");
-
-                alert(result.message);
-
-                location.reload();
-
-            }
-            else {
-
-                alert(result.message);
-
-            }
-
-        }
-        catch (ex) {
-
-            console.error(ex);
-
-            alert("حدث خطأ أثناء الاتصال بالخادم.");
-
+        else {
+            alert(result.message);
         }
 
     }
-
+    catch (ex) {
+        console.error(ex);
+        alert("حدث خطأ أثناء الاتصال بالخادم.");
+    }
+    finally {
+        // 🔓 3. إعادة تفعيل الأزرار واسترجاع النص الأصلي (في حالة الحذف/الخطأ وعدم عمل reload)
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText;
+        }
+        if (cancelBtn) {
+            cancelBtn.disabled = false;
+        }
+    }
+}
     async function saveQuestion() {
         const saveBtn = document.getElementById("save-question-btn");
 
@@ -917,4 +945,23 @@ RequestVerificationToken:getAntiforgeryToken()
             alert('تعذر الاتصال بالخادم.');
         }
     }
+    function filterExamType() {
+
+    const value = document.getElementById("exam-type-filter").value;
+
+    document.querySelectorAll(".data-display-table tbody tr").forEach(row => {
+
+        const isPaper = row.dataset.paper === "true";
+
+        if (value === "all") {
+            row.style.display = "";
+        }
+        else if (value === "paper") {
+            row.style.display = isPaper ? "" : "none";
+        }
+        else if (value === "online") {
+            row.style.display = !isPaper ? "" : "none";
+        }
+    });
+}
 </script>

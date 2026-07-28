@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -32,7 +34,9 @@ public class AdminController : Controller
 
     private readonly CloudinaryService _cloudinaryService;
     private readonly IExamService _examService;
-
+    private readonly AppDbContext _context;
+    // 👈 تعريف الـ PasswordHasher لفحص أو توليد الهاش
+    private readonly IPasswordHasher<object> _passwordHasher;
     public AdminController
 
             (IGenericService<Slot_time> slotTimeService,
@@ -49,7 +53,8 @@ public class AdminController : Controller
             IBookingRepo bookingRepo,
             IGroupRepo groupRepo,
              IQuestionService questionService,
-            IConfiguration configuration, IExamService examService)
+            IConfiguration configuration, IExamService examService,
+           AppDbContext context)
     {
         _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
@@ -69,6 +74,9 @@ public class AdminController : Controller
         _configuration = configuration;
         _examService = examService;
         _ClassService = ClassService;
+
+        _context = context;
+        _passwordHasher = new PasswordHasher<object>();
     }
     public IActionResult Index()
     {
@@ -127,12 +135,12 @@ public class AdminController : Controller
 
         if (placeId.HasValue)
         {
-            query = query.Where(s => s.Id == placeId.Value);
+            query = query.Where(s => s.PlaceId == placeId.Value);
         }
 
         if (classId.HasValue)
         {
-            query = query.Where(s => s.Id == classId.Value);
+            query = query.Where(s => s.ClassId == classId.Value);
         }
 
         if (groupId.HasValue)
@@ -250,28 +258,32 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Students));
     }
 
-    public async Task<IActionResult> Groups(int? placeId, int? classId, string status)
+    public async Task<IActionResult> Groups(int? placeId, int? classId, string? status)
     {
         var groups = await groupRepo.GetAllGroupsWithRelations();
         var query = groups.AsQueryable();
-        if (string.IsNullOrEmpty(status))
-        {
-            status = "Active";
-        }
-        if (status != "All") // لو اختار "الكل" هيعرض الكل، غير كده يفلتر حسب الاختيار
+
+        // الحالة الافتراضية
+        status ??= "Active";
+
+        // فلترة الحالة
+        if (status != "All")
         {
             query = query.Where(g => g.State == status);
         }
-        //  الفلترة بالمكان
+
+        // فلترة المكان
         if (placeId.HasValue)
         {
-            query = query.Where(g => g.PlaceId == placeId.Value);
+            query = query.Where(g => g.PlaceId == placeId);
         }
 
+        // فلترة الصف
         if (classId.HasValue)
         {
-            query = query.Where(g => g.ClassId == classId.Value);
+            query = query.Where(g => g.ClassId == classId);
         }
+
         ViewBag.Places = _placeServiceGeneric.GetAll();
         ViewBag.Classes = _classService.GetAll();
 
@@ -644,7 +656,7 @@ public class AdminController : Controller
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "البيانات غير صحيحة.";
-                return RedirectToAction("Matrials");
+                return RedirectToAction("Videos");
             }
             video.URL = GetMediaUrl(video.URL);
 
@@ -652,7 +664,7 @@ public class AdminController : Controller
             _videoService.SaveChanges();
 
             TempData["SuccessVideo"] = "تم تعديل الفيديو بنجاح.";
-            return RedirectToAction("Matrials");
+            return RedirectToAction("Videos");
         }
         catch (Exception)
         {
@@ -689,54 +701,7 @@ public class AdminController : Controller
 
         return RedirectToAction(nameof(Videos));
     }
-    // 1. عرض صفحة تعديل الحساب
-    //public IActionResult ChangeProfile()
-    //{
-    //    // قراءة البيانات الحالية وعرضها في الصفحة
-    //    ViewBag.CurrentUsername = _configuration["AdminSettings:Username"];
-    //    return View();
-    //}
-
-    // 2. استقبال البيانات الجديدة وحفظها في الـ appsettings.json
-    //[HttpPost]
-    //public IActionResult ChangeProfile(string newUsername, string newPassword)
-    //{
-    //    if (string.IsNullOrEmpty(newUsername) || string.IsNullOrEmpty(newPassword))
-    //    {
-    //        TempData["Error"] = "اسم المستخدم وكلمة المرور مطلوبة.";
-    //        return View();
-    //    }
-
-    //    try
-    //    {
-    //        // مسار ملف appsettings.json الحقيقي على السيرفر
-    //        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-    //        var json = System.IO.File.ReadAllText(filePath);
-
-    //        // تعديل القيم ديناميكياً داخل نص الـ JSON
-    //        dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
-    //        jsonObj["AdminSettings"]["Username"] = newUsername;
-    //        jsonObj["AdminSettings"]["Password"] = newPassword;
-
-    //        string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
-    //        System.IO.File.WriteAllText(filePath, output);
-
-    //        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح! يرجى تسجيل الدخول مجدداً بالبيانات الجديدة.";
-
-    //        // طرد الآدمن لصفحة اللوجن عشان يدخل بالبيانات الجديدة لتأكيد الحفظ
-    //        return RedirectToAction("Logout", "Account");
-    //    }
-    //    catch (Exception)
-    //    {
-    //        TempData["Error"] = "حدث خطأ أثناء حفظ البيانات الجديدة.";
-    //        return View();
-    //    }
-    //}
-
-
-
-
-    // 🟢 1. عرض صفحة تعديل البيانات (GET)
+   
     [HttpGet]
     public IActionResult ChangeProfile()
     {
@@ -770,16 +735,19 @@ public class AdminController : Controller
     // 🟢 2. حفظ البيانات الجديدة في قاعدة البيانات (POST)
     [HttpPost]
     [ValidateAntiForgeryToken]
+ 
     public IActionResult ChangeProfile(string newUsername, string newPhone, string newPassword)
     {
         var adminIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         Admin admin = null;
+
         if (int.TryParse(adminIdClaim, out int adminId))
         {
             admin = _AdminService.GetAll().FirstOrDefault(a => a.Id == adminId);
         }
 
+        // في حالة عدم وجود Claim
         if (admin == null)
         {
             admin = _AdminService.GetAll().FirstOrDefault();
@@ -787,31 +755,37 @@ public class AdminController : Controller
 
         if (admin == null)
         {
-            TempData["Error"] = "لم يتم العثور على حساب الآدمن!";
+            TempData["Error"] = "لم يتم العثور على حساب الأدمن!";
             return RedirectToAction(nameof(ChangeProfile));
         }
 
-        // التحقق من أن الحقول ليست فارغة
-        if (string.IsNullOrWhiteSpace(newUsername) || string.IsNullOrWhiteSpace(newPassword))
+        // التحقق من اسم المستخدم
+        if (string.IsNullOrWhiteSpace(newUsername))
         {
-            TempData["Error"] = "برجاء ملء جميع الحقول المطلوبة!";
+            TempData["Error"] = "يرجى إدخال اسم المستخدم.";
             return RedirectToAction(nameof(ChangeProfile));
         }
 
         // تحديث البيانات
         admin.Name = newUsername;
-        admin.Password = newPassword;
 
         if (!string.IsNullOrWhiteSpace(newPhone))
         {
             admin.PhoneNumber = newPhone;
         }
 
-        // حفظ التعديلات باستخدام _AdminService
+        // تحديث كلمة المرور إذا تم إدخالها
+        if (!string.IsNullOrWhiteSpace(newPassword))
+        {
+            var hasher = new PasswordHasher<Admin>();
+            admin.Password = hasher.HashPassword(admin, newPassword);
+        }
+
         _AdminService.Update(admin);
         _AdminService.SaveChanges();
 
-        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح!";
+        TempData["Success"] = "تم تحديث بيانات الحساب بنجاح.";
+
         return RedirectToAction(nameof(ChangeProfile));
     }
 
@@ -1101,13 +1075,26 @@ public class AdminController : Controller
 
         if (model.Id > 0)
         {
-            var result = await _examService.UpdateExamAsync(model);
-
-            return Json(new
+            try
             {
-                success = result,
-                message = result ? "تم تعديل الامتحان بنجاح" : "الامتحان غير موجود"
-            });
+                var result = await _examService.UpdateExamAsync(model);
+
+                return Json(new
+                {
+                    success = result,
+                    message = result
+                        ? "تم تعديل الامتحان بنجاح"
+                        : "الامتحان غير موجود"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
         }
         else
         {
@@ -1304,6 +1291,51 @@ public class AdminController : Controller
           isActive = exam.IsActive,
             message = exam.IsActive ? "تم الغاء حذف الامتحان":"تم حذف الامتحان بنجاح" }
         );
+    }
+
+
+
+
+
+    [HttpGet]
+
+    public IActionResult ChangeStudentPassword()
+    {
+        // تحديد مسار الـ View طالما أنه موجود داخل مجلد Admin
+        return View("~/Views/Admin/ChangeStudentPassword.cshtml");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult ChangeStudentPassword(string phoneNumber, string newPassword)
+    {
+        if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(newPassword))
+        {
+            TempData["ErrorMessage"] = "يرجى ملء جميع الحقول المطلوبة.";
+            return View();
+        }
+
+        // 1. البحث عن الطالب بواسطة رقم الهاتف
+        var student = _context.Students.FirstOrDefault(s => s.StdPhone == phoneNumber);
+
+        if (student == null)
+        {
+            TempData["ErrorMessage"] = "لم يتم العثور على طالب مسجل برقم الهاتف هذا.";
+            return View();
+        }
+
+        // 2. إنشاء كائن الـ Hasher المخصص لنموذج الطالب
+        var hasher = new PasswordHasher<Student>();
+
+        // 3. تشفير كلمة السر الجديدة وتحديثها
+        student.Password = hasher.HashPassword(student, newPassword);
+
+        // 4. حفظ التغيرات في قاعدة البيانات
+        _context.Students.Update(student);
+        _context.SaveChanges();
+
+        TempData["SuccessMessage"] = $"تم تغيير كلمة السر بنجاح للطالب: {student.Name}";
+        return RedirectToAction("ChangeStudentPassword");
     }
 
 

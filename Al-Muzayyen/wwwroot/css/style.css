@@ -97,9 +97,9 @@ nav {
         width: 48px;
         flex-shrink: 0;
         object-fit: cover;
-        box-shadow: 0 0 0 2px var(--primary-color), var(--shadow-glow);
+/*        box-shadow: 0 0 0 2px var(--primary-color), var(--shadow-glow);*/
         /* 12s هو وقت الدورة الكاملة (تقدر تقلله لسرعة أسرع أو تزوده لسرعة أبطأ) */
-        animation: rotateLogo 12s linear infinite;
+/*        animation: rotateLogo 12s linear infinite;*/
     }
 
 /* كود حركة الدوران المستمرة 360 درجة */
@@ -920,12 +920,8 @@ footer {
         gap: 8px;
     }
 
-        .logo img {
-            width: 40px;
-            height: 40px;
-        }
-
-        .logo h1 {
+      
+     .logo h1 {
             font-size: 0.95rem;
         }
 
@@ -944,87 +940,6 @@ footer {
         font-size: 0.85rem;
     }
 }
-
-/* --- شاشات أقل من 450px --- */
-/*@media (max-width: 450px) {
-    .logo {
-        gap: 6px;
-    }
-
-        .logo img {
-            width: 36px;
-            height: 36px;
-        }
-
-        .logo h1 {
-            font-size: 0.85rem;
-        }
-
-    .header-actions {
-        gap: 6px;
-    }
-
-    .theme-toggle-btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.9rem;
-    }
-
-    .btn-primary.boooking {
-        padding: 6px 10px;
-        font-size: 0.8rem;
-    }
-}*/
-
-/* --- شاشات أقل من 400px --- */
-/*@media (max-width: 400px) {
-    .logo {
-        gap: 5px;
-    }
-
-        .logo img {
-            width: 32px;
-            height: 32px;
-        }
-
-        .logo h1 {
-            font-size: 0.78rem;
-        }
-
-    .theme-toggle-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 0.85rem;
-    }
-
-    .btn-primary.boooking {
-        padding: 5px 8px;
-        font-size: 0.75rem;
-    }
-}*/
-
-/* --- شاشات صغيرة جداً (أقل من 350px) --- */
-/*@media (max-width: 350px) {
-    .logo img {
-        width: 28px;
-        height: 28px;
-    }
-
-    .logo h1 {
-        font-size: 0.7rem;
-    }
-
-    .btn-primary.boooking {
-        padding: 4px 6px;
-        font-size: 0.7rem;
-    }
-}*/
-
-
-
-
-
-
 
 
 

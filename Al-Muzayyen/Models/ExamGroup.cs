@@ -15,5 +15,7 @@ namespace Al_Muzayyen.Models
         [ForeignKey("AvailableSlot")]
         public int SlotId { get; set; }
         public Available_slot AvailableSlot { get; set; }
+
+        public DateTime AssignedAt { get; set; }= DateTime.Now;
     }
 }

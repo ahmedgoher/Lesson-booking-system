@@ -84,13 +84,7 @@
                 </div>
 
                 <!-- 🔑 حقل كلمة المرور -->
-                <div class="form-group">
-                    <label>كلمة المرور</label>
-                    @* <input type="password" name="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)"> *@
-                        <input asp-for="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)"> 
-                    <span asp-validation-for="Password" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
-                </div>
-
+            
                 <div class="form-group">
                     <label>الصف الدراسي</label>
                     <select asp-for="ClassId" id="select-grade">
@@ -127,6 +121,12 @@
                         <option value="0">اختر المجموعة</option>
                     </select>
                     <span asp-validation-for="SlotId" class="text-danger" style="font-size: 13px; display: block; margin-top: 5px;"></span>
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    @* <input type="password" name="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)"> *@
+                    <input asp-for="Password" id="student-password" placeholder="أدخل كلمة المرور (ستستخدم لتسجيل الدخول)">
+                    <span asp-validation-for="Password" class="text-danger" style="color: red; font-size: 13px; display: block; margin-top: 5px;"></span>
                 </div>
 
                 <div class="form-group">

@@ -47,9 +47,32 @@
             <div class="filter-field">
                 <label>حالة المجموعات:</label>
                 <select name="status" onchange="this.form.submit()">
-                    <!option value="Active" @(ViewBag.SelectedStatus == "Active" ? "selected" : "")>المجموعات النشطة فقط</!option>
-                    <!option value="Closed" @(ViewBag.SelectedStatus == "Closed" ? "selected" : "")>المجموعات المغلقة (المحذوفة)</!option>
-                    <!option value="All" @(ViewBag.SelectedStatus == "All" ? "selected" : "")>عرض الكل</!option>
+                    @if (ViewBag.SelectedStatus == "Active")
+                    {
+                        <option value="Active" selected="selected">المجموعات النشطة فقط</option>
+                    }
+                    else
+                    {
+                        <option value="Active">المجموعات النشطة فقط</option>
+                    }
+
+                    @if (ViewBag.SelectedStatus == "Closed")
+                    {
+                        <option value="Closed" selected="selected">المجموعات المغلقة (المحذوفة)</option>
+                    }
+                    else
+                    {
+                        <option value="Closed">المجموعات المغلقة (المحذوفة)</option>
+                    }
+
+                    @if (ViewBag.SelectedStatus == "All")
+                    {
+                        <option value="All" selected="selected">عرض الكل</option>
+                    }
+                    else
+                    {
+                        <option value="All">عرض الكل</option>
+                    }
                 </select>
             </div>
 

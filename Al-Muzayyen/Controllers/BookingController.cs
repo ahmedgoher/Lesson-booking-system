@@ -67,7 +67,7 @@ namespace Al_Muzayyen.Controllers
             if (result)
             {
                 ViewBag.SuccessMessage = "تم إنشاء حسابك وتسجيل بيانات الحجز بنجاح!";
-                return View(new Student()); // تفريغ النموذج بعد النجاح
+                return View("~/Views/Account/login2.cshtml"); // تفريغ النموذج بعد النجاح
             }
 
             // 🔴 5. إذا فشل الحفظ (غالباً بسبب تكرار رقم الهاتف)

@@ -15,6 +15,7 @@
         public int PassingMarks { get; set; }
         public int MaxAttempts { get; set; }
         public string Status { get; set; } = "Active";
+        public bool IsPaperExam { get; set; }
 
         // خيارات العشوائية والمراجعة
         public bool RandomQuestions { get; set; }

@@ -15,7 +15,7 @@
   
 </head>
 <style>
-
+ 
 </style>
 
 <body>
@@ -57,80 +57,104 @@
             <aside class="navigation-sidebar" id="appSidebar">
                 <ul class="sidebar-links-list">
 
+                    <!-- الرئيسية -->
                     <li>
                         <a asp-controller="Admin" asp-action="Index" class="sidebar-item-link">
-                            <i class="fas fa-home"></i>
-                            نظرة عامة
+                            <i class="fas fa-gauge-high"></i>
+                            <span>نظرة عامة</span>
                         </a>
                     </li>
 
+                    <!-- الطلاب -->
                     <li>
                         <a asp-controller="Admin" asp-action="Students" class="sidebar-item-link">
-                            <i class="fas fa-users"></i>
-                            الطلاب المسجلين
+                            <i class="fas fa-user-graduate"></i>
+                            <span>الطلاب المسجلون</span>
                         </a>
                     </li>
 
-                    <li>
-                        <a asp-controller="Admin" asp-action="Exams" class="sidebar-item-link">
-                            <i class="fas fa-users"></i>
-                            الامتحانات
-                        </a>
-                    </li>
-
+                    <!-- الصفوف -->
                     <li>
                         <a asp-controller="Admin" asp-action="Classes" class="sidebar-item-link">
-                            <i class="fas fa-plus"></i>
-                            اضافه صفوف 
+                            <i class="fas fa-school"></i>
+                            <span>الصفوف الدراسية</span>
                         </a>
                     </li>
 
+                    <!-- المجموعات -->
                     <li>
                         <a asp-controller="Admin" asp-action="Groups" class="sidebar-item-link">
                             <i class="fas fa-layer-group"></i>
-                            المجموعات
+                            <span>المجموعات</span>
                         </a>
                     </li>
 
-                      <li>
-                        <a asp-controller="Attendence" asp-action="Index" class="sidebar-item-link">
-                            <i class="fas fa-user-slash"></i>
-                            تسجيل الغياب 
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Exams" asp-action="PaperExam" class="sidebar-item-link">
-                            <i class="fas fa-user-slash"></i>
-                            اضافه امتحان ورقي
-                        </a>
-                    </li>
-
+                    <!-- الأماكن -->
                     <li>
                         <a asp-controller="Admin" asp-action="Locations" class="sidebar-item-link">
-                            <i class="fas fa-map-marker-alt"></i>
-                            الأماكن
+                            <i class="fas fa-location-dot"></i>
+                            <span>الأماكن</span>
                         </a>
                     </li>
 
+                    <!-- الفيديوهات -->
                     <li>
                         <a asp-controller="Admin" asp-action="Videos" class="sidebar-item-link">
-                            <i class="fas fa-video"></i>
-                            الفيديوهات
+                            <i class="fas fa-circle-play"></i>
+                            <span>الفيديوهات</span>
                         </a>
                     </li>
+
+                    <!-- الامتحانات -->
                     <li>
-                        <a asp-action="ChangeProfile" asp-controller="Admin"  class="sidebar-item-link">
-                            <i class="fas fa-cog" ></i> تعديل الحساب الشخصي
+                        <a asp-controller="Admin" asp-action="Exams" class="sidebar-item-link">
+                            <i class="fas fa-file-lines"></i>
+                            <span>الامتحانات</span>
                         </a>
                     </li>
+
+                    <!-- إضافة امتحان ورقي -->
                     <li>
-                        <a asp-action="Logout" asp-controller="Account" class="logout-btn sidebar-item-link" style="color: red; font-weight: bold; text-decoration: none;">
-                            <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                        <a asp-controller="Exams" asp-action="PaperExam" class="sidebar-item-link">
+                            <i class="fas fa-file-lines"></i>
+                            <span>إضافة امتحان ورقي</span>
                         </a>
                     </li>
+
+                    <!-- تسجيل الغياب -->
+                    <li>
+                        <a asp-controller="Attendence" asp-action="Index" class="sidebar-item-link">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>تسجيل الغياب</span>
+                        </a>
+                    </li>
+
+                    <!-- تعديل الحساب -->
+                    <li>
+                        <a asp-controller="Admin" asp-action="ChangeProfile" class="sidebar-item-link">
+                            <i class="fas fa-user-gear"></i>
+                            <span>تعديل الحساب الشخصي</span>
+                        </a>
+                    </li>
+
+                    <!-- تغيير كلمة مرور طالب -->
+                    <li>
+                        <a asp-controller="Admin" asp-action="ChangeStudentPassword" class="sidebar-item-link">
+                            <i class="fas fa-key"></i>
+                            <span>تغيير كلمة مرور طالب</span>
+                        </a>
+                    </li>
+
+                    <!-- تسجيل الخروج -->
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout" class="sidebar-item-link logout-btn">
+                            <i class="fas fa-right-from-bracket"></i>
+                            <span>تسجيل الخروج</span>
+                        </a>
+                    </li>
+
                 </ul>
             </aside>
-
 
 
 

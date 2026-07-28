@@ -12,7 +12,7 @@ namespace Al_Muzayyen.Services
         Task<bool> UpdateExamAsync(ExamViewModel model);
         Task<StudentExam> StartExamAsync(int examId, int studentId);
         Task UpdateExam(Exam exam);
-
+        Task<bool> HasStudentInExamAsync(int examId);
         Task DeleteExamAsync(int id);
         Task<IEnumerable<ExamViewModel>> GetAllExamsViewModelsAsync();
     }

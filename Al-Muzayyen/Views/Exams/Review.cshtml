@@ -1,13 +1,62 @@
-﻿@using Al_Muzayyen.Viewmodel
-@Html.AntiForgeryToken()
-@model IEnumerable<StudentQuestionViewModel>
+﻿@model Al_Muzayyen.Viewmodel.ExamReviewViewModel
+
 @{
-    Layout = "~/Views/Shared/_StudentLayout.cshtml";
-    ViewData["Title"] = "showExam";
+    ViewData["Title"] = "عرض إجابات الامتحان - " + Model.ExamTitle;
+    int number = 1;
+        if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+    {
+        Layout = "~/Views/Shared/_LayoutAdmin.cshtml"; // 👈 ضع هنا مسار الـ Layout الخاص بالأدمن عندك
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_StudentLayout.cshtml"; // 👈 مسار الـ Layout الخاص بالطالب
+    }
+
 }
 
 <style>
-    :root {
+    /* بنر التأكيد والنجاح */
+    .alert-success-banner {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 18px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* التنسيقات الخاصة بالإجابات */
+    .answer-item.is-correct {
+        background-color: #d4edda !important;
+        border-color: #28a745 !important;
+        color: #155724 !important;
+        font-weight: bold;
+    }
+
+    .answer-item.is-wrong {
+        background-color: #f8d7da !important;
+        border-color: #dc3545 !important;
+        color: #721c24 !important;
+    }
+
+    /* مربع عرض الإجابة النموذجية بالأسفل */
+    .correct-answer-box {
+        background: #eef9f1;
+        border: 1px solid #28a745;
+        color: #155724;
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+        :root {
         --success: #10b981;
         --error: #ef4444;
         --warning: #f59e0b;
@@ -409,144 +458,134 @@
     }
 </style>
 
-
-
 <div class="exam-container">
-    <!-- نموذج C# Post Form جاهز للاستخدام -->
-    <form id="examForm" asp-controller="Exams" asp-action="Submit" method="post">
-    @Html.AntiForgeryToken()
 
-        <!-- حقول مخفية يمكن تغيير قيمتها ديناميكياً من Razor Model -->
-        <input type="hidden"
-               id="ExamId"
-               name="ExamId"
-               value="@ViewBag.ExamId" />
-        <input type="hidden" id="StudentId" name="StudentId" value="@ViewBag.StudentId" />
+    <!-- 🟢 بنر تنبيه أعلى الصفحة بتم التسليم -->
+    <div class="alert-success-banner">
+        <i class="fas fa-check-circle fa-lg"></i>
+        <span>تم تسليم الامتحان بنجاح. يمكنك الآن الاطلاع على تقرير الإجابات والإجابة النموذجية.</span>
+    </div>
 
-        <!-- 1. الشريط العلوي (تم ربط مدة الامتحان بـ Data Attribute) -->
-        <div class="top-exam-bar">
-            <div class="timer-badge"
-                 id="timerContainer"
-                 data-duration-minutes="@ViewBag.Duration">
-                <i class="fas fa-clock"></i>
-                <span id="timerDisplay">00:00</span>
-            </div>
-
-            <div class="questions-scroll-wrapper" id="questionsNav">
-                <!-- يتم توليد الأزرار ديناميكياً بواسطة السكريبت حسب عدد الكروت الموجودة -->
-            </div>
+    <!-- 1. الشريط العلوي -->
+    <div class="top-exam-bar">
+        <div class="timer-badge" style="background-color: #17a2b8;">
+            <i class="fas fa-eye"></i>
+            <span>مراجعة الإجابات</span>
         </div>
 
-        <!-- 2. حاوية الأسئلة -->
-        <div id="questionsContainer">
+        <div class="questions-scroll-wrapper" id="questionsNav">
+            <!-- سيتم إنشاؤه بالـ JavaScript -->
+        </div>
+    </div>
 
-            <!-- مثال سؤال 1 (Razor foreach loop) -->
-           @{
-    int number = 1;
-}
-            <p>عدد الأسئلة : @Model.Count()</p>
-@foreach (var question in Model)
-{
-    <div class="question-card @(number == 1 ? "active" : "")"
-         data-q-index="@number"
-         data-question-id="@question.Id">
+    <!-- 2. حاوية الأسئلة -->
+    <div id="questionsContainer">
 
-        <div class="question-flex-body">
+        @foreach (var question in Model.Questions)
+        {
+            <div class="question-card @(number == 1 ? "active" : "")"
+                 data-q-index="@number"
+                 data-question-id="@question.QuestionId">
 
-            @if(!string.IsNullOrEmpty(question.ImageUrl))
-            {
-                <div class="question-image-box"
-                     onclick="zoomImage(this)">
-                    <img src="@question.ImageUrl" />
-                </div>
-            }
+                <div class="question-flex-body">
 
-            <div class="question-content-box">
-
-                <div class="question-title">
-                    <span>@number :</span>
-                    @question.QuestionText
-                </div>
-
-                <div class="answers-list">
-
-                    @foreach(var option in question.Options)
+                    @if (!string.IsNullOrEmpty(question.ImageUrl))
                     {
-                        <label class="answer-item">
-
-                            <input type="radio"
-                                   name="Answers[@question.Id]"
-                                   value="@option.Id"
-                                   onchange="selectOption(this)" />
-
-                            @option.OptionText
-
-                        </label>
+                        <div class="question-image-box" onclick="zoomImage(this)">
+                            <img src="@question.ImageUrl" alt="صورة السؤال" />
+                        </div>
                     }
 
+                    <div class="question-content-box">
+
+                        <div class="question-title">
+                            <span>@number :</span>
+                            @question.QuestionText
+                        </div>
+
+                        <div class="answers-list">
+
+                            @foreach (var option in question.Options)
+                            {
+                                bool isSelectedByStudent = (question.SelectedOptionId == option.OptionId);
+                                bool isCorrectOption = option.IsCorrect;
+
+                                string statusClass = "";
+                                if (isSelectedByStudent && isCorrectOption)
+                                {
+                                    statusClass = "is-correct"; // إجابة الطالب وصحيحة
+                                }
+                                else if (isSelectedByStudent && !isCorrectOption)
+                                {
+                                    statusClass = "is-wrong"; // إجابة الطالب وخاطئة
+                                }
+                                else if (isCorrectOption)
+                                {
+                                    statusClass = "is-correct"; // الإجابة الصحيحة التي لم يختارها الطالب
+                                }
+
+                                <label class="answer-item @statusClass">
+
+                                    <input type="radio"
+                                           name="Answers[@question.QuestionId]"
+                                           value="@option.OptionId"
+                                    @(isSelectedByStudent ? "checked" : "")
+                                           disabled />
+
+                                    @option.OptionText
+
+                                    @if (isSelectedByStudent && isCorrectOption)
+                                    {
+                                        <i class="fas fa-check-circle text-success ms-2" title="إجابتك الصحيحة"></i>
+                                    }
+                                    else if (isSelectedByStudent && !isCorrectOption)
+                                    {
+                                        <i class="fas fa-times-circle text-danger ms-2" title="إجابتك الخاطئة"></i>
+                                    }
+                                    else if (isCorrectOption)
+                                    {
+                                        <i class="fas fa-check text-success ms-2" title="الإجابة الصحيحة"></i>
+                                    }
+
+                                </label>
+                            }
+
+                        </div>
+
+                    </div>
+
                 </div>
+
+                <!-- تخزين نص الإجابة الصحيحة كـ value مخفي للسؤال الحالي -->
+                @{
+                    var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                }
+                <input type="hidden" class="correct-option-text" value="@(correctOption != null ? correctOption.OptionText : "غير محدد")" />
 
             </div>
 
-        </div>
+            number++;
+        }
 
     </div>
 
-    number++;
-}
+    <!-- 3. أزرار التنقل السفلية -->
+    <div class="actions-footer">
+        <button type="button" class="btn btn-prev" id="btnPrev" onclick="prevQuestion()">
+            <i class="fas fa-arrow-right"></i> السابق
+        </button>
 
-            <!-- مثال سؤال 2 (يحتوي على صورة) -->
-            @* <div class="question-card" data-q-index="2" data-question-id="1002">
-                <div class="question-flex-body">
-                    <div class="question-image-box" onclick="zoomImage(this)">
-                        <img src="/assets/images/image.png" alt="صورة السؤال">
-                        <div class="zoom-overlay"><i class="fas fa-search-plus"></i> اضغط التكبير</div>
-                    </div>
-
-                    <div class="question-content-box">
-                        <div class="question-title">
-                            <span> 2:</span> بناءً على الشكل الموضح جانباً، ما هو قيمة المتغير (س) في الرسم التخطيطي؟
-                        </div>
-                        <div class="answers-list">
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1002]" value="13" onchange="selectOption(this)">
-                                45 درجة
-                            </label>
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1002]" value="14" onchange="selectOption(this)">
-                                90 درجة
-                            </label>
-                            <label class="answer-item">
-                                <input type="radio" name="Answers[1002]" value="15" onchange="selectOption(this)">
-                                180 درجة
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div> *@
-
+        <!-- بدلاً من زر تخطي: يظهر صندوق الإجابة الصحيحة هنا -->
+        <div class="correct-answer-box" id="correctAnswerBox">
+            <i class="fas fa-lightbulb text-warning"></i>
+            <span>الإجابة الصحيحة: <span id="correctAnswerText">---</span></span>
         </div>
 
-        <!-- 3. أزرار التنقل السفلية -->
-        <div class="actions-footer">
-            <button type="button" class="btn btn-prev" id="btnPrev" onclick="prevQuestion()">
-                <i class="fas fa-arrow-right"></i> السابق
-            </button>
+        <button type="button" class="btn btn-next" id="btnNext" onclick="nextQuestion()">
+            التالي <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
 
-            <button type="button" class="btn btn-skip" id="btnSkip" onclick="skipQuestion()">
-                تخطي  <i class="fas fa-forward"></i>
-            </button>
-
-            <button type="button" class="btn btn-next" id="btnNext" onclick="nextQuestion()">
-                التالي <i class="fas fa-arrow-left"></i>
-            </button>
-
-            <button type="submit" class="btn btn-submit" id="btnSubmit" style="display: none;">
-                تسليم الامتحان <i class="fas fa-check-circle"></i>
-            </button>
-        </div>
-
-    </form>
 </div>
 
 <!-- 4. النافذة المنبثقة لتكبير الصورة -->
@@ -558,32 +597,19 @@
 </div>
 
 <script>
-    // =========================================================
-    // ⚙️ محرك الصفحة العام (ديناميكي بالكامل ولا يتأثر بقيم ثابتة)
-    // =========================================================
     let currentQuestionIndex = 1;
     let totalQuestions = 0;
-    let timeInSeconds = 0;
-    const examState = {};
 
-    function initExamEngine() {
+    function initReviewEngine() {
         const questionCards = document.querySelectorAll('.question-card');
         totalQuestions = questionCards.length;
 
-        // قراءة الوقت بالدقائق من HTML Data Attribute
-        const timerContainer = document.getElementById('timerContainer');
-        const durationMinutes = parseInt(timerContainer.getAttribute('data-duration-minutes')) || 30;
-        timeInSeconds = durationMinutes * 60;
-
-        // تهيئة كروت الأسئلة والحالة
         questionCards.forEach((card, index) => {
             const qIndex = index + 1;
             card.setAttribute('data-q-index', qIndex);
-            examState[qIndex] = { answered: false, skipped: false };
         });
 
         buildNavigationButtons();
-        startTimer();
         updateUI();
     }
 
@@ -615,81 +641,6 @@
         updateUI();
     }
 
-    // function selectOption(radioInput) {
-    //     const card = radioInput.closest('.question-card');
-    //     const qIndex = parseInt(card.getAttribute('data-q-index'));
-
-    //     examState[qIndex].answered = true;
-    //     examState[qIndex].skipped = false;
-
-    //     const labels = card.querySelectorAll('.answer-item');
-    //     labels.forEach(lbl => lbl.classList.remove('selected'));
-    //     radioInput.parentElement.classList.add('selected');
-
-    //     updateUI();
-    // }
-async function selectOption(radioInput) {
-    const card = radioInput.closest(".question-card");
-    const questionId = card.dataset.questionId;
-    const optionId = radioInput.value;
-    const examId = document.getElementById("ExamId").value;
-    const qIndex = parseInt(card.dataset.qIndex);
-
-    // الحصول على Antiforgery Token من الصفحة
-    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-    const token = tokenInput ? tokenInput.value : '';
-
-    examState[qIndex].answered = true;
-    examState[qIndex].skipped = false;
-
-    const labels = card.querySelectorAll(".answer-item");
-    labels.forEach(x => x.classList.remove("selected"));
-    radioInput.parentElement.classList.add("selected");
-
-    updateUI();
-
-    try {
-        const response = await fetch("/Exams/SaveAnswer", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "RequestVerificationToken": token // إرسال توكن الحماية هنا
-            },
-            body: JSON.stringify({
-                examId: parseInt(examId),
-                questionId: parseInt(questionId),
-                optionId: parseInt(optionId)
-            })
-        });
-
-        if (response.status === 401) {
-            alert("انتهت الجلسة، يرجى إعادة تسجيل الدخول.");
-            return;
-        }
-
-        const result = await response.json();
-
-        if (!result.success) {
-            alert("فشل حفظ الإجابة");
-        }
-    }
-    catch (e) {
-        console.error("Error saving answer:", e);
-    }
-}
-
-    function skipQuestion() {
-        if (!examState[currentQuestionIndex].answered) {
-            examState[currentQuestionIndex].skipped = true;
-        }
-
-        if (currentQuestionIndex < totalQuestions) {
-            goToQuestion(currentQuestionIndex + 1);
-        } else {
-            updateUI();
-        }
-    }
-
     function nextQuestion() {
         if (currentQuestionIndex < totalQuestions) {
             goToQuestion(currentQuestionIndex + 1);
@@ -703,49 +654,29 @@ async function selectOption(radioInput) {
     }
 
     function updateUI() {
+        // 1. تحديث أزرار التنقل بالترقيم
         for (let i = 1; i <= totalQuestions; i++) {
             const btn = document.getElementById(`q-btn-${i}`);
             if (!btn) continue;
 
             btn.className = 'q-btn';
-
             if (i === currentQuestionIndex) {
                 btn.classList.add('current-active');
             }
-
-            if (examState[i].answered) {
-                btn.classList.add('state-answered');
-            } else if (examState[i].skipped) {
-                btn.classList.add('state-skipped');
-            }
         }
 
+        // 2. تحديث أزرار التالي والسابق
         document.getElementById('btnPrev').style.display = (currentQuestionIndex === 1) ? 'none' : 'inline-flex';
+        document.getElementById('btnNext').style.display = (currentQuestionIndex === totalQuestions) ? 'none' : 'inline-flex';
 
-        if (currentQuestionIndex === totalQuestions) {
-            document.getElementById('btnNext').style.display = 'none';
-            document.getElementById('btnSubmit').style.display = 'inline-flex';
-        } else {
-            document.getElementById('btnNext').style.display = 'inline-flex';
-            document.getElementById('btnSubmit').style.display = 'none';
-        }
-    }
-
-    function startTimer() {
-        const timerDisplay = document.getElementById('timerDisplay');
-        const interval = setInterval(() => {
-            if (timeInSeconds <= 0) {
-                clearInterval(interval);
-                alert('انتهى وقت الامتحان! سيتم التسليم التلقائي الآن.');
-                document.getElementById('examForm').submit();
-                return;
+        // 3. قراءة الإجابة الصحيحة للـ Card الحالي وعرضها في المنتصف
+        const activeCard = document.querySelector(`.question-card[data-q-index="${currentQuestionIndex}"]`);
+        if (activeCard) {
+            const correctTextInput = activeCard.querySelector('.correct-option-text');
+            if (correctTextInput) {
+                document.getElementById('correctAnswerText').innerText = correctTextInput.value;
             }
-
-            timeInSeconds--;
-            const mins = Math.floor(timeInSeconds / 60);
-            const secs = timeInSeconds % 60;
-            timerDisplay.innerText = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }, 1000);
+        }
     }
 
     function zoomImage(element) {
@@ -761,43 +692,6 @@ async function selectOption(radioInput) {
     }
 
     window.onload = () => {
-        initExamEngine();
+        initReviewEngine();
     };
-    // 1. تسليم تلقائي عند فقدان الاتصال بالإنترنت تماماً
-    window.addEventListener('offline', function() {
-        alert('تم قطع الاتصال بالإنترنت! سيتم تسليم إجاباتك الحالية تلقائياً لمنع فقدان البيانات.');
-        autoSubmitExam();
-    });
-
-    // 2. إرسال الإجابات حتى لو أغلق الطالب المتصفح أو خرج من الصفحة
-    document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'hidden') {
-            // إذا خرج الطالب من التبويب أو أغلق الصفحة
-            sendBeaconSubmit();
-        }
-    });
-
-    function autoSubmitExam() {
-        const form = document.getElementById('examForm');
-        if (form) {
-            form.submit();
-        }
-    }
-    window.addEventListener('offline', function() {
-    alert('⚠️ انقطع الاتصال بالإنترنت! يرجى عدم إغلاق الصفحة حتى يعود الاتصال لتجنب ضياع الإجابات.');
-});
-    function sendBeaconSubmit() {
-        const examId = document.getElementById("ExamId").value;
-        const formData = new FormData();
-        formData.append("examId", examId);
-
-        // إضافة توكن الحماية
-        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-        if (tokenInput) {
-            formData.append("__RequestVerificationToken", tokenInput.value);
-        }
-
-        // إرسال الطلب في الخلفية حتى أثناء إغلاق الشاشة
-        navigator.sendBeacon("/Exams/Submit", formData);
-    }
 </script>

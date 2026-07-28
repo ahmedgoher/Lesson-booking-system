@@ -49,7 +49,7 @@ namespace Al_Muzayyen.Controllers
                 .Where(g => g.ClassId == student.ClassId && g.Id != student.Id)
                 .Select(g => new SelectListItem2
                 {
-                     Id= g.Id,
+                    Id= g.Id,
                     Name = g.Group_Name
                 })
                 .ToListAsync();
@@ -84,10 +84,27 @@ namespace Al_Muzayyen.Controllers
 
             // حساب الامتحانات والدرجات
             var examsTaken = await _context.StudentExams
+                .Include(se => se.Exam)
                 .Where(se => se.StudentId == student.Id)
                 .ToListAsync();
 
-            double avgScore = examsTaken.Any() ? Math.Round(examsTaken.Average(se => se.Score), 1) : 0;
+            double avgScore = 0;
+
+            if (examsTaken.Any())
+            {
+                // مجموع درجات الطالب
+                var totalStudentScore = examsTaken.Sum(se => se.Score);
+
+                // مجموع الدرجات الكلية للامتحانات
+                var totalExamMarks = examsTaken
+                    .Where(se => se.Exam != null)
+                    .Sum(se => se.Exam.TotalMarks);
+
+                if (totalExamMarks > 0)
+                {
+                    avgScore = Math.Round(((double)totalStudentScore / totalExamMarks) * 100, 1);
+                }
+            }
 
             var statsModel = new StudentStatsViewModel
             {
@@ -109,6 +126,7 @@ namespace Al_Muzayyen.Controllers
             if (student == null) return Unauthorized();
 
             var now = DateTime.Now;
+            var joinDate = student.CreatedAt;
 
             // الامتحانات التي أداها الطالب بالفعل
             var completedExamIds = await _context.StudentExams
@@ -117,9 +135,11 @@ namespace Al_Muzayyen.Controllers
                 .ToListAsync();
 
             // الامتحانات المتاحة حالياً ولم يؤدها بعد
-            var pendingExams = await _context.Exams
-                .Where(e => e.ClassId == student.ClassId
-                         && e.IsActive
+            var pendingExams = await _context.ExamGroup
+                .Where(eg => eg.SlotId == student.SlotId
+                          && eg.AssignedAt >= joinDate)
+                .Select(eg => eg.Exam)
+                .Where(e => e.IsActive
                          && e.StartExamTime <= now
                          && e.EndExamTime >= now
                          && !completedExamIds.Contains(e.Id))
@@ -128,7 +148,7 @@ namespace Al_Muzayyen.Controllers
             // أحدث طلب تغيير مجموعة (ولم يتم إخفاؤه/تجاهله)
             var latestRequest = await _context.GroupChangeRequests
                 .Include(r => r.RequestedSlot)
-                //.Where(r => r.StudentId == student.Id && !r.IsDismissed)
+                .Where(r => r.StudentId == student.Id && !r.IsDismissed)
                 .OrderByDescending(r => r.RequestDate)
                 .FirstOrDefaultAsync();
 
@@ -141,39 +161,39 @@ namespace Al_Muzayyen.Controllers
             return PartialView("_StudentAlertsPartial", alertsModel);
         }
 
-        // 4️⃣ استقبال طلب تغيير المجموعة (Submit Form via AJAX)
-        [HttpPost]
-        public async Task<IActionResult> SubmitGroupChangeRequest(int requestedSlotId, string? reason)
-        {
-            var student = await GetCurrentStudentAsync();
-            if (student == null)
-                return Json(new { success = false, message = "جلسة العمل انتهت، يرجى إعادة التسجيل." });
+        //// 4️⃣ استقبال طلب تغيير المجموعة (Submit Form via AJAX)
+        //[HttpPost]
+        //public async Task<IActionResult> SubmitGroupChangeRequest(int requestedSlotId, string? reason)
+        //{
+        //    var student = await GetCurrentStudentAsync();
+        //    if (student == null)
+        //        return Json(new { success = false, message = "جلسة العمل انتهت، يرجى إعادة التسجيل." });
 
-            if (requestedSlotId <= 0)
-                return Json(new { success = false, message = "يرجى اختيار المجموعة المطلوبة." });
+        //    if (requestedSlotId <= 0)
+        //        return Json(new { success = false, message = "يرجى اختيار المجموعة المطلوبة." });
 
-            // التثبت من عدم وجود طلب معلق سابقاً
-            bool hasPending = await _context.GroupChangeRequests
-                .AnyAsync(r => r.StudentId == student.Id && r.Status == RequestStatus.Pending);
+        //    // التثبت من عدم وجود طلب معلق سابقاً
+        //    bool hasPending = await _context.GroupChangeRequests
+        //        .AnyAsync(r => r.StudentId == student.Id && r.Status == RequestStatus.Pending);
 
-            if (hasPending)
-                return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد المراجعة بالفعل." });
+        //    if (hasPending)
+        //        return Json(new { success = false, message = "لديك طلب تغيير مجموعة قيد المراجعة بالفعل." });
 
-            var request = new GroupChangeRequest
-            {
-                StudentId = student.Id,
-                RequestSlotId = requestedSlotId,
-                Reason = reason,
-                Status = RequestStatus.Pending,
-                RequestDate = DateTime.Now,
-                //IsDismissed = false
-            };
+        //    var request = new GroupChangeRequest
+        //    {
+        //        StudentId = student.Id,
+        //        RequestSlotId = requestedSlotId,
+        //        Reason = reason,
+        //        Status = RequestStatus.Pending,
+        //        RequestDate = DateTime.Now,
+        //        IsDismissed = false
+        //    };
 
-            _context.GroupChangeRequests.Add(request);
-            await _context.SaveChangesAsync();
+        //    _context.GroupChangeRequests.Add(request);
+        //    await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "تم إرسال طلب تغيير المجموعة بنجاح!" });
-        }
+        //    return Json(new { success = true, message = "تم إرسال طلب تغيير المجموعة بنجاح!" });
+        //}
 
         // 5️⃣ إخفاء التنبيه بعد مشاهدته (Dismiss Notification)
         [HttpPost]
@@ -182,7 +202,7 @@ namespace Al_Muzayyen.Controllers
             var request = await _context.GroupChangeRequests.FindAsync(requestId);
             if (request != null)
             {
-                //request.IsDismissed = true; // خاصية لتعليم أن الطالب شاهد النتيجة وأخفاها
+                request.IsDismissed = true; // خاصية لتعليم أن الطالب شاهد النتيجة وأخفاها
                 await _context.SaveChangesAsync();
                 return Json(new { success = true });
             }
@@ -191,6 +211,11 @@ namespace Al_Muzayyen.Controllers
         }
 
         #endregion
+
+
+
+
+
 
 
 
@@ -210,7 +235,7 @@ namespace Al_Muzayyen.Controllers
                 return View(new StudentMatrialVM());
             }
             var videos = _context.Materials
-                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.VideoLink)
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.VideoLink && m.CreatedAt >= student.CreatedAt)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToList();
             var viewModel = new StudentMatrialVM
@@ -222,7 +247,6 @@ namespace Al_Muzayyen.Controllers
         }
         public async Task<IActionResult> Exams()
         {
-            // 1. جلب معرف المستخدم الحالي من الـ Claim
             var userClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userClaim))
@@ -230,7 +254,6 @@ namespace Al_Muzayyen.Controllers
                 return RedirectToAction("login2", "Account");
             }
 
-            // 2. البحث عن الطالب سواء كان الـ Claim هو UserId أو Student Id
             Student? student = null;
 
             if (int.TryParse(userClaim, out int studentId))
@@ -250,20 +273,35 @@ namespace Al_Muzayyen.Controllers
             int currentStudentSlotId = student.SlotId;
             int currentStudentId = student.Id;
 
-            // 3. جلب الامتحانات الموجهة لمجموعة الطالب عبر الجدول الوسيط ExamGroups
+            // 🎯 1. تحديد الوقت الحالي خارج الاستعلام
+            var now = DateTime.Now;
+
+            // 2. جلب الامتحانات
             var exams = await _context.Exams
-                .Where(e => e.IsActive && e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId))
+                .Where(e =>
+                    e.IsActive &&
+                    e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId) &&
+                    e.StartExamTime >= student.CreatedAt)
                 .Select(e => new StudentExamViewModel
                 {
                     ExamId = e.Id,
                     ExamTitle = e.Title,
-                    Date = e.StartExamTime,
+                    StartTime = e.StartExamTime,
+                    EndTime = e.EndExamTime,
                     TotalMarks = e.TotalMarks,
+                    IsPaperExam = e.IsPaperExam,
 
-                    // التأكد هل أدى الطالب هذا الامتحان قبل ذلك؟
-                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId),
+                    // 🎯 3. ضبط شرط الحالة بدقة
+                    Status = e.StudentExams.Any(x => x.StudentId == currentStudentId && x.IsSubmitted)
+                        ? "Completed"
+                        : now < e.StartExamTime
+                            ? "NotStarted"
+                            : now > e.EndExamTime
+                                ? "Ended"
+                                : "Available",
 
-                    // جلب درجة الطالب إن وجدت
+                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId && se.IsSubmitted),
+
                     Score = e.StudentExams
                              .Where(se => se.StudentId == currentStudentId)
                              .Select(se => (double?)se.Score)
@@ -354,7 +392,7 @@ namespace Al_Muzayyen.Controllers
             }
 
             var materials = _context.Materials
-                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.PDF)
+                .Where(m => m.SlotId == student.SlotId && m.Type == MaterialType.PDF && m.CreatedAt >= student.CreatedAt)
                 .OrderByDescending(v => v.CreatedAt)
                 .ToList();
             var viewModel = new StudentMatrialVM
@@ -455,8 +493,12 @@ namespace Al_Muzayyen.Controllers
             var student = await _context.Students.FindAsync(studentId);
             if (student == null) return Json(new { success = false, message = "الطالب غير موجود" });
 
-            // التأكد من صحة كلمة المرور الحالية
-            if (student.Password != model.CurrentPassword)
+            // 🟢 1. إنشاء كائن الـ PasswordHasher
+            var passwordHasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Student>();
+
+            // 🟢 2. التحقق من صحة كلمة المرور الحالية (المقارنة بين النص المدخل والهاش المخزن)
+            var verificationResult = passwordHasher.VerifyHashedPassword(student, student.Password, model.CurrentPassword);
+            if (verificationResult != Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success)
             {
                 return Json(new { success = false, message = "كلمة المرور الحالية غير صحيحة!" });
             }
@@ -466,13 +508,14 @@ namespace Al_Muzayyen.Controllers
                 return Json(new { success = false, message = "كلمة المرور الجديدة وتأكيدها غير متطابقين!" });
             }
 
-            // تحديث كلمة المرور
-            student.Password = model.NewPassword;
+            // 🟢 3. تشفير كلمة المرور الجديدة وتحديثها في قاعدة البيانات
+            student.Password = passwordHasher.HashPassword(student, model.NewPassword);
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "تم تغيير كلمة المرور بنجاح!" });
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitGroupChangeRequest([FromBody] ChangeGroupVM vm)
         {
             try

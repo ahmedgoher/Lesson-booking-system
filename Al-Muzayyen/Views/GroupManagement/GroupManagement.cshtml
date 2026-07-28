@@ -1,6 +1,6 @@
 ﻿@using Al_Muzayyen.Viewmodel
 @model GroupManagementViewModel
-
+@Html.AntiForgeryToken()
 @{
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     ViewData["Title"] = "إدارة المجموعة";
@@ -266,6 +266,40 @@
 }
 
 
+
+
+.btn-action {
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    margin: 0 2px;
+    transition: all 0.2s ease;
+}
+
+.btn-review {
+    background-color: #e3f2fd;
+    color: #0d6efd;
+}
+
+.btn-review:hover {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.btn-add-attempt {
+    background-color: #e8f5e9;
+    color: #198754;
+    font-weight: bold;
+}
+
+.btn-add-attempt:hover {
+    background-color: #198754;
+    color: white;
+}
+
+
 .Alll{
     color:#c5a059
 }
@@ -449,7 +483,7 @@
 
 <!-- ================= POPUPS / MODALS ================= -->
 <!-- Popup 1: نتائج الطلاب للامتحان -->
-<div class="custom-modal-overlay" id="examResultsModal">
+@* <div class="custom-modal-overlay" id="examResultsModal">
     <div class="custom-modal-content">
         <div class="modal-header-block">
             <h3>نتائج طلاب المجموعة في الامتحان</h3>
@@ -466,27 +500,36 @@
                                 </tr>
                             </thead>
                              <tbody id="exam-results-body">
-                    @*<tr>
-                        <td>أحمد محمد علي</td>
-                        <td>95/100</td>
-                        <td><span style="color: green; font-weight: bold;">مكتمل</span></td>
-                    </tr>
+                  
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> *@
+<div class="custom-modal-overlay" id="examResultsModal">
+    <div class="custom-modal-content">
+        <div class="modal-header-block">
+            <h3>نتائج طلاب المجموعة في الامتحان</h3>
+            <button class="close-modal-btn" onclick="closeModal('examResultsModal')">&times;</button>
+        </div>
+        <div class="table-responsive-container">
+            <table class="data-display-table">
+                <thead>
                     <tr>
-                        <td>سارة محمود</td>
-                        <td>88/100</td>
-                        <td><span style="color: green; font-weight: bold;">مكتمل</span></td>
+                        <th>اسم الطالب</th>
+                        <th>الدرجة</th>
+                        <th>الحالة</th>
+                        <th>وقت التسليم</th>
+                        <th style="text-align: center;">العمليات</th> <!-- 🎯 العمود الجديد -->
                     </tr>
-                    <tr style="background-color: var(--absent-row-bg, rgba(239, 68, 68, 0.08));">
-                        <td>محمود حسن</td>
-                        <td>--</td>
-                        <td><span style="color: var(--absent-color, #f87171); font-weight: bold;">لم يمتحن</span></td>
-                    </tr> *@
+                </thead>
+                <tbody id="exam-results-body">
+                    <!-- سيتم تعبئة البيانات بـ JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
 <!-- Popup 2: إضافة امتحان للمجموعة بالفلترة -->
 <div class="custom-modal-overlay" id="addExamModal">
     <div class="custom-modal-content">
@@ -665,7 +708,7 @@
             event.target.classList.remove('active');
         }
     }
-                async function showExamResults(examId) {
+@*                 async function showExamResults(examId) {
 
                     try {
 
@@ -755,7 +798,316 @@ switch (student.status) {
 
                     }
 
-                }
+                } *@
+@*                 async function showExamResults(examId) {
+
+    try {
+
+        const response = await fetch(`/GroupManagement/GetExamResults?examId=${examId}&slotId=@Model.SlotId`);
+
+        const result = await response.json();
+
+        if (!result.success) {
+
+            alert(result.message || "حدث خطأ أثناء تحميل النتائج");
+
+            return;
+        }
+
+        const tbody = document.getElementById("exam-results-body");
+
+        tbody.innerHTML = "";
+
+        // 🎯 معرفة ما إذا كان الوقت الرسمي للامتحان قد انتهى أم لا من السيرفر
+        const isExamEnded = result.isExamEnded ?? false;
+
+        result.data.forEach(student => {
+
+            let score = student.score == null ? "--" : student.score;
+
+            let submitted = student.submittedAt == null
+                ? "--"
+                : new Date(student.submittedAt).toLocaleDateString("ar-EG");
+
+            let statusColor = "";
+
+            switch (student.status) {
+                case "ناجح":
+                    statusColor = "green";
+                    break;
+
+                case "راسب":
+                    statusColor = "red";
+                    break;
+
+                case "غائب":
+                    statusColor = "#dc2626";
+                    break;
+
+                case "لم يبدأ":
+                    statusColor = "#2563eb";
+                    break;
+
+                case "لم يمتحن بعد":
+                    statusColor = "#f59e0b";
+                    break;
+
+                default:
+                    statusColor = "#64748b";
+                    break;
+            }
+
+            // 🎯 زر إعادة/إضافة المحاولة (يظهر فقط لو لم ينتهِ الوقت الرسمي للامتحان)
+            let addAttemptBtn = "";
+            if (!isExamEnded) {
+                addAttemptBtn = `
+                    <button class="btn-action btn-add-attempt" 
+                            title="إعادة إتاحة محاولة للطالب" 
+                            onclick="resetStudentAttempt(${student.studentId}, ${examId})">
+                        ➕ محاولة
+                    </button>`;
+            } else {
+                addAttemptBtn = `<span style="color:#888; font-size:11px;">انتهى الوقت</span>`;
+            }
+
+            // 🎯 أيقونة العين لمراجعة الإجابات
+            let reviewBtn = `
+                <button class="btn-action btn-review" 
+                        title="عرض إجابات الطالب" 
+                        onclick="openStudentReview(${student.studentId}, ${examId})">
+                    👁️
+                </button>`;
+
+            tbody.innerHTML += `
+                <tr>
+
+                    <td>${student.studentName}</td>
+
+                    <td>${score}</td>
+
+                    <td>
+                        <span style="color:${statusColor};font-weight:bold;">
+                            ${student.status}
+                        </span>
+                    </td>
+
+                    <td>${submitted}</td>
+
+                    <td style="text-align: center; white-space: nowrap;">
+                        ${reviewBtn}
+                        ${addAttemptBtn}
+                    </td>
+
+                </tr>
+            `;
+
+        });
+
+        openModal("examResultsModal");
+
+    }
+    catch (e) {
+
+        console.error(e);
+
+        alert("حدث خطأ أثناء تحميل النتائج");
+
+    }
+
+}
+function openStudentReview(studentId, examId) {
+    console.log("Review Clicked:", studentId, examId); // للتأكد في الـ Console
+
+    if (!studentId || !examId) {
+        alert("خطأ: بيانات الطالب أو الامتحان غير اكتمالة.");
+        return;
+    }
+
+    // التوجيه المباشر لصفحة المراجعة
+    window.location.href = `/Exams/Review?examId=${examId}&studentId=${studentId}`;
+}
+// زر إعادة المحاولة / إضافة محاولة جديدة
+
+    function resetStudentAttempt(studentId, examId) {
+    if (!confirm("هل أنت تأكد من إتاحة محاولة جديدة لهذا الطالب؟ سيتيح له ذلك أداء الامتحان مجدداً.")) {
+        return;
+    }
+
+    // تجهيز Request Verification Token للأمان في ASP.NET Core
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    fetch('/Exams/ResetStudentAttempt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token
+        },
+        body: `examId=${examId}&studentId=${studentId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // إعادة تحميل بيانات النتائج للجدول لتحديث الحالة
+            if (typeof loadExamResults === 'function') {
+                loadExamResults(examId);
+            } else {
+                location.reload();
+            }
+        } else {
+            alert("خطأ: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء الاتصال بالسيرفر.');
+    });
+} *@
+// ==========================================
+// 1. عرض نتائج الامتحان للطلاب
+// ==========================================
+async function showExamResults(examId) {
+    try {
+        const response = await fetch(`/GroupManagement/GetExamResults?examId=${examId}&slotId=@Model.SlotId`);
+        const result = await response.json();
+
+        if (!result.success) {
+            alert(result.message || "حدث خطأ أثناء تحميل النتائج");
+            return;
+        }
+
+        const tbody = document.getElementById("exam-results-body");
+        tbody.innerHTML = "";
+
+        // 🎯 معرفة ما إذا كان الوقت الرسمي للامتحان قد انتهى أم لا من السيرفر
+        const isExamEnded = result.isExamEnded ?? false;
+
+        result.data.forEach(student => {
+            let score = student.score == null ? "--" : student.score;
+
+            let submitted = student.submittedAt == null
+                ? "--"
+                : new Date(student.submittedAt).toLocaleDateString("ar-EG");
+
+            let statusColor = "";
+
+            switch (student.status) {
+                case "ناجح":
+                    statusColor = "green";
+                    break;
+                case "راسب":
+                    statusColor = "red";
+                    break;
+                case "غائب":
+                    statusColor = "#dc2626";
+                    break;
+                case "لم يبدأ":
+                    statusColor = "#2563eb";
+                    break;
+                case "لم يمتحن بعد":
+                    statusColor = "#f59e0b";
+                    break;
+                default:
+                    statusColor = "#64748b";
+                    break;
+            }
+
+            // 🎯 زر إعادة/إضافة المحاولة (يظهر فقط لو لم ينتهِ الوقت الرسمي للامتحان)
+            let addAttemptBtn = "";
+            if (!isExamEnded) {
+                addAttemptBtn = `
+                    <button class="btn-action btn-add-attempt" 
+                            title="إعادة إتاحة محاولة للطالب" 
+                            onclick="resetStudentAttempt(${student.studentId}, ${examId})">
+                        ➕ محاولة
+                    </button>`;
+            } else {
+                addAttemptBtn = `<span style="color:#888; font-size:11px;">انتهى الوقت</span>`;
+            }
+
+            // 🎯 أيقونة العين لمراجعة الإجابات
+            let reviewBtn = `
+                <button class="btn-action btn-review" 
+                        title="عرض إجابات الطالب" 
+                        onclick="openStudentReview(${student.studentId}, ${examId})">
+                    👁️
+                </button>`;
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${student.studentName}</td>
+                    <td>${score}</td>
+                    <td>
+                        <span style="color:${statusColor};font-weight:bold;">
+                            ${student.status}
+                        </span>
+                    </td>
+                    <td>${submitted}</td>
+                    <td style="text-align: center; white-space: nowrap;">
+                        ${reviewBtn}
+                        ${addAttemptBtn}
+                    </td>
+                </tr>
+            `;
+        });
+
+        openModal("examResultsModal");
+
+    } catch (e) {
+        console.error(e);
+        alert("حدث خطأ أثناء تحميل النتائج");
+    }
+}
+
+// ==========================================
+// 2. فتح مراجعة الامتحان للطالب/الأدمن
+// ==========================================
+function openStudentReview(studentId, examId) {
+    console.log("Review Clicked:", studentId, examId);
+
+    if (!studentId || !examId) {
+        alert("خطأ: بيانات الطالب أو الامتحان غير مكتملة.");
+        return;
+    }
+
+    // التوجيه المباشر لصفحة المراجعة
+    window.location.href = `/Exams/Review?examId=${examId}&studentId=${studentId}`;
+}
+
+// ==========================================
+// 3. إعادة فتح/إضافة محاولة للطالب
+// ==========================================
+function resetStudentAttempt(studentId, examId) {
+    if (!confirm("هل أنت متأكد من إتاحة محاولة جديدة لهذا الطالب؟ سيتيح له ذلك أداء الامتحان مجدداً.")) {
+        return;
+    }
+
+    // تجهيز Request Verification Token للأمان في ASP.NET Core
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    fetch('/Exams/ResetStudentAttempt', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token || ''
+        },
+        body: `examId=${examId}&studentId=${studentId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            // تحديث نافذة النتائج تلقائياً بدون إعادة تحميل الصفحة بالكامل
+            showExamResults(examId);
+        } else {
+            alert("خطأ: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ أثناء الاتصال بالسيرفر.');
+    });
+}
  async function loadGroupStudents() {
     try {
         const response = await fetch(`/GroupManagement/GetGroupStudents?slotId=@Model.SlotId`);

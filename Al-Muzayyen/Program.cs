@@ -233,13 +233,19 @@ namespace Al_Muzayyen
 
                 if (!context.Admins.Any())
                 {
-                    context.Admins.Add(new Al_Muzayyen.Models.Admin
+                    // إنشاء كائن الـ Hasher
+                    var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<Al_Muzayyen.Models.Admin>();
+
+                    var admin = new Al_Muzayyen.Models.Admin
                     {
                         Name = "الأستاذ عبد الفتاح المزين",
-                        PhoneNumber = "01000000000", // رقم الأدمن للاختبار
-                        Password = "123456"          // كلمة المرور
-                    });
+                        PhoneNumber = "01000000000"
+                    };
 
+                    // تشفير كلمة المرور وتعيينها
+                    admin.Password = hasher.HashPassword(admin, "Admin123");
+
+                    context.Admins.Add(admin);
                     context.SaveChanges();
                 }
             }
