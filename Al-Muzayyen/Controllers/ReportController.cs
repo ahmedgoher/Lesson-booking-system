@@ -18,6 +18,7 @@ namespace Al_Muzayyen.Controllers
         {
             if(string.IsNullOrEmpty(token)) return NotFound("رابط غير صالح");
             var student = await _context.Students
+                .Where(s=>s.IsActive==true)
                 .Include(s=>s.AvailableSlot)
                 .ThenInclude(a=>a.SlotTimes)
                 .Include(s=>s.Place)

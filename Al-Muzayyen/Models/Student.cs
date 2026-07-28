@@ -29,6 +29,9 @@ namespace Al_Muzayyen.Models
         [Display(Name = "رقم هاتف ولي الأمر")]
         public string ParentPhone { get; set; }
 
+        public bool IsActive { get; set; } = false;
+
+
         [Required(ErrorMessage = "برجاء إدخال كلمة المرور")]
         [MinLength(6, ErrorMessage = "كلمة المرور يجب ألا تقل عن 6 أحرف/أرقام")]
         [DataType(System.ComponentModel.DataAnnotations.DataType.Password)]
@@ -46,6 +49,7 @@ namespace Al_Muzayyen.Models
         // --- الربط مع جدول الـ Identity User ---
         [ForeignKey("User")]
         public string? UserId { get; set; }
+
         public ApplicationUser? User { get; set; }
 
         // --- العلاقات ---

@@ -32,7 +32,7 @@ namespace Al_Muzayyen.Controllers
                 return await _context.Students
                     .Include(s => s.Class)
                     .Include(s => s.AvailableSlot)
-                    .FirstOrDefaultAsync(s => s.Id == studentId);
+                    .FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive== true);
             }
             return null;
         }
@@ -228,7 +228,7 @@ namespace Al_Muzayyen.Controllers
             }
             var student = _context.Students
                 .Include(s => s.AvailableSlot)
-                .FirstOrDefault(s => s.Id == studentId);
+                .FirstOrDefault(s => s.Id == studentId && s.IsActive == true);
 
             if (student == null || student.SlotId == null)
             {
@@ -258,11 +258,11 @@ namespace Al_Muzayyen.Controllers
 
             if (int.TryParse(userClaim, out int studentId))
             {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.Id == studentId);
+                student = await _context.Students.FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive == true);
             }
             else
             {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userClaim);
+                student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userClaim && s.IsActive == true);
             }
 
             if (student == null)
@@ -385,7 +385,7 @@ namespace Al_Muzayyen.Controllers
             }
             var student = _context.Students
                 .Include(s => s.AvailableSlot)
-                .FirstOrDefault(s => s.Id == studentId);
+                .FirstOrDefault(s => s.Id == studentId && s.IsActive == true);
             if (student == null)
             {
                 return View(new StudentMatrialVM());
@@ -413,7 +413,7 @@ namespace Al_Muzayyen.Controllers
             var student = await _context.Students
                 .Include(s => s.Class)
                 .Include(s => s.AvailableSlot)
-                .FirstOrDefaultAsync(s => s.Id == studentId);
+                .FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive == true);
 
             var slots = await _context.Available_Slots
                 .Where(s => s.ClassId == classId && s.PlaceId == placeId && s.State == "Active" && s.Id != student.SlotId)
@@ -433,7 +433,7 @@ namespace Al_Muzayyen.Controllers
             var student = await _context.Students
                 .Include(s => s.Class)
                 .Include(s => s.AvailableSlot)
-                .FirstOrDefaultAsync(s => s.Id == studentId);
+                .FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive == true);
 
             if (student == null) return NotFound();
 

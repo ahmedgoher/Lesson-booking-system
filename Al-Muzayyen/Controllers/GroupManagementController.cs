@@ -58,7 +58,7 @@ namespace Al_Muzayyen.Controllers
                 SlotId = group.Id,
                 // تركيب الاسم باستخدام Properties الموجودة فعلياً
                 GroupName = $"{group.Group_Name} ({(group.Class != null ? group.Class.Name : "")} - {(group.Place != null ? group.Place.Name : "")})",
-                StudentCount = group.Students.Count,
+                StudentCount = group.Students.Where(s=> s.IsActive==true).Count(),
                 VideoCount = allMaterials.Count(m => m.Type == MaterialType.VideoLink),
                 //ExamCount = _context.Exams != null ? _context.Exams.Count(e => e.Id == id) : 0
                 ExamCount = exams.Count
@@ -187,7 +187,7 @@ namespace Al_Muzayyen.Controllers
             bool isExamEnded = now > exam.EndExamTime;
 
             var students = await _context.Students
-                .Where(s => s.SlotId == slotId)
+                .Where(s => s.SlotId == slotId && s.IsActive== true)
                 .Select(s => new
                 {
                     Student = s,
@@ -298,7 +298,7 @@ namespace Al_Muzayyen.Controllers
             try
             {
                 var student = await _context.Students
-                .Where(s => s.SlotId == slotId)
+                .Where(s => s.SlotId == slotId && s.IsActive == true)
                 .Select(s => new
                 {
                     studentName = s.Name,

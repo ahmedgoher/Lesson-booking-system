@@ -38,7 +38,7 @@ namespace Al_Muzayyen.Controllers
         public async Task<IActionResult> FetchStudents(int slotId, DateTime date)
         {
             var students = await _context.Students
-                .Where(s => s.SlotId == slotId && s.CreatedAt < date)
+                .Where(s => s.SlotId == slotId && s.CreatedAt < date && s.IsActive == true)
                 .ToListAsync();
 
             // معرفة أحدث تاريخ تم تسجيل غياب فيه قبل التاريخ المحدد لهذه المجموعة

@@ -12,6 +12,8 @@ namespace Al_Muzayyen.Repositories
         public async Task<List<Student>> GetEnteredStudents()
         {
             return await _context.Students
+                .Where(s=> s.IsActive==true)
+                
                     .Include(b => b.Class)
                     .Include(b => b.Place)
                     .Include(b => b.AvailableSlot)

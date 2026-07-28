@@ -5,6 +5,10 @@ using Al_Muzayyen.Viewmodel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace Al_Muzayyen.Controllers;
+
+using Al_Muzayyen.ViewModels; // ✅ السليم في الغالب
+// أو
+using Al_Muzayyen.Models;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.InkML;
@@ -35,26 +39,30 @@ public class AdminController : Controller
     private readonly CloudinaryService _cloudinaryService;
     private readonly IExamService _examService;
     private readonly AppDbContext _context;
-    // 👈 تعريف الـ PasswordHasher لفحص أو توليد الهاش
     private readonly IPasswordHasher<object> _passwordHasher;
-    public AdminController
+    private readonly UserManager<ApplicationUser> _userManager;
 
-            (IGenericService<Slot_time> slotTimeService,
+    public AdminController(
+        IGenericService<Slot_time> slotTimeService,
         IClassService ClassService,
-        CloudinaryService cloudinaryService, IWebHostEnvironment webHostEnvironment,
-            IGenericService<Admin> adminService,
-            IGenericService<Class> classService,
-            IGenericService<Student> bookingService,
-            IPlaceService placeService,
-            IGenericService<Video> videoService,
-            IGenericService<Place> genericServiceGeneric,
-            IGenericService<Available_slot> availableSlotService,
-            IGroupRequestRepo groupchangeRequest,
-            IBookingRepo bookingRepo,
-            IGroupRepo groupRepo,
-             IQuestionService questionService,
-            IConfiguration configuration, IExamService examService,
-           AppDbContext context)
+        CloudinaryService cloudinaryService,
+        IWebHostEnvironment webHostEnvironment,
+        IGenericService<Admin> adminService,
+        IGenericService<Class> classService,
+        IGenericService<Student> bookingService,
+        IPlaceService placeService,
+        IGenericService<Video> videoService,
+        IGenericService<Place> genericServiceGeneric,
+        IGenericService<Available_slot> availableSlotService,
+        IGroupRequestRepo groupchangeRequest,
+        IBookingRepo bookingRepo,
+        IGroupRepo groupRepo,
+        IQuestionService questionService,
+        IConfiguration configuration,
+        IExamService examService,
+        AppDbContext context,
+        UserManager<ApplicationUser> userManager,
+        IPasswordHasher<object> passwordHasher = null)
     {
         _slotTimeService = slotTimeService;
         _cloudinaryService = cloudinaryService;
@@ -76,57 +84,162 @@ public class AdminController : Controller
         _ClassService = ClassService;
 
         _context = context;
-        _passwordHasher = new PasswordHasher<object>();
+        _userManager = userManager;
+        _passwordHasher = passwordHasher ?? new PasswordHasher<object>();
     }
+
+    #region home page admins
+
+    // الصفحة الأساسية تُحمل خفيفة بدون استعلامات ثقيلة
     public IActionResult Index()
     {
-        var groupChangeRequests = _groupchangeRequest.GetPendingRequestsWithDetails();
-        
-        var model = new IndexVMAdmin
-        {
-            StudentsCount = _bookingService.GetAll().Count(),
-            GroupsCount = _availableSlotService.GetAll().Count(),
-            ClassesCount = _classService.GetAll().Count(),
-            Admin = _AdminService.GetAll().FirstOrDefault(),
-            GroupChangeRequests = groupChangeRequests
-        };
-        return View(model);
+        return View();
     }
+
+    // 🟢 API لجلب بيانات لوحة التحكم الأساسية (العدادات وبيانات الأدمن)
+    [HttpGet]
+    public async Task<IActionResult> GetDashboardStats()
+    {
+        var admin = await _context.Admins.AsNoTracking().FirstOrDefaultAsync();
+        var stats = new IndexVMAdmin
+        {
+            StudentsCount = await _context.Students.CountAsync(s => s.IsActive),
+            GroupsCount = await _context.Available_Slots.CountAsync(),
+            ClassesCount = await _context.Classes.CountAsync(),
+            Admin = admin
+        };
+        return Json(stats);
+    }
+
+    // 🟢 API لجلب الحجوزات المعلقة (IsActive == false)
+    [HttpGet]
+    public async Task<IActionResult> GetPendingBookings()
+    {
+        var requests = await _context.Students
+            .AsNoTracking()
+            .Include(s => s.Place)
+            .Include(s => s.Class)
+            .Include(s => s.AvailableSlot)
+            .Where(s => !s.IsActive)
+            .OrderByDescending(s => s.CreatedAt)
+            .Select(s => new PendingBookingDTO
+            {
+                Id = s.Id,
+                StudentName = s.Name,
+                StdPhone = s.StdPhone,
+                ParentPhone = s.ParentPhone,
+                PlaceName = s.Place != null ? s.Place.Name : "-",
+                ClassName = s.Class != null ? s.Class.Name : "-",
+                GroupName = s.AvailableSlot != null ? s.AvailableSlot.Group_Name : "-",
+                CreatedAt = s.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+            }).ToListAsync();
+
+        return Json(requests);
+    }
+
+    // 🟢 API لجلب طلبات تغيير المجموعات
+    [HttpGet]
+    public async Task<IActionResult> GetGroupChangeRequests()
+    {
+        var pendingRequests = _groupchangeRequest.GetPendingRequestsWithDetails();
+
+        var requests = pendingRequests
+            .Select(r => new GroupChangeRequestDTO
+            {
+                Id = r.Id,
+                StudentName = r.Student != null ? r.Student.Name : "-",
+                PlaceName = r.Student?.Place != null ? r.Student.Place.Name : "-",
+                ClassName = r.Student?.Class != null ? r.Student.Class.Name : "-",
+                RequestedGroup = r.RequestedSlot != null ? r.RequestedSlot.Group_Name : "-",
+                Reason = r.Reason,
+                RequestDate = r.RequestDate.ToString("yyyy-MM-dd"),
+                Status = r.Status.ToString()
+            }).ToList();
+
+        return Json(requests);
+    }
+
+    // 🟢 تأكيد الحجز (تفعيل الطالب)
+    [HttpPost]
+    public async Task<IActionResult> ConfirmBooking(int studentId)
+    {
+        var student = await _context.Students.FindAsync(studentId);
+        if (student == null) return Json(new { success = false, message = "الطالب غير موجود" });
+
+        student.IsActive = true;
+        _context.Students.Update(student);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, message = "تم تأكيد حجز الطالب بنجاح" });
+    }
+
+    // 🔴 رفض الحجز وحذف الطالب والمستخدم والأدوار كلياً
+    [HttpPost]
+    public async Task<IActionResult> RejectBooking(int studentId)
+    {
+        var student = await _context.Students.FindAsync(studentId);
+        if (student == null) return Json(new { success = false, message = "الطالب غير موجود" });
+
+        string userId = student.UserId;
+
+        // 1. حذف الطالب
+        _context.Students.Remove(student);
+        await _context.SaveChangesAsync();
+
+        // 2. حذف الـ Identity User والأدوار مرتبطة به
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                await _userManager.DeleteAsync(user); // يمسح المستخدم وجميع أدواره تلقائياً
+            }
+        }
+
+        return Json(new { success = true, message = "تم رفض الحجز وحذف كافة بيانات الطالب والمستخدم بنجاح" });
+    }
+
+    // 🟢 قبول طلب تغيير المجموعة
+    [HttpPost]
     public async Task<IActionResult> ApproveGroupRequest(int requestId)
     {
         var request = await _groupchangeRequest.GetByIdAsync(requestId);
-        if (request == null)
-        {
-            return NotFound();
-        }
-        // Update the request status to Approved
+        if (request == null) return Json(new { success = false, message = "الطلب غير موجود" });
 
         request.Status = RequestStatus.Approved;
         _groupchangeRequest.Update(request);
-        _groupchangeRequest.SaveChanges();  
-        // Update the student's group to the requested slot
+        await _groupchangeRequest.SaveChangesAsync();
+
         var student = await _bookingService.GetByIdAsync(request.StudentId);
         if (student != null)
         {
             student.SlotId = request.RequestSlotId;
             _bookingService.Update(student);
-            _bookingService.SaveChanges();
+            await _bookingService.SaveChangesAsync();
         }
-        return RedirectToAction("Index");
+
+        return Json(new { success = true, message = "تم قبول نقل المجموعة بنجاح" });
     }
+
+    // 🔴 رفض طلب تغيير المجموعة
+    [HttpPost]
     public async Task<IActionResult> RejectGroupRequest(int requestId)
     {
         var request = await _groupchangeRequest.GetByIdAsync(requestId);
-        if (request == null)
-        {
-            return NotFound();
-        }
-        // Update the request status to Rejected
+        if (request == null) return Json(new { success = false, message = "الطلب غير موجود" });
+
         request.Status = RequestStatus.Rejected;
         _groupchangeRequest.Update(request);
-        _groupchangeRequest.SaveChanges();
-        return RedirectToAction("Index");
+        await _groupchangeRequest.SaveChangesAsync();
+
+        return Json(new { success = true, message = "تم رفض طلب النقل" });
     }
+
+    #endregion
+
+
+
+
 
     public async Task<IActionResult> Students(int? placeId, int? classId, int? groupId)
     {
@@ -1316,7 +1429,7 @@ public class AdminController : Controller
         }
 
         // 1. البحث عن الطالب بواسطة رقم الهاتف
-        var student = _context.Students.FirstOrDefault(s => s.StdPhone == phoneNumber);
+        var student = _context.Students.Where(s=> s.IsActive==true).FirstOrDefault(s => s.StdPhone == phoneNumber);
 
         if (student == null)
         {

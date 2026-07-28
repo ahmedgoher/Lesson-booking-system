@@ -65,7 +65,7 @@ namespace Al_Muzayyen.Controllers
                     var authProperties = new AuthenticationProperties
                     {
                         IsPersistent = model.RememberMe,
-                        ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddHours(2) : DateTimeOffset.UtcNow.AddMinutes(30)
+                        ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddHours(16) : DateTimeOffset.UtcNow.AddHours(3)
                     };
 
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(adminIdentity), authProperties);
@@ -79,29 +79,53 @@ namespace Al_Muzayyen.Controllers
 
             if (student != null)
             {
-                var verificationResult = _passwordHasher.VerifyHashedPassword(student, student.Password, model.Password);
+                // التحقق من كلمة المرور
+                var verificationResult = _passwordHasher.VerifyHashedPassword(
+                    student,
+                    student.Password,
+                    model.Password);
+
                 if (verificationResult == PasswordVerificationResult.Success)
                 {
-                    var claims = new List<Claim>
+                    // التحقق من تفعيل الحساب
+                    if (!student.IsActive)
                     {
-                        new Claim(ClaimTypes.NameIdentifier, student.Id.ToString()),
-                        new Claim(ClaimTypes.Name, student.Name),
-                        new Claim(ClaimTypes.MobilePhone, student.StdPhone),
-                        new Claim(ClaimTypes.Role, "Student")
-                    };
+                        ViewBag.Error = "حسابك غير مفعل حتى الآن، برجاء التواصل مع المدرس.";
 
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                        //ModelState.AddModelError("", "حسابك غير مفعل حتى الآن، برجاء التواصل مع المدرس.");
+                        return View(model);
+                    }
+
+                    var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, student.Id.ToString()),
+            new Claim(ClaimTypes.Name, student.Name),
+            new Claim(ClaimTypes.MobilePhone, student.StdPhone),
+            new Claim(ClaimTypes.Role, "Student")
+        };
+
+                    var claimsIdentity = new ClaimsIdentity(
+                        claims,
+                        CookieAuthenticationDefaults.AuthenticationScheme);
+
                     var authProperties = new AuthenticationProperties
                     {
                         IsPersistent = model.RememberMe,
-                        ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : DateTimeOffset.UtcNow.AddHours(2)
+                        ExpiresUtc = model.RememberMe
+                            ? DateTimeOffset.UtcNow.AddDays(30)
+                            : DateTimeOffset.UtcNow.AddHours(2)
                     };
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity),
+                        authProperties);
+
                     return RedirectToAction("Index", "Student");
                 }
             }
 
+            
             ViewBag.Error = "رقم الهاتف أو كلمة المرور غير صحيحة!";
             return View(model);
         }
