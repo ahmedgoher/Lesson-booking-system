@@ -1,5 +1,4 @@
 ﻿@using Al_Muzayyen.Viewmodel
-@model HomeVM
 
 @{
     Layout = "~/Views/Shared/_layouthome.cshtml";
@@ -13,10 +12,9 @@
         <div class="hero-text">
             <h2>فارس اللغة العربية</h2>
             <p>
-                نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا مع الأستاذ عبد الفتاح المزين  :.
+                نحن نبني جيلاً يعتز بلغته ويتقن أسرارها. رحلة التميز في اللغة العربية تبدأ من هنا مع الأستاذ عبد الفتاح المزين.
             </p>
            
-            
             @if (User.IsInRole("Student"))
             {
                 <div class="hero-btns">
@@ -28,12 +26,11 @@
                 <div class="hero-btns">
                     <a href="/Booking/booking" class="btn btn-primary">ابدأ رحلتك الآن</a>
                 </div>
-                
             }
         </div>
 
         <div class="hero-img-wrapper">
-            <img src="@(Model?.linkimage ?? "/images/image.png")" alt="فارس اللغة العربية" class="floating-img">
+            <img id="hero-image" src="/images/image.png" alt="فارس اللغة العربية" class="floating-img">
         </div>
     </div>
 </section>
@@ -71,22 +68,9 @@
             <h2>فيديوهات الأستاذ</h2>
             <p>تعرف على الأستاذ عبد الفتاح المزين من خلال مجموعة من الفيديوهات المميزة.</p>
         </div>
-        <div class="videos-grid">
-            @if (Model?.LinkesVideos?.Any() == true)
-            {
-                @foreach (var video in Model.LinkesVideos)
-                {
-                    <div class="video-card">
-                        <iframe src="@(video?.URL ?? "")" title="@(video?.Title ?? "Video")" allowfullscreen></iframe>
-                        <h3>@(video?.Title ?? "بدون عنوان")</h3>
-                        <p>@(video?.Description ?? "لا يوجد وصف")</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p style="width:100%;text-align:center;color:var(--gray);">لا توجد فيديوهات حالياً.</p>
-            }
+        <div class="videos-grid" id="videos-grid-container">
+            <!-- Loading State -->
+            <p style="width:100%;text-align:center;color:var(--gray);">جاري تحميل الفيديوهات...</p>
         </div>
     </div>
 </section>
@@ -98,21 +82,8 @@
             <h2>المراحل الدراسية</h2>
         </div>
         <div id="grades-list" class="features-grid">
-            @if (Model?.classes?.Any() == true)
-            {
-                @foreach (var grade in Model.classes)
-                {
-                    <div class="feature-card">
-                        <i class="fas fa-graduation-cap"></i>
-                        <h3>@(grade?.Name ?? "غير محدد")</h3>
-                        <p>شرح شامل وتدريبات مستمرة وفق أحدث نظام امتحانات.</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p style="width:100%;text-align:center;color:var(--gray);">لا توجد مراحل دراسية.</p>
-            }
+            <!-- Loading State -->
+            <p style="width:100%;text-align:center;color:var(--gray);">جاري تحميل المراحل الدراسية...</p>
         </div>
     </div>
 </section>
@@ -124,21 +95,8 @@
             <h2>أماكن السناتر</h2>
         </div>
         <div id="locations-list" class="features-grid">
-            @if (Model?.places?.Any() == true)
-            {
-                @foreach (var place in Model.places)
-                {
-                    <div class="feature-card pulse-card">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <h3>@(place?.Name ?? "غير محدد")</h3>
-                        <p>@(place?.Address ?? "لا يوجد عنوان")</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p style="width:100%;text-align:center;color:var(--gray);">لا توجد أماكن سناتر.</p>
-            }
+            <!-- Loading State -->
+            <p style="width:100%;text-align:center;color:var(--gray);">جاري تحميل الفروع...</p>
         </div>
     </div>
 </section>
@@ -201,3 +159,115 @@
         </div>
     </div>
 </section>
+
+<!-- JavaScript لجلب البيانات بشكل مستقل وموازٍ -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetchHeroImage();
+        fetchClasses();
+        fetchPlaces();
+        fetchVideos();
+    });
+
+    // 1. جلب صورة Hero
+    function fetchHeroImage() {
+        fetch('/Home/GetHeroImage')
+            .then(res => res.json())
+            .then(data => {
+                if (data.linkimage) {
+                    document.getElementById('hero-image').src = data.linkimage;
+                }
+            })
+            .catch(err => console.error("Error loading hero image:", err));
+    }
+
+    // 2. جلب المراحل الدراسية
+    function fetchClasses() {
+        const container = document.getElementById('grades-list');
+        
+        fetch('/Home/GetClasses')
+            .then(res => res.json())
+            .then(classes => {
+                container.innerHTML = '';
+
+                if (!classes || classes.length === 0) {
+                    container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">لا توجد مراحل دراسية.</p>`;
+                    return;
+                }
+
+                classes.forEach(grade => {
+                    container.innerHTML += `
+                        <div class="feature-card">
+                            <i class="fas fa-graduation-cap"></i>
+                            <h3>${grade.name || 'غير محدد'}</h3>
+                            <p>شرح شامل وتدريبات مستمرة وفق أحدث نظام امتحانات.</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error("Error loading classes:", err);
+                container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">حدث خطأ أثناء تحميل المراحل.</p>`;
+            });
+    }
+
+    // 3. جلب السناتر
+    function fetchPlaces() {
+        const container = document.getElementById('locations-list');
+
+        fetch('/Home/GetPlaces')
+            .then(res => res.json())
+            .then(places => {
+                container.innerHTML = '';
+
+                if (!places || places.length === 0) {
+                    container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">لا توجد أماكن سناتر.</p>`;
+                    return;
+                }
+
+                places.forEach(place => {
+                    container.innerHTML += `
+                        <div class="feature-card pulse-card">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <h3>${place.name || 'غير محدد'}</h3>
+                            <p>${place.address || 'لا يوجد عنوان'}</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error("Error loading places:", err);
+                container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">حدث خطأ أثناء تحميل الفروع.</p>`;
+            });
+    }
+
+    // 4. جلب الفيديوهات
+    function fetchVideos() {
+        const container = document.getElementById('videos-grid-container');
+
+        fetch('/Home/GetVideos')
+            .then(res => res.json())
+            .then(videos => {
+                container.innerHTML = '';
+
+                if (!videos || videos.length === 0) {
+                    container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">لا توجد فيديوهات حالياً.</p>`;
+                    return;
+                }
+
+                videos.forEach(video => {
+                    container.innerHTML += `
+                        <div class="video-card">
+                            <iframe src="${video.url || ''}" title="${video.title || 'Video'}" allowfullscreen></iframe>
+                            <h3>${video.title || 'بدون عنوان'}</h3>
+                            <p>${video.description || 'لا يوجد وصف'}</p>
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                console.error("Error loading videos:", err);
+                container.innerHTML = `<p style="width:100%;text-align:center;color:var(--gray);">حدث خطأ أثناء تحميل الفيديوهات.</p>`;
+            });
+    }
+</script>

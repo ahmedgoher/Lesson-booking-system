@@ -24,23 +24,47 @@ namespace Al_Muzayyen.Controllers
         }
 
 
+        // 1. فتح الصفحة الأساسية فورا خفيفة جداً
         public IActionResult Index()
         {
-
-            var LINLIMGAE = _adminService.GetAll().FirstOrDefault()?.ImageUrl;
-            var model = new HomeVM
-            {
-
-                linkimage= _adminService.GetAll().FirstOrDefault()?.ImageUrl ?? "/images/image.png",
-                classes = _classService.GetAll(),
-                places = _placeService.GetAll(),
-                LinkesVideos = _videoService.GetAll()
-
-
-
-            };
-            return View(model);
+            return View();
         }
+
+        // 2. API جلب صورة الأستاذ
+        [HttpGet]
+        public IActionResult GetHeroImage()
+        {
+            var img = _adminService.GetAll().FirstOrDefault()?.ImageUrl ?? "/images/image.png";
+            return Json(new { linkimage = img });
+        }
+
+        // 3. API المراحل الدراسية
+        [HttpGet]
+        public IActionResult GetClasses()
+        {
+            var classes = _classService.GetAll()
+                .Select(c => new { c.Id, c.Name }); // DTO خفيف
+            return Json(classes);
+        }
+
+        // 4. API أماكن السناتر
+        [HttpGet]
+        public IActionResult GetPlaces()
+        {
+            var places = _placeService.GetAll()
+                .Select(p => new { p.Id, p.Name, p.Address });
+            return Json(places);
+        }
+
+        // 5. API الفيديوهات
+        [HttpGet]
+        public IActionResult GetVideos()
+        {
+            var videos = _videoService.GetAll()
+                .Select(v => new { v.Id, v.Title, v.Description, v.URL });
+            return Json(videos);
+        }
+
         public IActionResult Privacy()
         {
             return View();
