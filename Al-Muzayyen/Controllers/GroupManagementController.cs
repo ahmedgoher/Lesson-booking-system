@@ -297,18 +297,25 @@ namespace Al_Muzayyen.Controllers
         {
             try
             {
+                // 🎯 جلب الرابط الأساسي للسيرفر ديناميكياً (Domain / Host)
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
                 var student = await _context.Students
-                .Where(s => s.SlotId == slotId && s.IsActive == true)
-                .Select(s => new
-                {
-                    studentName = s.Name,
-                    ParentPhone = s.ParentPhone,
-                    studentPhone = s.StdPhone,
-                    studentToken = s.ParentAccessToken
-                }).ToListAsync();
+                    .Where(s => s.SlotId == slotId && s.IsActive == true)
+                    .Select(s => new
+                    {
+                        studentName = s.Name,
+                        ParentPhone = s.ParentPhone,
+                        studentPhone = s.StdPhone,
+                        studentToken = s.ParentAccessToken,
+
+                        // 🎯 إنشاء رابط التقرير بدون m و y حتى يقرأ الشهر الحالي تلقائياً دائماً
+                        reportUrl = $"{baseUrl}/Report/View?token={s.ParentAccessToken}"
+                    }).ToListAsync();
+
                 return Json(new { success = true, data = student });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return Json(new { success = false, message = "حدث خطأ أثناء جلب البيانات من السيرفر." });
             }

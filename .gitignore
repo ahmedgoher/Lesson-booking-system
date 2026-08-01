@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/Al-Muzayyen/Migrations/20260801144128_InitCreatee.cs

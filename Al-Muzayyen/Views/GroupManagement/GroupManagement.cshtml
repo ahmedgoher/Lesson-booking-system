@@ -1154,24 +1154,33 @@ function resetStudentAttempt(studentId, examId) {
 // ==========================================
 // 2. دالة إرسال تقرير الواتساب
 // ==========================================
+// ==========================================
+// 2. دالة إرسال تقرير الواتساب (تلقائية بالكامل)
+// ==========================================
 window.sendWhatsAppReport = function (phone, studentName, studentToken) {
-    if (!phone || phone.toString().trim() === "") {
+    if (!phone || phone.toString().trim() === "" || phone === "غير متوفر") {
         alert("لا يوجد رقم هاتف متاح لولي الأمر!");
         return;
     }
 
+    // 🎯 قراءة الشهر والسنة الحاليين تلقائياً من جهاز المستخدم/السيرفر
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // getMonth يبدأ من 0 حتى 11
+    const currentYear = currentDate.getFullYear();
+
+    // 🎯 إذا كان هناك عنصر اختيار في الشاشة نأخذ منه، وإلا نستخدم الشهر والسنة الحاليين تلقائياً
     const monthSelect = document.getElementById("reportMonth");
     const yearSelect = document.getElementById("reportYear");
 
-    const selectedMonth = monthSelect ? monthSelect.value : "7";
-    const selectedYear = yearSelect ? yearSelect.value : "2026";
+    const selectedMonth = monthSelect ? monthSelect.value : currentMonth;
+    const selectedYear = yearSelect ? yearSelect.value : currentYear;
 
+    // 🔗 بناء رابط التقرير بالشهر والسنة الحقيقيين
     const reportUrl = `${window.location.origin}/Report/View?token=${encodeURIComponent(studentToken)}&m=${selectedMonth}&y=${selectedYear}`;
-    @* const reportUrl = `https://quickshow.runasp.net/`; *@
 
-    // صياغة الرسالة بشكل مرتب جداً ومريح للعين
+    // صياغة الرسالة
     const message = `أهلاً بك ولي أمر الطالب/ة المحترم 🌸\n\n` +
-                    `نود إعلامكم بصدور التقرير الشهري للدرجات والحضور للبنك أو الطالب *(${studentName})* عن شهر ${selectedMonth}/${selectedYear}.\n\n` +
+                    `نود إعلامكم بصدور التقرير الشهري للدرجات والحضور للطالب/ة *(${studentName})* عن شهر ${selectedMonth}/${selectedYear}.\n\n` +
                     `📌 *اضغط على الرابط التالي للاطلاع على التقرير مباشرة:*\n` +
                     `${reportUrl}\n\n` +
                     `مع تحيات إدارة المركز التعليمي ✨`;
