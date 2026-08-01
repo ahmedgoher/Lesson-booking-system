@@ -553,6 +553,7 @@ namespace Al_Muzayyen.Controllers
                     Title = dto.Title,
                     Description = dto.Description,
                     TotalMarks = dto.TotalMarks,
+                    PassingMarks=dto.TotalMarks/2,
                     ClassId = dto.ClassId,
                     ExamDate = dto.ExamDate,
                     IsPaperExam = true,
