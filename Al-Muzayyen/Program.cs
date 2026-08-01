@@ -239,7 +239,7 @@ namespace Al_Muzayyen
                     var admin = new Al_Muzayyen.Models.Admin
                     {
                         Name = "الأستاذ عبد الفتاح المزين",
-                        PhoneNumber = "01000000000"
+                        PhoneNumber = "01202023821"
                     };
 
                     // تشفير كلمة المرور وتعيينها

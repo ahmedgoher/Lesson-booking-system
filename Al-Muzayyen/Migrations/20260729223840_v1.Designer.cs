@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Al_Muzayyen.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260725160230_v23")]
-    partial class v23
+    [Migration("20260729223840_v1")]
+    partial class v1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -247,7 +247,13 @@ namespace Al_Muzayyen.Migrations
                     b.Property<DateTime>("EndExamTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("ExamDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPaperExam")
                         .HasColumnType("bit");
 
                     b.Property<int>("MaxAttempts")
@@ -289,6 +295,9 @@ namespace Al_Muzayyen.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("ExamId")
                         .HasColumnType("int");
@@ -492,6 +501,9 @@ namespace Al_Muzayyen.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()

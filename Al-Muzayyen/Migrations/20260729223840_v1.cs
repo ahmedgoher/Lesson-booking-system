@@ -80,7 +80,7 @@ namespace Al_Muzayyen.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Matrials",
+                name: "Videos",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -124,6 +124,7 @@ namespace Al_Muzayyen.Migrations
                     Name = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
                 },
                 constraints: table =>
@@ -229,9 +230,21 @@ namespace Al_Muzayyen.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DurationMinutes = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartExamTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndExamTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TotalMarks = table.Column<int>(type: "int", nullable: false),
+                    PassingMarks = table.Column<int>(type: "int", nullable: false),
+                    MaxAttempts = table.Column<int>(type: "int", nullable: false),
+                    RandomQuestions = table.Column<bool>(type: "bit", nullable: false),
+                    ShuffleAnswers = table.Column<bool>(type: "bit", nullable: false),
+                    AllowReview = table.Column<bool>(type: "bit", nullable: false),
+                    ShowResult = table.Column<bool>(type: "bit", nullable: false),
+                    IsPaperExam = table.Column<bool>(type: "bit", nullable: false),
+                    ExamDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ClassId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -299,6 +312,33 @@ namespace Al_Muzayyen.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExamGroup",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExamId = table.Column<int>(type: "int", nullable: false),
+                    SlotId = table.Column<int>(type: "int", nullable: false),
+                    AssignedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExamGroup", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExamGroup_Available_Slots_SlotId",
+                        column: x => x.SlotId,
+                        principalTable: "Available_Slots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_ExamGroup_Exams_ExamId",
+                        column: x => x.ExamId,
+                        principalTable: "Exams",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Materials",
                 columns: table => new
                 {
@@ -306,6 +346,7 @@ namespace Al_Muzayyen.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Url = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Type = table.Column<int>(type: "int", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     SlotId = table.Column<int>(type: "int", nullable: false)
@@ -349,8 +390,9 @@ namespace Al_Muzayyen.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    StdPhone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StdPhone = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ParentPhone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ParentAccessToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -407,7 +449,7 @@ namespace Al_Muzayyen.Migrations
                         column: x => x.QuestionId,
                         principalTable: "Questions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -441,6 +483,36 @@ namespace Al_Muzayyen.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "GroupChangeRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IsDismissed = table.Column<bool>(type: "bit", nullable: false),
+                    StudentId = table.Column<int>(type: "int", nullable: false),
+                    RequestSlotId = table.Column<int>(type: "int", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RequestDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GroupChangeRequests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_GroupChangeRequests_Available_Slots_RequestSlotId",
+                        column: x => x.RequestSlotId,
+                        principalTable: "Available_Slots",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_GroupChangeRequests_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "StudentExams",
                 columns: table => new
                 {
@@ -448,8 +520,12 @@ namespace Al_Muzayyen.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     StudentId = table.Column<int>(type: "int", nullable: false),
                     ExamId = table.Column<int>(type: "int", nullable: false),
+                    StartedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Score = table.Column<int>(type: "int", nullable: false),
-                    SubmittedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    IsSubmitted = table.Column<bool>(type: "bit", nullable: false),
+                    AttemptNumber = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -464,6 +540,41 @@ namespace Al_Muzayyen.Migrations
                         name: "FK_StudentExams_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudentAnswers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    StudentExamId = table.Column<int>(type: "int", nullable: false),
+                    QuestionId = table.Column<int>(type: "int", nullable: false),
+                    QuestionOptionId = table.Column<int>(type: "int", nullable: false),
+                    IsCorrect = table.Column<bool>(type: "bit", nullable: false),
+                    EarnedMarks = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentAnswers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StudentAnswers_QuestionOptions_QuestionOptionId",
+                        column: x => x.QuestionOptionId,
+                        principalTable: "QuestionOptions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StudentAnswers_Questions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "Questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_StudentAnswers_StudentExams_StudentExamId",
+                        column: x => x.StudentExamId,
+                        principalTable: "StudentExams",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -533,9 +644,29 @@ namespace Al_Muzayyen.Migrations
                 column: "PlaceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ExamGroup_ExamId",
+                table: "ExamGroup",
+                column: "ExamId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExamGroup_SlotId",
+                table: "ExamGroup",
+                column: "SlotId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Exams_ClassId",
                 table: "Exams",
                 column: "ClassId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupChangeRequests_RequestSlotId",
+                table: "GroupChangeRequests",
+                column: "RequestSlotId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupChangeRequests_StudentId",
+                table: "GroupChangeRequests",
+                column: "StudentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Materials_SlotId",
@@ -558,6 +689,21 @@ namespace Al_Muzayyen.Migrations
                 column: "SlotID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_StudentAnswers_QuestionId",
+                table: "StudentAnswers",
+                column: "QuestionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentAnswers_QuestionOptionId",
+                table: "StudentAnswers",
+                column: "QuestionOptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentAnswers_StudentExamId",
+                table: "StudentAnswers",
+                column: "StudentExamId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StudentExams_ExamId",
                 table: "StudentExams",
                 column: "ExamId");
@@ -566,6 +712,12 @@ namespace Al_Muzayyen.Migrations
                 name: "IX_StudentExams_StudentId",
                 table: "StudentExams",
                 column: "StudentId");
+
+            migrationBuilder.CreateIndex(
+                name: "Index_Unique_StdPhone",
+                table: "Students",
+                column: "StdPhone",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_ClassId",
@@ -613,22 +765,31 @@ namespace Al_Muzayyen.Migrations
                 name: "Attendances");
 
             migrationBuilder.DropTable(
-                name: "Materials");
+                name: "ExamGroup");
 
             migrationBuilder.DropTable(
-                name: "QuestionOptions");
+                name: "GroupChangeRequests");
+
+            migrationBuilder.DropTable(
+                name: "Materials");
 
             migrationBuilder.DropTable(
                 name: "Slot_Times");
 
             migrationBuilder.DropTable(
-                name: "StudentExams");
+                name: "StudentAnswers");
 
             migrationBuilder.DropTable(
-                name: "Matrials");
+                name: "Videos");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "QuestionOptions");
+
+            migrationBuilder.DropTable(
+                name: "StudentExams");
 
             migrationBuilder.DropTable(
                 name: "Questions");
