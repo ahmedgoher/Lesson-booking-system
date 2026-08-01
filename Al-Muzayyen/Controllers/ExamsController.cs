@@ -537,10 +537,17 @@ namespace Al_Muzayyen.Controllers
         {
             if (dto == null) return BadRequest("البيانات المدخلة غير صالحة");
 
+            var classId = await _context.Available_Slots
+                .Where(e => e.Id == dto.SlotId)
+                .Select(e => e.ClassId)
+                .FirstOrDefaultAsync();
+
+            //var classId = dto.ClassId;
+
             var exam = await _context.Exams
                 .Include(e => e.ExamGroups)
                 .Include(e => e.StudentExams)
-                .FirstOrDefaultAsync(e => e.ClassId == dto.ClassId
+                .FirstOrDefaultAsync(e => e.ClassId == classId
                                           && e.IsPaperExam
                                           && e.ExamDate.HasValue
                                           && e.ExamDate.Value.Date == dto.ExamDate.Date
@@ -554,7 +561,7 @@ namespace Al_Muzayyen.Controllers
                     Description = dto.Description,
                     TotalMarks = dto.TotalMarks,
                     PassingMarks=dto.TotalMarks/2,
-                    ClassId = dto.ClassId,
+                    ClassId = classId,
                     ExamDate = dto.ExamDate,
                     IsPaperExam = true,
                     CreatedAt = DateTime.Now,
