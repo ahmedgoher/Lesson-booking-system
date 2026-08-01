@@ -28,6 +28,7 @@ namespace Al_Muzayyen.ViewModels
         public DateTime ExamDate { get; set; }
         public string Title { get; set; } = string.Empty;
         public int TotalMarks { get; set; }
+        public int PassMark { get; set; }
         public string? Description { get; set; }
 
         // قائمة درجات الطلاب المدخلة
