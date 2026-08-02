@@ -258,11 +258,13 @@ namespace Al_Muzayyen.Controllers
 
             if (int.TryParse(userClaim, out int studentId))
             {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive == true);
+                student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.Id == studentId && s.IsActive);
             }
             else
             {
-                student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == userClaim && s.IsActive == true);
+                student = await _context.Students
+                    .FirstOrDefaultAsync(s => s.UserId == userClaim && s.IsActive);
             }
 
             if (student == null)
@@ -273,15 +275,17 @@ namespace Al_Muzayyen.Controllers
             int currentStudentSlotId = student.SlotId;
             int currentStudentId = student.Id;
 
-            // 🎯 1. تحديد الوقت الحالي خارج الاستعلام
+            // تاريخ انضمام الطالب فقط (بدون الوقت)
+            var studentCreatedDate = student.CreatedAt.Date;
+
+            // الوقت الحالي
             var now = DateTime.Now;
 
-            // 2. جلب الامتحانات
             var exams = await _context.Exams
                 .Where(e =>
                     e.IsActive &&
                     e.ExamGroups.Any(eg => eg.SlotId == currentStudentSlotId) &&
-                    e.StartExamTime >= student.CreatedAt)
+                    e.StartExamTime.Date >= studentCreatedDate)
                 .Select(e => new StudentExamViewModel
                 {
                     ExamId = e.Id,
@@ -291,7 +295,6 @@ namespace Al_Muzayyen.Controllers
                     TotalMarks = e.TotalMarks,
                     IsPaperExam = e.IsPaperExam,
 
-                    // 🎯 3. ضبط شرط الحالة بدقة
                     Status = e.StudentExams.Any(x => x.StudentId == currentStudentId && x.IsSubmitted)
                         ? "Completed"
                         : now < e.StartExamTime
@@ -303,9 +306,9 @@ namespace Al_Muzayyen.Controllers
                     IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId && se.IsSubmitted),
 
                     Score = e.StudentExams
-                             .Where(se => se.StudentId == currentStudentId)
-                             .Select(se => (double?)se.Score)
-                             .FirstOrDefault()
+                        .Where(se => se.StudentId == currentStudentId)
+                        .Select(se => (double?)se.Score)
+                        .FirstOrDefault()
                 })
                 .ToListAsync();
 

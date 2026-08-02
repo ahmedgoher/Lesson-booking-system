@@ -40,7 +40,7 @@ namespace Al_Muzayyen.Controllers
             var students = await _context.Students
       .Where(s =>
           s.SlotId == slotId &&
-          s.CreatedAt.Date <= DateTime.Today &&
+          s.CreatedAt.Date <= date.Date &&
           s.IsActive)
       .ToListAsync();
 
