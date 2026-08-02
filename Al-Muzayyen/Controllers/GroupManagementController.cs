@@ -1,10 +1,13 @@
 ﻿using Al_Muzayyen.Models;
 using Al_Muzayyen.Viewmodel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Al_Muzayyen.Controllers
 {
+    [Authorize(Roles = "Admin")]
+
     public class GroupManagementController : Controller
     {
         private readonly AppDbContext _context;
