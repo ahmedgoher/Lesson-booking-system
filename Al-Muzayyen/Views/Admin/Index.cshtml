@@ -470,6 +470,12 @@
 
         <!-- كروت الإحصائيات -->
         <div class="dashboard-stats-grid">
+
+              <div class="metric-card">
+                <h3>إجمالي الطلاب في الانتظار</h3>
+                <div class="metric-value" id="students-count_waiting"><span class="skeleton skeleton-text" style="width: 50px;"></span></div>
+            </div>
+
             <div class="metric-card">
                 <h3>إجمالي الطلاب</h3>
                 <div class="metric-value" id="students-count"><span class="skeleton skeleton-text" style="width: 50px;"></span></div>
@@ -644,20 +650,27 @@
             }).catch(err => console.error("Error loading stats:", err));
     }
 
-    // جلب طلبات الحجز المعلقة
+    // جلب طلبات الحجز المعلقة وتحديث عداد الانتظار
     function loadPendingBookings() {
         fetch('/Admin/GetPendingBookings')
             .then(res => res.json())
             .then(data => {
                 const tbody = document.getElementById('pending-bookings-table-body');
-                document.getElementById('pending-booking-badge').innerText = data.length;
+                const count = data ? data.length : 0;
+
+                // 1. تحديث العدادات دائماً (سواء كانت القيمة 0 أو أكثر)
+                document.getElementById('pending-booking-badge').innerText = count;
+                document.getElementById('students-count_waiting').innerText = count;
+
                 tbody.innerHTML = '';
 
-                if (data.length === 0) {
+                // 2. التحقق من وجود بيانات لإظهارها في الجدول
+                if (!data || data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8; padding: 25px;">لا توجد طلبات تأكيد حجز جديدة</td></tr>`;
                     return;
                 }
 
+                // 3. رسم صفوف الجدول
                 data.forEach(item => {
                     tbody.innerHTML += `
                         <tr>
@@ -678,8 +691,16 @@
                             </td>
                         </tr>`;
                 });
+            })
+            .catch(err => {
+                console.error("Error loading pending bookings:", err);
+                document.getElementById('students-count_waiting').innerText = '0';
             });
     }
+
+
+
+
 
     // جلب طلبات تغيير المجموعات
     function loadGroupChangeRequests() {
