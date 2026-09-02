@@ -40,7 +40,13 @@ namespace Al_Muzayyen.Controllers
         {
             // 1️⃣ جلب بيانات الامتحان
             var exam = await _examService.GetExamByIdAsync(id);
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
 
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             if (exam == null)
                 return NotFound();
 
@@ -48,13 +54,13 @@ namespace Al_Muzayyen.Controllers
             { TempData["Error"] = "هذا الامتحان غير مفعل";
             return RedirectToAction("Exams", "Student"); }
 
-            if (DateTime.Now < exam.StartExamTime)
+            if (now < exam.StartExamTime)
             {
                 TempData["Error"] = "الامتحان لم يبدأ بعد";
                 return RedirectToAction("Exams", "Student");
             }
 
-            if (DateTime.Now > exam.EndExamTime)
+            if (now > exam.EndExamTime)
             { TempData["Error"] = "انتهى موعد الامتحان";
             return RedirectToAction("Exams", "Student"); }
 
@@ -82,7 +88,7 @@ namespace Al_Muzayyen.Controllers
                 // 🟢 أ) إذا كانت المحاولة سارية ولكن الطالب خرج أو انقطع عنه النت وانتهى الوقت
                 if (!existingStudentExam.IsSubmitted)
                 {
-                    var timeElapsed = DateTime.Now - existingStudentExam.StartedAt;
+                    var timeElapsed = now - existingStudentExam.StartedAt;
 
                     // إذا تجاوز الوقت المسموح للامتحان
                     if (timeElapsed.TotalMinutes >= exam.DurationMinutes)
@@ -153,7 +159,13 @@ namespace Al_Muzayyen.Controllers
         public async Task<IActionResult> Submit(int examId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
 
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             if (string.IsNullOrEmpty(userId))
                 return RedirectToAction("login2", "Account");
 
@@ -176,8 +188,8 @@ namespace Al_Muzayyen.Controllers
                 // 3️⃣ تحديث سجل المحاولة في قاعدة البيانات
                 studentExam.Score = totalScore;         // إعطاء الدرجة الفعلية
                 studentExam.IsSubmitted = true;         // تعليم الامتحان كـ "تم التسليم"
-                studentExam.SubmittedAt = DateTime.Now; // تسجيل وقت التسليم
-                studentExam.EndTime = DateTime.Now;
+                studentExam.SubmittedAt = now; // تسجيل وقت التسليم
+                studentExam.EndTime = now;
 
                 await _context.SaveChangesAsync();
             }
@@ -299,6 +311,13 @@ namespace Al_Muzayyen.Controllers
         [HttpGet]
         public async Task<IActionResult> Review(int examId, int? studentId)
         {
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             int targetStudentId = 0;
 
             // 1️⃣ التحقق مما إذا كان الطلب قادماً من الأدمن/المعلم ومرفق معه studentId
@@ -341,8 +360,9 @@ namespace Al_Muzayyen.Controllers
             // الشروط الخاصة بالطلاب (تُتجاوز تماماً إذا كان المستخدم أدمن أو معلم)
             if (!User.IsInRole("Admin") && !User.IsInRole("Teacher"))
             {
+               
                 bool hasSubmitted = submission.IsSubmitted;
-                bool isExamEnded = DateTime.Now >= exam.EndExamTime;
+                bool isExamEnded = now >= exam.EndExamTime;
 
                 if (!hasSubmitted || !isExamEnded)
                 {
@@ -370,7 +390,7 @@ namespace Al_Muzayyen.Controllers
                 ExamId = exam.Id,
                 ExamTitle = exam.Title,
                 IsSubmitted = submission.IsSubmitted,
-                IsExamEnded = DateTime.Now >= exam.EndExamTime,
+                IsExamEnded =    now >= exam.EndExamTime,
                 Questions = questions.Select(q =>
                 {
                     var correctOption = q.Options.FirstOrDefault(o => o.IsCorrect);
@@ -535,6 +555,13 @@ namespace Al_Muzayyen.Controllers
         [HttpPost]
         public async Task<IActionResult> SavePaperExamScores([FromBody] SavePaperExamScoresDto dto)
         {
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             if (dto == null) return BadRequest("البيانات المدخلة غير صالحة");
 
             var classId = await _context.Available_Slots
@@ -564,7 +591,7 @@ namespace Al_Muzayyen.Controllers
                     ClassId = classId,
                     ExamDate = dto.ExamDate,
                     IsPaperExam = true,
-                    CreatedAt = DateTime.Now,
+                    CreatedAt = now,
                     StartExamTime = dto.ExamDate,
                     EndExamTime = dto.ExamDate,
                     ExamGroups = new List<ExamGroup>
@@ -598,14 +625,14 @@ namespace Al_Muzayyen.Controllers
                             IsSubmitted = true,
                             StartedAt = dto.ExamDate,
                             EndTime = dto.ExamDate,
-                            SubmittedAt = DateTime.Now
+                            SubmittedAt = now
                         });
                     }
                     else
                     {
                         studentExam.Score = item.Score.Value;
                         studentExam.IsSubmitted = true;
-                        studentExam.SubmittedAt = DateTime.Now;
+                        studentExam.SubmittedAt = now;
                     }
                 }
             }

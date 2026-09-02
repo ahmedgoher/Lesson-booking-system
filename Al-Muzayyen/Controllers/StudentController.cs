@@ -125,7 +125,13 @@ namespace Al_Muzayyen.Controllers
             var student = await GetCurrentStudentAsync();
             if (student == null) return Unauthorized();
 
-            var now = DateTime.Now;
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             var joinDate = student.CreatedAt;
 
             // الامتحانات التي أداها الطالب بالفعل
@@ -275,11 +281,16 @@ namespace Al_Muzayyen.Controllers
             int currentStudentSlotId = student.SlotId;
             int currentStudentId = student.Id;
 
-            // تاريخ انضمام الطالب فقط (بدون الوقت)
+            // تاريخ انضمام الطالب فقط
             var studentCreatedDate = student.CreatedAt.Date;
 
-            // الوقت الحالي
-            var now = DateTime.Now;
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
 
             var exams = await _context.Exams
                 .Where(e =>
@@ -295,7 +306,8 @@ namespace Al_Muzayyen.Controllers
                     TotalMarks = e.TotalMarks,
                     IsPaperExam = e.IsPaperExam,
 
-                    Status = e.StudentExams.Any(x => x.StudentId == currentStudentId && x.IsSubmitted)
+                    Status = e.StudentExams.Any(
+                        x => x.StudentId == currentStudentId && x.IsSubmitted)
                         ? "Completed"
                         : now < e.StartExamTime
                             ? "NotStarted"
@@ -303,7 +315,8 @@ namespace Al_Muzayyen.Controllers
                                 ? "Ended"
                                 : "Available",
 
-                    IsCompleted = e.StudentExams.Any(se => se.StudentId == currentStudentId && se.IsSubmitted),
+                    IsCompleted = e.StudentExams.Any(
+                        se => se.StudentId == currentStudentId && se.IsSubmitted),
 
                     Score = e.StudentExams
                         .Where(se => se.StudentId == currentStudentId)
@@ -521,6 +534,14 @@ namespace Al_Muzayyen.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitGroupChangeRequest([FromBody] ChangeGroupVM vm)
         {
+
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
             try
             {
                 var studentIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -549,7 +570,7 @@ namespace Al_Muzayyen.Controllers
                     RequestSlotId = vm.RequestedSlotId,
                     Reason = vm.Reason,
                     Status = RequestStatus.Pending,
-                    RequestDate = DateTime.Now
+                    RequestDate = now
                 };
                 _context.GroupChangeRequests.Add(newRequest);
                 await _context.SaveChangesAsync();

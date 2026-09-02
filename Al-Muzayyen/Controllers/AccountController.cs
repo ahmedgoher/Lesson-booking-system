@@ -113,6 +113,7 @@ namespace Al_Muzayyen.Controllers
                         IsPersistent = model.RememberMe,
                         ExpiresUtc = model.RememberMe
                             ? DateTimeOffset.UtcNow.AddDays(30)
+                            
                             : DateTimeOffset.UtcNow.AddHours(2)
                     };
 

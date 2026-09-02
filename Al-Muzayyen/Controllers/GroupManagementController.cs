@@ -184,7 +184,13 @@ namespace Al_Muzayyen.Controllers
                 });
             }
 
-            var now = DateTime.Now;
+            // توقيت مصر
+            var egyptTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
+            var now = TimeZoneInfo.ConvertTimeFromUtc(
+                DateTime.UtcNow,
+                egyptTimeZone
+            );
 
             // 🎯 هل انتهى وقت الامتحان كلياً بالنسبة للجدول الزمني؟
             bool isExamEnded = now > exam.EndExamTime;
